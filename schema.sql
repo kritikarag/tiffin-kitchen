@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS order_items (
 
 CREATE TABLE IF NOT EXISTS conversations (
   id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  token          CHAR(36) NOT NULL UNIQUE,          -- random id the dashboard keeps; ids that count up are guessable
   kitchen_id     INT UNSIGNED NULL,                 -- NULL until create_kitchen runs
   messages       JSON NOT NULL,
   pending_action JSON NULL,                         -- a tool call waiting for the owner's yes

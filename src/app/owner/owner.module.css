@@ -1,0 +1,119 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 2rem);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.top h1 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.link {
+  border: none;
+  background: none;
+  color: var(--accent-dark);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.lines {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 0;
+}
+
+.hint {
+  color: var(--muted);
+}
+
+.owner,
+.agent {
+  max-width: 85%;
+  margin: 0;
+  padding: 0.7rem 0.95rem;
+  border-radius: 14px;
+  white-space: pre-wrap;
+}
+
+.owner {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #fff;
+}
+
+.agent {
+  align-self: flex-start;
+  background: var(--tint);
+}
+
+.confirm {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.yes,
+.no {
+  flex: 1;
+  min-height: 3.5rem;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.yes {
+  border: none;
+  background: #1b8a63;
+  color: #fff;
+}
+
+.no {
+  border: 2px solid #b9b9b9;
+  background: #fff;
+  color: var(--ink);
+}
+
+.error {
+  padding: 0.7rem 0.95rem;
+  border-radius: 10px;
+  background: #fdecea;
+  color: #8f1d14;
+}
+
+.inputBar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  background: #fff;
+}
+
+.inputBar input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #b9b9b9;
+  border-radius: 10px;
+  font: inherit;
+}
+
+.inputBar button {
+  padding: 0 1.2rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+}

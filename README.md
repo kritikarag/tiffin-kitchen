@@ -2,7 +2,8 @@
 
 Voice-first tiffin kitchen for the GoDaddy Inclusive Innovation Hackathon 2026.
 
-This is stage 1: the customer side. It has the database schema, the public menu page and the order API. The owner dashboard, the tools and the agent loop come next.
+Stage 1 is the customer side: the schema, the public menu page and the order API.
+Stage 2 is the agent: eight tools, the agent loop with a confirmation gate, and a typed owner chat at `/owner`. See [docs/stage-2-agent-guide.md](docs/stage-2-agent-guide.md).
 
 ## Run it locally
 
@@ -16,7 +17,9 @@ npm run db:seed           # adds a demo kitchen with today's menu
 npm run dev
 ```
 
-Open http://localhost:3000/k/ammas-kitchen
+Open http://localhost:3000/k/ammas-kitchen for the customer page, and http://localhost:3000/owner for the owner chat (needs `ANTHROPIC_API_KEY`).
+
+Run `npm run test:agent` to test the agent loop without an API key.
 
 The seed sets the cut-off to 22:00 so the page stays open while you test. To try another time: `SEED_CUTOFF=11:00 npm run db:seed`. Running the seed again resets the demo kitchen and its orders.
 
