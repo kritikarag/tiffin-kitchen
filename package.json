@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
+    "db:seed": "node --env-file-if-exists=.env scripts/seed.mjs"
   },
   "dependencies": {
+    "mysql2": "^3.24.6",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"
@@ -20,5 +23,8 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

@@ -1,0 +1,288 @@
+.page {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+
+.loading,
+.notice {
+  margin: 2rem 0;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: var(--tint);
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.languages {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.language,
+.languageActive {
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.languageActive {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.header {
+  margin: 1.25rem 0 1.5rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.9rem;
+  line-height: 1.2;
+}
+
+.header p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.menuHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.menuHead h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.cutoff {
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--accent-dark);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.dishes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dish,
+.dishSoldOut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.dishSoldOut .dishText {
+  opacity: 0.5;
+}
+
+.dishText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.dishText strong {
+  font-size: 1.15rem;
+}
+
+.dishText span {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.dishText .price,
+.price {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.soldOut {
+  flex-shrink: 0;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  background: #f1f1f1;
+  color: #555;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.stepper {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stepper button {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--accent-dark);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stepper button:disabled {
+  border-color: var(--line);
+  color: #bbb;
+  cursor: default;
+}
+
+.stepper output {
+  min-width: 2rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fields {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.fields label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+.fields input,
+.fields textarea {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #b9b9b9;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.05rem; /* 16px or more stops iOS zooming in on focus */
+  font-weight: 400;
+}
+
+.fields input:focus,
+.fields textarea:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+}
+
+.error {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #fdecea;
+  color: #8f1d14;
+  font-weight: 600;
+}
+
+.submitBar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 0.75rem 0;
+  background: #fff;
+  border-top: 1px solid var(--line);
+}
+
+.total {
+  font-size: 1.1rem;
+}
+
+.total strong {
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.primary,
+.secondary {
+  min-height: 3.1rem;
+  padding: 0 1.5rem;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.secondary {
+  border: 1px solid var(--accent);
+  background: #fff;
+  color: var(--accent-dark);
+}
+
+.pay {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.placed {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border-radius: 14px;
+  background: #e8f7f1;
+  text-align: center;
+}
+
+.placed h2 {
+  margin: 0 0 0.5rem;
+  color: #146c4d;
+  font-size: 1.5rem;
+}
+
+.placed p {
+  margin: 0.4rem 0;
+}
+
+.placedTotal {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.placed button {
+  margin-top: 1rem;
+}

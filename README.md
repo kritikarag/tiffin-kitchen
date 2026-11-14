@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tiffin
 
-## Getting Started
+Voice-first tiffin kitchen for the GoDaddy Inclusive Innovation Hackathon 2026.
 
-First, run the development server:
+This is stage 1: the customer side. It has the database schema, the public menu page and the order API. The owner dashboard, the tools and the agent loop come next.
+
+## Run it locally
+
+You need Node.js 22 or later and a MySQL (or MariaDB) database.
 
 ```bash
+npm install
+cp .env.example .env      # then put your database details in .env
+npm run db:migrate        # creates the tables
+npm run db:seed           # adds a demo kitchen with today's menu
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000/k/ammas-kitchen
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The seed sets the cut-off to 22:00 so the page stays open while you test. To try another time: `SEED_CUTOFF=11:00 npm run db:seed`. Running the seed again resets the demo kitchen and its orders.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## What is where
 
-## Learn More
+| Path | What it does |
+| --- | --- |
+| `schema.sql` | The seven tables |
+| `scripts/` | `migrate.mjs` applies the schema, `seed.mjs` adds the demo kitchen |
+| `src/lib/db.ts` | Database connection pool |
+| `src/lib/time.ts` | "Today" and "now" in the kitchen's time zone, cut-off check |
+| `src/lib/i18n.ts` | Languages, fixed labels, language choice |
+| `src/lib/menu.ts` | Reads today's menu for the page |
+| `src/lib/orders.ts` | Validates and saves an order in one transaction |
+| `src/app/api/orders/route.ts` | `POST /api/orders` |
+| `src/app/k/[slug]/` | The public menu page, language switch and order form |
 
-To learn more about Next.js, take a look at the following resources:
+## Rules the order API enforces
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- The kitchen must be live and have an open menu for today.
+- The cut-off is compared with the current time in the kitchen's time zone.
+- A sold-out dish, or a dish not on today's menu, is rejected.
+- `capacity_per_day` is the total number of portions across all orders for the day.
+- The same `idempotencyKey` always returns the same order, so a double tap creates one order.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Prices are whole rupees. The price of a dish on a given day is stored in `daily_menu_items.price`.
 
-## Deploy on Vercel
+## Adding a language
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Add it to `LANGUAGES` in `src/lib/i18n.ts` and add one dictionary of labels in the same file. Dish names come from `menu_items.translations`.
