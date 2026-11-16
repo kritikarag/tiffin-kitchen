@@ -101,6 +101,7 @@
 }
 
 .inputBar input {
+  min-width: 0;
   flex: 1;
   padding: 0.75rem;
   border: 1px solid #b9b9b9;
@@ -116,4 +117,118 @@
   color: #fff;
   font: inherit;
   font-weight: 700;
+}
+
+.languages {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.language,
+.languageActive {
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.languageActive {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.notice {
+  margin: 0.75rem 0 0;
+  padding: 0.7rem 0.95rem;
+  border-radius: 10px;
+  background: var(--tint);
+  font-size: 0.95rem;
+}
+
+.agentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.replay {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.ownerLive {
+  align-self: flex-end;
+  max-width: 85%;
+  margin: 0;
+  padding: 0.7rem 0.95rem;
+  border: 2px dashed var(--accent);
+  border-radius: 14px;
+  color: var(--accent-dark);
+}
+
+.controls {
+  position: sticky;
+  bottom: 0;
+  padding-top: 0.5rem;
+  background: #fff;
+}
+
+.controls .inputBar {
+  position: static;
+}
+
+.mic,
+.micOn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 4.5rem;
+  border: none;
+  border-radius: 18px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.micOn {
+  background: #1b8a63;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.mic:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.micIcon {
+  font-size: 1.8rem;
+}
+
+@keyframes pulse {
+  50% {
+    box-shadow: 0 0 0 10px rgba(27, 138, 99, 0.18);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .micOn {
+    animation: none;
+  }
 }

@@ -121,3 +121,16 @@ npm run dev          # then open http://localhost:3000/owner
 - `/api/agent` has no sign-in yet. Anyone with a conversation token can act for that kitchen. Add owner login before real use.
 - `register_domain` saves the name but does not buy it yet. The real GoDaddy purchase call needs contact details and agreements, and is left until you have test keys.
 - One owner turn can take several seconds while the loop runs. Streaming the reply would make it feel faster.
+
+## 11. Stage 3: voice
+
+Voice runs entirely in the browser, in `src/app/owner/voice.ts`, so the agent code did not change. The agent still receives text.
+
+- **Speech to text** uses the browser's speech recognition API, set to `kn-IN`, `hi-IN` or `en-IN` from the language buttons. Chrome sends the audio to Google to recognise it, so it needs internet. Words appear live in a dashed bubble while she speaks.
+- **Text to speech** uses `speechSynthesis` with a voice installed on the phone for her language. If the phone has none, the page says replies will be shown as text, and nothing fails silently.
+- **Fallbacks:** typing always works. If the browser has no speech recognition (Firefox, some in-app browsers), the microphone is replaced by a note.
+- **Confirmation stays a button tap.** A misheard "yes" should never publish a page or cancel an order.
+
+![Owner page in Kannada](owner-voice-kannada.png)
+
+What still needs a real phone: recognition accuracy for Kannada and Hindi, and whether the phone has Kannada and Hindi voices installed.
