@@ -24,7 +24,7 @@ export async function translateDishes(model: ModelCall, names: string[]): Promis
         "You prepare menu text for a home tiffin service in India. For each dish, give its name and a one-line " +
         "description in every requested language. Dish names are transliterated, never translated: " +
         '"bisi bele bath" stays "bisi bele bath" in every script. Descriptions are plain and under 12 words.',
-      messages: [{ role: "user", content: `Dishes, in order:\n${names.map((n, i) => `${i + 1}. ${n}`).join("\n")}` }],
+      messages: [{ role: "user", content: `Call save_translations for these dishes, in order:\n${names.map((n, i) => `${i + 1}. ${n}`).join("\n")}` }],
       tools: [
         {
           name: "save_translations",
@@ -45,7 +45,8 @@ export async function translateDishes(model: ModelCall, names: string[]): Promis
           },
         },
       ],
-      forceTool: "save_translations",
+      // Forcing a specific tool (tool_choice) is not supported on every model, so the prompt asks for it
+      // instead, and anything other than a save_translations call is treated as a failure below.
       maxTokens: 2000,
     });
     const call = response.content.find((b) => b.type === "tool_use");

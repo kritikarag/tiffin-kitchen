@@ -11,7 +11,7 @@ let script: ((req: ModelRequest) => ModelResponse)[] = [];
 
 const fakeModel: ModelCall = async (req) => {
   seen.push(structuredClone(req));
-  if (req.forceTool === "save_translations") {
+  if (req.tools.length === 1 && req.tools[0].name === "save_translations") {
     const names = String(req.messages[0].content).split("\n").slice(1).map((l) => l.replace(/^\d+\. /, ""));
     return { content: [{ type: "tool_use", id: "tr", name: "save_translations",
       input: { dishes: names.map((n) => ({ en: { name: n, description: "test" }, hi: { name: `${n} (hi)`, description: "t" }, kn: { name: `${n} (kn)`, description: "t" } })) } }] };
@@ -24,6 +24,13 @@ const fakeModel: ModelCall = async (req) => {
 const say = (text: string) => () => ({ content: [{ type: "text" as const, text }] });
 let n = 0;
 const call = (name: string, input: unknown) => () => ({ content: [{ type: "tool_use" as const, id: `tu_${++n}`, name, input }] });
+const ownerOutcome = (req: ModelRequest) => {
+  const m = req.messages[req.messages.length - 1];
+  const text = typeof m.content === "string" ? m.content : m.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+  const match = text.match(/Tool result: ([\s\S]*)\]$/);
+  assert.ok(match, `expected the owner's Yes/No outcome, got: ${text}`);
+  return JSON.parse(match[1]);
+};
 const lastResult = (req: ModelRequest) => {
   const m = req.messages[req.messages.length - 1] as Message;
   const blocks = (Array.isArray(m.content) ? m.content : []).filter((b): b is ToolResultBlock => b.type === "tool_result");
@@ -45,12 +52,22 @@ function assertValidConversation(messages: Message[]) {
     const answered = (Array.isArray(next.content) ? next.content : []).filter((b) => b.type === "tool_result").map((b) => (b as ToolResultBlock).tool_use_id);
     assert.deepEqual(answered.sort(), ids.sort());
   }
+  // The other direction, which the real API also enforces: a tool_result must answer the message before it.
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i];
+    if (m.role !== "user" || typeof m.content === "string") continue;
+    const results = m.content.filter((b) => b.type === "tool_result").map((b) => (b as ToolResultBlock).tool_use_id);
+    if (results.length === 0) continue;
+    const prev = messages[i - 1];
+    const asked = prev?.role === "assistant" ? prev.content.filter((b) => b.type === "tool_use").map((b) => (b as { id: string }).id) : [];
+    for (const id of results) assert.ok(asked.includes(id), `tool_result ${id} at message ${i} does not answer the message before it`);
+  }
 }
 
 async function turn(token: string | null, t: Parameters<typeof handleOwnerTurn>[1]) {
   seen = [];
   const r = await handleOwnerTurn(token, t, fakeModel);
-  for (const req of seen) if (!req.forceTool) assertValidConversation(req.messages);
+  for (const req of seen) if (req.tools.length > 1) assertValidConversation(req.messages);
   assert.equal(script.length, 0, "not every scripted model reply was used");
   return r;
 }
@@ -83,7 +100,7 @@ async function main() {
   ok("create_kitchen is held: nothing is written before the owner says yes");
 
   // 3. She says yes: the tool really runs, translations are saved, Claude gets the result.
-  script = [(req) => { assert.equal(lastResult(req).saved, true); return say("ಉಳಿಸಿದೆ!")(); }];
+  script = [(req) => { assert.equal(ownerOutcome(req).saved, true); return say("ಉಳಿಸಿದೆ!")(); }];
   r = await turn(token, { type: "confirm" });
   assert.ok(r.kitchenId);
   const kitchenId = r.kitchenId!;
@@ -103,7 +120,7 @@ async function main() {
   ];
   r = await turn(token, { type: "message", text: "ಹೆಸರು ಹುಡುಕಿ" });
   assert.equal(r.pending?.name, "register_domain");
-  script = [(req) => { assert.equal(lastResult(req).status, "cancelled_by_owner"); return say("ಸರಿ, ಬೇರೆ ಹೆಸರು?")(); }];
+  script = [(req) => { assert.equal(ownerOutcome(req).status, "cancelled_by_owner"); return say("ಸರಿ, ಬೇರೆ ಹೆಸರು?")(); }];
   r = await turn(token, { type: "cancel" });
   const [k1] = await db().query("SELECT domain, status FROM kitchens WHERE id = ?", [kitchenId]);
   assert.equal((k1 as { domain: string | null }[])[0].domain, null);
@@ -114,7 +131,7 @@ async function main() {
   script = [call("publish_site", {}), say("ಪ್ರಕಟಿಸಲೇ?")];
   r = await turn(token, { type: "message", text: "ಪೇಜ್ ಲೈವ್ ಮಾಡಿ" });
   assert.equal(r.pending?.name, "publish_site");
-  script = [(req) => { const blocks = req.messages[req.messages.length - 1].content as { type: string }[]; assert.equal(blocks[0].type, "tool_result"); assert.equal(blocks[1].type, "text"); return say("ಸರಿ.")(); }];
+  script = [(req) => { const blocks = req.messages[req.messages.length - 1].content as { type: string; text?: string }[]; assert.equal(blocks.length, 2); assert.match(String(blocks[0].text), /dropped/); assert.equal(blocks[1].type, "text"); return say("ಸರಿ.")(); }];
   r = await turn(token, { type: "message", text: "ಇರಲಿ, ಮೊದಲು ಬೆಲೆ ಹೇಳಿ" });
   assert.equal(r.pending, null);
   ok("speaking instead of answering drops the held action without breaking the conversation");

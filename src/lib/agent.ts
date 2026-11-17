@@ -50,6 +50,7 @@ Running a live kitchen:
 Rules:
 - Some tools are held until she says yes. When a tool result says "awaiting_owner_confirmation", read the action back in one sentence and ask her to confirm. Do not say it is done.
 - Never invent orders, prices, dishes or domain results.
+- If a domain result says "simulated": true, say the name is reserved for her, not bought or registered.
 - If a tool returns an error, fix your request or ask her, in plain words.`;
 
 // Facts that change every turn go in the system prompt, so Claude always knows today's date and the state.
@@ -122,6 +123,12 @@ async function saveConversation(c: Conversation): Promise<void> {
   }
 }
 
+// How her Yes or No reaches Claude. "Tool result:" is followed by JSON so it can be read back reliably.
+function ownerAnswer(name: string, yes: boolean, result: { ok: boolean; data: unknown }): string {
+  const what = yes ? (result.ok ? `She tapped Yes and ${name} ran.` : `She tapped Yes but ${name} failed.`) : `She tapped No, so ${name} did not run.`;
+  return `[${what} Tool result: ${JSON.stringify(result.data)}]`;
+}
+
 const asResult = (toolUseId: string, ok: boolean, data: unknown): ToolResultBlock => ({
   type: "tool_result",
   tool_use_id: toolUseId,
@@ -142,16 +149,19 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
     const result =
       turn.type === "confirm"
         ? await runTool(action.name, action.input, { kitchenId: convo.kitchenId, model })
-        : { ok: true, data: { status: "cancelled_by_owner", note: "She said no. Nothing was changed." } };
+        : { ok: true, data: { status: "cancelled_by_owner", note: "Nothing was changed." } };
     if (result.kitchenId != null) convo.kitchenId = result.kitchenId;
-    convo.messages.push({ role: "user", content: [asResult(action.toolUseId, result.ok, result.data)] });
+    // The original tool_use was already answered ("awaiting_owner_confirmation") in an earlier turn, and
+    // Claude has replied since. A tool_result may only follow its own tool_use, so the outcome comes back
+    // as an ordinary user message instead.
+    convo.messages.push({ role: "user", content: ownerAnswer(action.name, turn.type === "confirm", result) });
   } else if (turn.type === "message") {
     const text = turn.text.trim().slice(0, 2000);
     if (convo.pending) {
       // She said something else instead of answering. The held action is dropped, and Claude is told.
       convo.messages.push({
         role: "user",
-        content: [asResult(convo.pending.toolUseId, true, { status: "dropped", note: "She spoke again instead of confirming. Nothing was changed." })],
+        content: `[She did not answer the held ${convo.pending.name} action, so it was dropped and nothing was changed.]`,
       });
       convo.pending = null;
       convo.messages.push({ role: "user", content: text });
