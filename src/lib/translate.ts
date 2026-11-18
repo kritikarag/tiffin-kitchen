@@ -71,3 +71,52 @@ export async function translateDishes(model: ModelCall, names: string[]): Promis
     return empty;
   }
 }
+
+export type KitchenTranslations = Partial<Record<Lang, { name: string; delivery_area: string }>>;
+
+// The kitchen's name and delivery area, written in each language's script so every customer can read them.
+// Names and place names are transliterated, never translated: "Lakshmi Tiffins" stays Lakshmi Tiffins.
+// On failure it returns {}, and the page shows what the owner said.
+export async function translateKitchen(model: ModelCall, name: string, deliveryArea: string): Promise<KitchenTranslations> {
+  const perLanguage = {
+    type: "object",
+    properties: {
+      name: { type: "string", description: "The kitchen name in this language's script, transliterated." },
+      delivery_area: { type: "string", description: "The delivery areas in this language's script, transliterated, comma separated." },
+    },
+    required: ["name", "delivery_area"],
+  };
+  try {
+    const response = await model({
+      system:
+        "You write a home kitchen's name and delivery areas in other Indian scripts. Transliterate; never translate. " +
+        '"Lakshmi Tiffins" in Hindi is "लक्ष्मी टिफ़िन्स", and "Indiranagar" is "इंदिरानगर". In English, use the usual English spelling.',
+      messages: [{ role: "user", content: `Call save_kitchen_text.\nName: ${name}\nDelivery areas: ${deliveryArea}` }],
+      tools: [
+        {
+          name: "save_kitchen_text",
+          description: "Save the kitchen name and delivery areas in every language.",
+          input_schema: {
+            type: "object",
+            properties: Object.fromEntries(LANGUAGES.map((l) => [l.code, perLanguage])),
+            required: LANGUAGES.map((l) => l.code),
+          },
+        },
+      ],
+      maxTokens: 600,
+    });
+    const call = response.content.find((b) => b.type === "tool_use");
+    const input = (call?.type === "tool_use" ? call.input : null) as Record<string, { name?: unknown; delivery_area?: unknown }> | null;
+    const result: KitchenTranslations = {};
+    for (const { code } of LANGUAGES) {
+      const entry = input?.[code];
+      if (typeof entry?.name === "string" && entry.name.trim() && typeof entry.delivery_area === "string") {
+        result[code] = { name: entry.name.trim().slice(0, 160), delivery_area: entry.delivery_area.trim().slice(0, 255) };
+      }
+    }
+    return result;
+  } catch (error) {
+    console.error("Kitchen translation failed", error);
+    return {};
+  }
+}

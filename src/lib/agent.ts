@@ -181,8 +181,11 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
       messages: convo.messages,
       tools: toolDefinitions,
     });
-    // The API rejects an empty assistant turn, so an empty answer is stored as a short text.
-    convo.messages.push({ role: "assistant", content: response.content.length ? response.content : [{ type: "text", text: "…" }] });
+    // Only text and tool calls count as an answer; thinking alone (for example when Claude runs out of
+    // tokens) is not stored, because the fallback below then closes the turn instead.
+    const answered = response.content.some((b) => (b.type === "text" && b.text) || b.type === "tool_use");
+    if (!answered) break;
+    convo.messages.push({ role: "assistant", content: response.content });
 
     const calls = response.content.filter((b): b is ToolUseBlock => b.type === "tool_use");
     if (calls.length === 0) {
@@ -216,8 +219,14 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
 
   if (!reply) {
     reply = "Sorry, I could not finish that. Please say it again in a few words.";
-    // Close the conversation on an assistant turn so the next request is valid.
-    convo.messages.push({ role: "assistant", content: [{ type: "text", text: reply }] });
+    // Close the conversation on an assistant turn so the next request is valid, without ever storing two
+    // assistant turns in a row.
+    const last = convo.messages[convo.messages.length - 1];
+    if (last?.role === "assistant" && !last.content.some((b) => b.type === "tool_use")) {
+      last.content = [...last.content, { type: "text", text: reply }];
+    } else {
+      convo.messages.push({ role: "assistant", content: [{ type: "text", text: reply }] });
+    }
     convo.pending = null;
   }
 

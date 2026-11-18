@@ -26,14 +26,18 @@ export type MenuView = {
 // Returns null when the kitchen does not exist or is not live yet.
 export async function getTodayMenu(slug: string, lang: Lang): Promise<MenuView | null> {
   const [kitchens] = await db().query<RowDataPacket[]>(
-    "SELECT id, name, delivery_area, timezone FROM kitchens WHERE slug = ? AND status = 'live'",
+    "SELECT id, name, delivery_area, translations, timezone FROM kitchens WHERE slug = ? AND status = 'live'",
     [slug],
   );
   const kitchen = kitchens[0];
   if (!kitchen) return null;
 
+  const kitchenText = parseJson<Partial<Record<Lang, { name?: string; delivery_area?: string }>>>(kitchen.translations, {})[lang];
   const view: MenuView = {
-    kitchen: { name: kitchen.name, deliveryArea: kitchen.delivery_area },
+    kitchen: {
+      name: kitchenText?.name || kitchen.name, // fall back to what the owner said
+      deliveryArea: kitchenText?.delivery_area || kitchen.delivery_area,
+    },
     state: "none",
     cutoffTime: null,
     dishes: [],

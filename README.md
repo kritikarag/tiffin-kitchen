@@ -172,7 +172,7 @@ The owner and each customer use their own language, and neither needs to know th
 | Owner speech to text | The browser's speech recognition, set to `kn-IN`, `hi-IN` or `en-IN` |
 | Understanding her | Claude, including mixed-language speech |
 | Replies | Claude replies in her language; the browser reads it aloud with a voice installed on her phone |
-| Dishes | Translated by Claude when saved, stored per language |
+| Dishes, kitchen name, delivery area | Translated by Claude when saved, stored per language; names and places are transliterated |
 | Menu page labels | A small dictionary per language in `src/lib/i18n.ts` |
 | Customer notes | Stored as written, translated into her language in the cooking list |
 
@@ -182,7 +182,7 @@ Adding a language means one entry in the language list and one dictionary of lab
 
 | Table | Holds |
 | --- | --- |
-| `kitchens` | Name, web address slug, owner's language, delivery area, daily capacity, time zone, domain, `draft` or `live` |
+| `kitchens` | Name, web address slug, owner's language, delivery area, their translations, daily capacity, time zone, domain, `draft` or `live` |
 | `menu_items` | Each dish as the owner said it, its usual price, and translations as JSON |
 | `daily_menus` | One row per kitchen per day: cut-off time and `open`, `closed` or `holiday` |
 | `daily_menu_items` | Which dishes are on a day's menu, that day's price, and whether sold out |
@@ -225,7 +225,8 @@ You need Node.js 22 or later, a MySQL or MariaDB database, and a Claude API key 
 npm install
 cp .env.example .env      # then fill in the values below
 npm run db:migrate        # creates the tables
-npm run db:seed           # optional: a demo kitchen with today's menu
+npm run db:seed           # optional: a simple demo kitchen with today's menu
+npm run db:seed-demo      # optional: Lakshmi Tiffins, live, with orders in three languages
 npm run dev
 ```
 
@@ -239,7 +240,8 @@ npm run dev
 Then open:
 
 - http://localhost:3000/owner to launch a kitchen by talking to the assistant
-- http://localhost:3000/k/ammas-kitchen for the seeded demo kitchen's menu
+- http://localhost:3000/k/ammas-kitchen for the simple demo kitchen's menu
+- After `db:seed-demo`: http://localhost:3000/k/lakshmi-tiffins for Lakshmi's menu, and http://localhost:3000/owner?t=11a6b5e1-d4e1-4000-8000-000000000001 to talk to the assistant as Lakshmi. It already has six orders (one more cancelled), so you can ask straight away for the cooking list. Re-run the seed to reset.
 
 Voice input needs Chrome, and the microphone only works on `localhost` or an HTTPS address. Never commit `.env`; it is already in `.gitignore`.
 
@@ -264,13 +266,12 @@ The app is built for GoDaddy Node.js Hosting, which runs Next.js as a persistent
 
 ## 13. Status and limitations
 
-**Working:** launch by conversation, menu and prices, kitchen save with translations, domain checks, publishing, daily menu, sold out, cancelling, orders, the cooking list, three languages, and voice in and out.
+**Working:** launch by conversation, menu and prices, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, orders, the cooking list, three languages, and voice in and out.
 
 **Known limitations:**
 
 - **Domains:** availability is simulated until GoDaddy test keys are added. Registration reserves the name in the app but does not buy it, and the assistant says "reserved", not "bought".
 - **No owner login yet.** Whoever holds a conversation's token can act for that kitchen. This is fine for a demo, not for real use.
-- **Kitchen name and delivery area are not translated yet.** Only dishes are, so a Hindi reader sees the kitchen name in Kannada.
 - **Voice quality depends on the phone.** Speech recognition accuracy and the availability of Kannada and Hindi voices vary by device.
 - **Replies take 1 to 8 seconds,** because each turn may run several tool rounds. Streaming would make it feel faster.
 
@@ -278,7 +279,6 @@ The app is built for GoDaddy Node.js Hosting, which runs Next.js as a persistent
 
 - Owner sign-in by phone number and one-time code
 - Real domain purchase through GoDaddy, and the domain pointing straight at her page
-- Translating the kitchen name and delivery area
 - Streaming replies so she hears the first words sooner
 - More languages: Tamil, Telugu, Marathi
 - Weekly summaries: what sold, what ran out, which areas order most

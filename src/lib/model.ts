@@ -39,13 +39,20 @@ export const callClaude: ModelCall = async (request) => {
   client ??= new Anthropic(); // reads ANTHROPIC_API_KEY from the environment
   const response = await client.messages.create({
     model: process.env.CLAUDE_MODEL ?? "claude-sonnet-5-5",
-    max_tokens: request.maxTokens ?? 1024,
+    // The budget covers Claude's thinking as well as its reply. 1024 was too small: a long cooking list
+    // in Kannada ran out after the thinking, and the reply came back empty.
+    max_tokens: request.maxTokens ?? 8000,
     system: request.system,
     messages: request.messages,
     tools: request.tools,
     ...(request.forceTool ? { tool_choice: { type: "tool" as const, name: request.forceTool } } : {}),
   });
-  // Keep only the two block types we store and replay.
+  if (!response.content.some((b) => (b.type === "text" && b.text) || b.type === "tool_use")) {
+    console.warn("Claude returned no text or tool call", { stop_reason: response.stop_reason, blocks: response.content.map((b) => b.type) });
+  }
+  // Keep only text and tool calls. Claude's thinking blocks are dropped on purpose: the API accepts them
+  // back only with the exact system prompt they were made with, and ours changes every round because it
+  // carries the current time and today's orders.
   const content: ModelResponse["content"] = [];
   for (const block of response.content) {
     if (block.type === "text" && block.text) content.push({ type: "text", text: block.text });

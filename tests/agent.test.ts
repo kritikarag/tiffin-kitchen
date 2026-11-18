@@ -16,6 +16,10 @@ const fakeModel: ModelCall = async (req) => {
     return { content: [{ type: "tool_use", id: "tr", name: "save_translations",
       input: { dishes: names.map((n) => ({ en: { name: n, description: "test" }, hi: { name: `${n} (hi)`, description: "t" }, kn: { name: `${n} (kn)`, description: "t" } })) } }] };
   }
+  if (req.tools.length === 1 && req.tools[0].name === "save_kitchen_text") {
+    const text = { name: "kitchen", delivery_area: "area" };
+    return { content: [{ type: "tool_use", id: "kt", name: "save_kitchen_text", input: { en: text, hi: { ...text, name: "किचन" }, kn: text } }] };
+  }
   const next = script.shift();
   assert.ok(next, "the agent called the model more times than the test expected");
   return next(req);
@@ -109,6 +113,9 @@ async function main() {
   const raw = (items as { translations: unknown }[])[0].translations;
   const tr = typeof raw === "string" ? JSON.parse(raw) : (raw as { kn: { name: string } });
   assert.equal(tr.kn.name, "ಚಪಾತಿ ಪಲ್ಯ (kn)");
+  const [kt] = await db().query("SELECT translations FROM kitchens WHERE id = ?", [kitchenId]);
+  const kraw = (kt as { translations: unknown }[])[0].translations;
+  assert.equal((typeof kraw === "string" ? JSON.parse(kraw) : kraw).hi.name, "किचन");
   ok("on yes, the kitchen and dishes are saved as a draft, with translations");
 
   // 4. Domains: one taken, one free (simulated without keys), then register is held and she says no.

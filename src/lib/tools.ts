@@ -4,7 +4,7 @@ import { checkDomain, isValidDomain, registerDomain } from "./godaddy";
 import { LANGUAGES, isLang } from "./i18n";
 import type { ModelCall, ToolDefinition } from "./model";
 import { nowInZone } from "./time";
-import { translateDishes } from "./translate";
+import { translateDishes, translateKitchen } from "./translate";
 
 // A tool is three things: a description Claude reads, a flag saying whether the owner must confirm it,
 // and a plain function that does the work. Claude never touches the database or GoDaddy; it can only
@@ -109,7 +109,11 @@ const createKitchen: Tool = {
     }));
     if (ctx.dryRun) return held({ name, delivery_area: area, capacity_per_day: capacity, dishes });
 
-    const translations = await translateDishes(ctx.model, dishes.map((d) => d.name));
+    // Both translations run at the same time to keep her wait short.
+    const [translations, kitchenText] = await Promise.all([
+      translateDishes(ctx.model, dishes.map((d) => d.name)),
+      translateKitchen(ctx.model, name, area),
+    ]);
 
     const conn = await db().getConnection();
     try {
@@ -122,8 +126,8 @@ const createKitchen: Tool = {
         slug = `${base}-${n}`;
       }
       const [kitchen] = await conn.query<ResultSetHeader>(
-        "INSERT INTO kitchens (slug, name, owner_language, delivery_area, capacity_per_day, status) VALUES (?, ?, ?, ?, ?, 'draft')",
-        [slug, name, input.owner_language, area, capacity],
+        "INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, status) VALUES (?, ?, ?, ?, ?, ?, 'draft')",
+        [slug, name, input.owner_language, area, JSON.stringify(kitchenText), capacity],
       );
       const saved: { menu_item_id: number; name: string; price: number }[] = [];
       for (const [i, dish] of dishes.entries()) {

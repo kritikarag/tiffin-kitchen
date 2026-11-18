@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS kitchens (
   name             VARCHAR(160) NOT NULL,
   owner_language   VARCHAR(8)   NOT NULL DEFAULT 'en',
   delivery_area    VARCHAR(255) NOT NULL DEFAULT '',
+  translations     JSON NULL,                         -- {"hi": {"name": "...", "delivery_area": "..."}, ...}
   capacity_per_day INT UNSIGNED NULL,               -- total portions per day; NULL means no limit
   timezone         VARCHAR(64)  NOT NULL DEFAULT 'Asia/Kolkata',
   domain           VARCHAR(255) NULL,

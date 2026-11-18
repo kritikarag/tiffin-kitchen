@@ -124,8 +124,15 @@ export default function OwnerChat() {
   const t = LABELS[lang];
 
   // Restore the conversation.
+  // A link like /owner?t=<token> opens that conversation (the demo seed prints one). The token is then
+  // removed from the address bar so it isn't shared by accident.
   useEffect(() => {
-    token.current = read(TOKEN_KEY);
+    const fromLink = new URLSearchParams(window.location.search).get("t");
+    if (fromLink && /^[0-9a-f-]{36}$/.test(fromLink)) {
+      write(TOKEN_KEY, fromLink);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+    token.current = fromLink ?? read(TOKEN_KEY);
   }, []);
   useEffect(() => {
     let cancelled = false;
