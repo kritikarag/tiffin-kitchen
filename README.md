@@ -257,12 +257,14 @@ The full flow has also been run with the real Claude in Kannada and English, whi
 
 ## 12. Deploying to GoDaddy
 
-The app is built for GoDaddy Node.js Hosting, which runs Next.js as a persistent Node.js 22 process and includes a managed MySQL database.
+The app is built for GoDaddy Node.js Hosting, which runs Next.js as a persistent Node.js 22 process and includes a managed MySQL database. It passes GoDaddy's deploy validator, and it creates its own tables when the server starts, so no shell access is needed.
 
-1. Connect this GitHub repository to a Node.js Hosting app.
-2. Set the environment variables from the table above.
-3. Run `npm run db:migrate` once against the hosted database.
-4. Publish on a domain. HTTPS comes with the hosting, which the microphone needs.
+1. Create a Node.js Hosting app by uploading a zip of this repository (made with `git archive --format=zip -o tiffin.zip HEAD`) or by syncing the GitHub repository.
+2. In the app's **Settings**, add `ANTHROPIC_API_KEY`. GoDaddy supplies the database settings (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`) itself.
+3. Optionally add `SEED_DEMO_ON_START=1`, restart once to load the Lakshmi Tiffins demo, then remove it so later restarts don't reset the demo.
+4. Publish, and connect a domain in **Settings**. HTTPS comes with the hosting, which the microphone needs.
+
+The tables are created automatically on every start, and doing so again is harmless.
 
 ## 13. Status and limitations
 
