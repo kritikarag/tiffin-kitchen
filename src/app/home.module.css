@@ -1181,3 +1181,130 @@
   justify-self: end;
   font-weight: 600;
 }
+
+/* Priya's day: the customer's side, on rice-white instead of banana leaf, so the two days read apart. */
+.dayCustomer {
+  composes: day;
+  background: #f6efe2;
+  color: var(--ink);
+}
+
+.dayCustomer .dayLead {
+  color: var(--muted);
+}
+
+.dayCustomer .moment,
+.dayCustomer .momentOn {
+  border-color: rgba(24, 32, 27, 0.15);
+  color: var(--ink);
+}
+
+.dayCustomer .moment:hover {
+  border-color: rgba(24, 32, 27, 0.4);
+}
+
+.dayCustomer .momentOn {
+  border-color: #c2521c;
+  background: #fff;
+}
+
+.dayCustomer .time {
+  color: #b5470f;
+}
+
+.dayCustomer .momentText {
+  color: var(--muted);
+}
+
+.dayCustomer .moment:focus-visible,
+.dayCustomer .momentOn:focus-visible {
+  outline-color: #c2521c;
+}
+
+.phoneStack {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.phoneTitle {
+  font-size: 1.25rem;
+}
+
+.menuRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid #e3e6e0;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.payCard {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #e3e6e0;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.payCard strong {
+  font-size: 1.6rem;
+}
+
+.qr {
+  width: 9rem;
+  height: 9rem;
+  fill: var(--ink);
+  shape-rendering: crispEdges;
+}
+
+.miniStages {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.05rem;
+}
+
+.stageDone {
+  color: #1b8a63;
+}
+
+.stageNow {
+  color: #b5470f;
+  font-weight: 800;
+}
+
+.stageNext {
+  color: #9a918b;
+}
+
+.whatsappBubble {
+  align-self: flex-start;
+  max-width: 92%;
+  margin: 0.4rem 0 0;
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  background: #dcf8c6;
+  line-height: 1.45;
+}
+
+.receivedButton,
+.againButton {
+  display: block;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #1f7a3a;
+  color: #fff;
+  font-weight: 700;
+  text-align: center;
+}
+
+.againButton {
+  border: 2px solid #c2521c;
+  background: #fff;
+  color: #9a3f12;
+}

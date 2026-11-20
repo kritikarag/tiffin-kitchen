@@ -5,7 +5,7 @@ import { labelsFor, type Lang } from "@/lib/i18n";
 
 const en = {
   langLabel: "Language",
-  nav: { day: "A day", agent: "The agent", languages: "Languages", trust: "Safety", demo: "Try the demo" },
+  nav: { day: "A day", customer: "A customer", agent: "The agent", languages: "Languages", trust: "Safety", demo: "Try the demo" },
   title: "Your kitchen, in your language.",
   lead: "Affordable home food from the cook next door, for daily-wage workers, students and office workers alike. She runs her kitchen by speaking her own language, and you order in yours. No app, no commission, no English needed.",
   start: "Start my kitchen",
@@ -27,6 +27,21 @@ const en = {
     ["11:00 am", "Cut-off: what to cook", "Allergy notes come first, then exact totals and deliveries by area."],
     ["2:00 pm", "The dabbas come back", "Every steel box is counted, so none goes missing."],
   ],
+  customerTitle: "One day for Priya, her customer",
+  customerLead: "Priya reads Hindi; Lakshmi writes in Kannada. Tap a moment to see Priya's phone.",
+  customerMoments: [
+    ["8:50 am", "She reads the menu in Hindi", "Lakshmi wrote it in Kannada. No app, no account, and today's sold-out dish is marked."],
+    ["8:52 am", "She speaks her note", "She reads Hindi but doesn't type it, so she taps the mic. It reaches Lakshmi in Kannada, in red."],
+    ["8:53 am", "She pays the cook directly", "A UPI QR code for the exact amount. No commission, no platform fee."],
+    ["12:40 pm", "She follows her tiffin", "The page moves by itself, and WhatsApp tells her in Hindi when it leaves."],
+    ["1:05 pm", "She confirms it arrived", "Only she can mark it delivered. Lakshmi's screen chimes."],
+    ["Next day", "Same as last time", "Her details and last order are remembered on her phone. Two taps."],
+  ],
+  c2Note: "Shown to Lakshmi as an allergy alert, in Kannada",
+  c3Pay: "Scan to pay Lakshmi",
+  c3Direct: "Straight to her UPI ID",
+  c5Chime: "On Lakshmi's screen",
+  c5Received: "Priya received her tiffin",
   stepsHeading: "What I did",
   waiting: "waiting for your Yes",
   yes: "Yes",
@@ -141,3 +156,22 @@ export const TICKETS = [
 
 // The note example in the languages section: written in Tamil, read in Kannada.
 export const NOTE_EXAMPLE = { written: "காரம் குறைவாக, வேர்க்கடலை வேண்டாம்", read: "ಖಾರ ಕಡಿಮೆ, ಕಡಲೆಕಾಯಿ ಬೇಡ" };
+
+// Priya's phone, in Hindi whatever language this page is in: what she actually sees.
+export const PRIYA = {
+  dishes: [
+    ["चपाती पल्य", "₹70"],
+    ["बिसि बेले बाथ", "₹80"],
+  ],
+  soldOutDish: "शाविगे पायसा",
+  soldOut: "खत्म",
+  said: "मूंगफली से एलर्जी है",
+  noteKn: "ಕಡಲೆಕಾಯಿ ಅಲರ್ಜಿ ಇದೆ",
+  amount: "₹230",
+  stages: ["ऑर्डर मिल गया", "बन रहा है", "रास्ते में", "पहुँच गया"],
+  whatsapp: "नमस्ते Priya, लक्ष्मी टिफ़िन्स से आपका टिफ़िन रास्ते में है।",
+  received: "मुझे टिफ़िन मिल गया",
+  same: "पिछली बार जैसा",
+  sameItems: "1 × चपाती पल्य, 2 × बिसि बेले बाथ",
+  placeOrder: "ऑर्डर करें",
+};

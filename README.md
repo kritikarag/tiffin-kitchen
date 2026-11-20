@@ -159,7 +159,7 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 
 | Part | What it does |
 | --- | --- |
-| Home page `/` | One line on what it is, then a day in a kitchen to tap through (each moment shows the real screen), how the agent and its eleven tools work, the guardrails, and a before and after. In any of the nine languages, with a button to the demo kitchen always in reach |
+| Home page `/` | One line on what it is, then two days to tap through, each moment showing the real screen: the cook's day (Lakshmi, in Kannada) and her customer's (Priya, in Hindi: reading the menu, speaking a note, paying by UPI, tracking, confirming delivery, ordering again), how the agent and its eleven tools work, the guardrails, and a before and after. In any of the nine languages, with a button to the demo kitchen always in reach |
 | Owner page `/owner` | Records speech into an editable box, sends menu photos, shows and speaks replies, shows Yes and No buttons, and lists today's orders |
 | Agent route `/api/agent` | Runs the Claude loop and enforces the confirmation gate |
 | Tools | The only code that can change data or call GoDaddy |

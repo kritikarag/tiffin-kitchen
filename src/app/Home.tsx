@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { getDictionary, isLang, LANG_COOKIE, LANGUAGES, type Lang } from "@/lib/i18n";
 import MyOrdersLink from "./orders/MyOrdersLink";
-import { homeCopy, NOTE_EXAMPLE, ONE_DISH, TICKETS, TOOL_GROUPS, type HomeCopy } from "./homeCopy";
+import { homeCopy, NOTE_EXAMPLE, ONE_DISH, PRIYA, TICKETS, TOOL_GROUPS, type HomeCopy } from "./homeCopy";
 import styles from "./home.module.css";
 import { VERSION } from "@/lib/version";
 import Icon from "@/components/Icon";
@@ -41,6 +41,7 @@ export default function Home() {
         </a>
         <nav className={styles.nav} aria-label="Sections">
           <a href="#day">{t.nav.day}</a>
+          <a href="#customer">{t.nav.customer}</a>
           <a href="#agent">{t.nav.agent}</a>
           <a href="#languages">{t.nav.languages}</a>
           <a href="#trust">{t.nav.trust}</a>
@@ -62,7 +63,15 @@ export default function Home() {
 
       <main id="top">
         <Hero t={t} lang={lang} />
-        <Day t={t} />
+        <Day id="day" title={t.dayTitle} lead={t.dayLead} moments={t.moments} screen={(i) => <Screen t={t} which={i} />} />
+        <Day
+          id="customer"
+          customer
+          title={t.customerTitle}
+          lead={t.customerLead}
+          moments={t.customerMoments}
+          screen={(i) => <CustomerScreen t={t} which={i} />}
+        />
         <Agent t={t} />
         <Languages t={t} lang={lang} choose={choose} />
         <Trust t={t} />
@@ -149,15 +158,25 @@ function Hero({ t, lang }: { t: HomeCopy; lang: Lang }) {
 
 // "One day in Lakshmi's kitchen": five moments to tap through. It plays by itself until the visitor taps
 // one, and never plays for visitors who prefer reduced motion.
-function Day({ t }: { t: HomeCopy }) {
+type DayProps = {
+  id: string;
+  title: string;
+  lead: string;
+  moments: string[][];
+  screen: (which: number) => ReactNode;
+  customer?: boolean;
+};
+
+// A day told in moments: tap one to see the phone at that moment. Used for the cook's day and her customer's.
+function Day({ id, title, lead, moments, screen, customer }: DayProps) {
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(true);
 
   useEffect(() => {
     if (!playing || reducedMotion()) return;
-    const timer = setInterval(() => setActive((a) => (a + 1) % t.moments.length), 4500);
+    const timer = setInterval(() => setActive((a) => (a + 1) % moments.length), 4500);
     return () => clearInterval(timer);
-  }, [playing, t.moments.length]);
+  }, [playing, moments.length]);
 
   const pick = (i: number) => {
     setPlaying(false);
@@ -165,30 +184,138 @@ function Day({ t }: { t: HomeCopy }) {
   };
 
   return (
-    <section id="day" className={styles.day}>
+    <section id={id} className={customer ? styles.dayCustomer : styles.day}>
       <div className={styles.inner}>
-        <h2>{t.dayTitle}</h2>
-        <p className={styles.dayLead}>{t.dayLead}</p>
+        <h2>{title}</h2>
+        <p className={styles.dayLead}>{lead}</p>
         <div className={styles.dayGrid}>
           <ol className={styles.moments}>
-            {t.moments.map(([time, title, text], i) => (
+            {moments.map(([time, heading, text], i) => (
               <li key={i}>
                 <button type="button" className={i === active ? styles.momentOn : styles.moment} onClick={() => pick(i)} aria-pressed={i === active}>
                   <span className={styles.time}>{time}</span>
-                  <strong>{title}</strong>
+                  <strong>{heading}</strong>
                   {i === active && <span className={styles.momentText}>{text}</span>}
                 </button>
               </li>
             ))}
           </ol>
-          <div className={styles.screen} aria-live="polite">
-            <Screen t={t} which={active} key={active} />
+          <div className={styles.screen} aria-live="polite" key={active}>
+            {screen(active)}
           </div>
         </div>
       </div>
     </section>
   );
 }
+
+// Priya's phone at each moment of her day, in Hindi, drawn with the real app's pieces.
+function CustomerScreen({ t, which }: { t: HomeCopy; which: number }) {
+  switch (which) {
+    case 0:
+      return (
+        <div lang="hi" className={styles.phoneStack}>
+          <strong className={styles.phoneTitle}>लक्ष्मी टिफ़िन्स</strong>
+          {PRIYA.dishes.map(([dish, price]) => (
+            <div key={dish} className={styles.menuRow}>
+              <span>{dish}</span>
+              <span>{price}</span>
+            </div>
+          ))}
+          <div className={styles.dishRow}>
+            <span>{PRIYA.soldOutDish}</span>
+            <span className={styles.soldOut}>{PRIYA.soldOut}</span>
+          </div>
+        </div>
+      );
+    case 1:
+      return (
+        <>
+          <p className={styles.said} lang="hi">
+            <Icon name="mic" /> {PRIYA.said}
+          </p>
+          <div className={styles.alert}>
+            <strong>
+              <Icon name="alert" /> {t.c2Note}
+            </strong>
+            <span lang="kn">{PRIYA.noteKn}</span>
+          </div>
+        </>
+      );
+    case 2:
+      return (
+        <div className={styles.payCard}>
+          <span>{t.c3Pay}</span>
+          <svg className={styles.qr} viewBox="0 0 21 21" aria-hidden="true">
+            {QR_CELLS.map(([x, y]) => (
+              <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" />
+            ))}
+          </svg>
+          <strong>{PRIYA.amount}</strong>
+          <span className={styles.paid}>
+            <Icon name="rupee" /> {t.c3Direct}
+          </span>
+        </div>
+      );
+    case 3:
+      return (
+        <>
+          <ol className={styles.miniStages} lang="hi">
+            {PRIYA.stages.map((stage, i) => (
+              <li key={stage} className={i < 2 ? styles.stageDone : i === 2 ? styles.stageNow : styles.stageNext}>
+                <Icon name={(["receipt", "flame", "bike", "check"] as const)[i]} /> {stage}
+              </li>
+            ))}
+          </ol>
+          <p className={styles.whatsappBubble} lang="hi">
+            {PRIYA.whatsapp}
+          </p>
+        </>
+      );
+    case 4:
+      return (
+        <>
+          <span className={styles.receivedButton} lang="hi">
+            <Icon name="check" /> {PRIYA.received}
+          </span>
+          <span className={styles.cookHeading}>{t.c5Chime}</span>
+          <div className={styles.banner}>
+            <Icon name="delivered" /> <strong>{t.c5Received}</strong>
+          </div>
+        </>
+      );
+    default:
+      return (
+        <div lang="hi" className={styles.phoneStack}>
+          <span className={styles.againButton}>
+            <Icon name="repeat" /> {PRIYA.same}: {PRIYA.sameItems}
+          </span>
+          <span className={styles.receivedButton}>{PRIYA.placeOrder}</span>
+        </div>
+      );
+  }
+}
+
+// A QR-like drawing for the payment moment (not a real code): finder squares in three corners, cells between.
+const QR_CELLS: [number, number][] = (() => {
+  const cells: [number, number][] = [];
+  const finder = (ox: number, oy: number) => {
+    for (let x = 0; x < 7; x++)
+      for (let y = 0; y < 7; y++) if (x === 0 || y === 0 || x === 6 || y === 6 || (x > 1 && x < 5 && y > 1 && y < 5)) cells.push([ox + x, oy + y]);
+  };
+  finder(0, 0);
+  finder(14, 0);
+  finder(0, 14);
+  // About half the remaining cells filled, from a fixed seed, so it looks like a real code on every render.
+  let seed = 7;
+  for (let x = 0; x < 21; x++)
+    for (let y = 0; y < 21; y++) {
+      seed = (seed * 1103515245 + 12345) % 2147483648;
+      const inFinder = (x < 8 && y < 8) || (x > 12 && y < 8) || (x < 8 && y > 12);
+      if (!inFinder && seed % 100 < 48) cells.push([x, y]);
+    }
+  return cells;
+})();
 
 // What her phone (or her customer's) shows at each moment, drawn with the real app's pieces.
 function Screen({ t, which }: { t: HomeCopy; which: number }) {
