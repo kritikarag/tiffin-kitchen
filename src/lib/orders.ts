@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import type { PoolConnection } from "mysql2/promise";
 import { db } from "./db";
@@ -7,7 +8,7 @@ import { isPastCutoff, nowInZone } from "./time";
 export type OrderErrorCode = "invalid" | "empty" | "not_found" | "closed" | "sold_out" | "capacity";
 
 export type OrderResult =
-  | { ok: true; orderId: number; total: number; whatsapp: WhatsApp | null; upiUri: string | null }
+  | { ok: true; orderId: number; total: number; whatsapp: WhatsApp | null; upiUri: string | null; trackPath: string | null }
   | { ok: false; error: OrderErrorCode };
 
 type OrderInput = {
@@ -150,7 +151,7 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
 
     // A repeated submit (double tap, retry) returns the order that already exists.
     const [existing] = await conn.query<RowDataPacket[]>(
-      `SELECT o.id, COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS total
+      `SELECT o.id, o.track_code, COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS total
          FROM orders o LEFT JOIN order_items oi ON oi.order_id = o.id
         WHERE o.daily_menu_id = ? AND o.idempotency_key = ?
         GROUP BY o.id`,
@@ -160,7 +161,8 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
       await conn.commit();
       const orderId = existing[0].id as number;
       const total = Number(existing[0].total);
-      return { ok: true, orderId, total, whatsapp: await whatsappLink(conn, kitchen, orderId), upiUri: upiLink(kitchen, orderId, total) };
+      const trackPath = existing[0].track_code ? `/track/${existing[0].track_code}` : null;
+      return { ok: true, orderId, total, whatsapp: await whatsappLink(conn, kitchen, orderId), upiUri: upiLink(kitchen, orderId, total), trackPath };
     }
 
     if (menu.status !== "open" || isPastCutoff(now.time, menu.cutoff_time)) return fail("closed");
@@ -190,10 +192,13 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
       if (Number(booked[0].portions) + portions > kitchen.capacity_per_day) return fail("capacity");
     }
 
+    // The tracking link's code: random and long enough that it can't be guessed, so only the customer
+    // (and whoever they share it with) can see the order's progress.
+    const trackCode = randomBytes(12).toString("base64url");
     const [order] = await conn.query<ResultSetHeader>(
-      `INSERT INTO orders (daily_menu_id, customer_name, phone, area, address, note_original, customer_language, idempotency_key)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [menu.id, input.customerName, input.phone, input.area, input.address, input.note, input.language, input.idempotencyKey],
+      `INSERT INTO orders (daily_menu_id, customer_name, phone, area, address, note_original, customer_language, idempotency_key, track_code)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [menu.id, input.customerName, input.phone, input.area, input.address, input.note, input.language, input.idempotencyKey, trackCode],
     );
     await conn.query("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) VALUES ?", [
       input.items.map((i) => [order.insertId, i.menuItemId, i.quantity, onMenu.get(i.menuItemId)!.price]),
@@ -215,6 +220,7 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
       total,
       whatsapp: await whatsappLink(conn, kitchen, order.insertId),
       upiUri: upiLink(kitchen, order.insertId, total),
+      trackPath: `/track/${trackCode}`,
     };
   } catch (error) {
     await conn.rollback();

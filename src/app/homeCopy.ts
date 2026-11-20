@@ -93,7 +93,7 @@ const en = {
     "Exact totals and a cooking list at cut-off",
     "Her language on her side, theirs on theirs",
     "UPI straight to her, and every dabba counted",
-    "One tap tells each customer it's on the way, in their language",
+    "Customers track their tiffin: preparing, on the way, delivered",
   ],
 
   ctaTitle: "See it work in a minute.",

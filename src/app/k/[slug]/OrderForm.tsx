@@ -23,6 +23,7 @@ type Placed = {
   total: number;
   whatsapp: { url: string; paidUrl: string } | null;
   upiUri: string | null;
+  trackPath: string | null;
 };
 
 // The UPI payment link drawn as a QR code, for paying from another phone. Made in the browser.
@@ -107,7 +108,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
           ordered,
         );
         setPaid(false);
-        setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsapp: result.whatsapp ?? null, upiUri: result.upiUri ?? null });
+        setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsapp: result.whatsapp ?? null, upiUri: result.upiUri ?? null, trackPath: result.trackPath ?? null });
         return;
       }
       const messages: Record<string, string> = {
@@ -144,6 +145,11 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
         <p className={styles.placedTotal}>
           {t.total}: ₹{placed.total}
         </p>
+        {placed.trackPath && (
+          <a className={styles.track} href={placed.trackPath}>
+            {t.trackOrder}
+          </a>
+        )}
         {placed.upiUri ? (
           <div className={styles.upi}>
             <h3>{fill(t.payUpiTitle, amount)}</h3>

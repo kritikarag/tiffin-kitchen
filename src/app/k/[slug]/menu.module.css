@@ -477,3 +477,21 @@
   outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* After ordering: the link to the order's tracking page. */
+.track {
+  display: block;
+  margin: 0.75rem 0;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  color: var(--accent-dark);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.track:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}

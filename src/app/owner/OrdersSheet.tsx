@@ -146,8 +146,8 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                           <span>₹{o.amount}</span>
                         </div>
                         {o.delivery !== "waiting" && (
-                          <span className={o.delivery === "delivered" ? styles.deliveryDone : styles.deliveryGoing}>
-                            {o.delivery === "delivered" ? `✓ ${t.delivered}` : `🛵 ${t.onTheWay}`}
+                          <span className={o.delivery === "delivered" ? styles.deliveryDone : o.delivery === "preparing" ? styles.deliveryCooking : styles.deliveryGoing}>
+                            {{ preparing: `🍳 ${t.preparing}`, on_the_way: `🛵 ${t.onTheWay}`, delivered: `✓ ${t.delivered}` }[o.delivery]}
                           </span>
                         )}
                         <div className={styles.orderItems}>{o.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</div>
@@ -176,6 +176,11 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                         )}
                         <div className={styles.delivery}>
                           {o.delivery === "waiting" && (
+                            <button type="button" onClick={() => setDelivery(o.id, "preparing")}>
+                              🍳 {t.preparing}
+                            </button>
+                          )}
+                          {(o.delivery === "waiting" || o.delivery === "preparing") && (
                             <button type="button" onClick={() => setDelivery(o.id, "on_the_way")}>
                               🛵 {t.onTheWay}
                             </button>
@@ -186,7 +191,7 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                             </button>
                           )}
                           {o.delivery !== "waiting" && (
-                            <a className={styles.tell} href={o.delivery === "delivered" ? o.tell.delivered : o.tell.on_the_way} target="_blank" rel="noopener noreferrer">
+                            <a className={styles.tell} href={o.tell[o.delivery]} target="_blank" rel="noopener noreferrer">
                               {t.tellCustomer.replace("{name}", o.customerName)}
                             </a>
                           )}

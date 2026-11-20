@@ -3,7 +3,7 @@
 // list at /k has choices. No API key is needed; all text is written here.
 // Run with: npm run db:seed-demo     Optional: DEMO_CUTOFF=13:00 npm run db:seed-demo  (default 23:30)
 // Running it again resets the demo kitchens and their orders.
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { connect } from "./db.mjs";
 import { readFileSync } from "node:fs";
 import { dishes, kitchen, others } from "./demo-data.mjs";
@@ -79,9 +79,9 @@ for (const dish of dishes) {
 
 for (const o of orders) {
   const [order] = await db.query(
-    `INSERT INTO orders (daily_menu_id, customer_name, phone, area, address, note_original, customer_language, status, idempotency_key)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [menu.insertId, o.name, o.phone, o.area, o.address, o.note, o.lang, o.name === CANCELLED ? "cancelled" : "placed", `demo-${randomUUID()}`],
+    `INSERT INTO orders (daily_menu_id, customer_name, phone, area, address, note_original, customer_language, status, idempotency_key, track_code)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [menu.insertId, o.name, o.phone, o.area, o.address, o.note, o.lang, o.name === CANCELLED ? "cancelled" : "placed", `demo-${randomUUID()}`, randomBytes(12).toString("base64url")],
   );
   for (const [key, quantity] of Object.entries(o.items)) {
     await db.query("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) VALUES (?, ?, ?, ?)", [

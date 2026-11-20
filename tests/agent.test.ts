@@ -218,6 +218,7 @@ async function main() {
   const paid = await placeOrder(withAllergy.input);
   await placeOrder(plain.input);
   assert.ok(paid.ok && paid.upiUri?.startsWith("upi://pay?pa=test.cook%40okaxis") && paid.upiUri.includes("am=120"));
+  assert.ok(paid.ok && /^\/track\/[A-Za-z0-9_-]{16}$/.test(paid.trackPath ?? ""));
   ok("update_kitchen_details is held until yes; orders then carry a UPI link for the exact amount");
 
   // get_orders checks new notes: only the allergy is flagged. Dabbas come back by voice, with no yes needed.
@@ -241,6 +242,8 @@ async function main() {
   ok("allergy notes are flagged and dabbas are marked returned at once");
 
   // Delivery: marked by area at once, shown in get_orders, and the owner screen offers a WhatsApp message to the customer.
+  script = [call("mark_delivery", { status: "preparing", all: true }), say("ಸರಿ.")];
+  await turn(token, { type: "message", text: "ಅಡುಗೆ ಶುರು ಮಾಡಿದೆ" });
   script = [call("mark_delivery", { status: "on_the_way", area: "Domlur" }), say("ಸರಿ.")];
   r = await turn(token, { type: "message", text: "ಡೊಮ್ಲೂರ್ ಆರ್ಡರ್ ಹೊರಟಿವೆ" });
   assert.equal(r.pending, null);
@@ -250,7 +253,8 @@ async function main() {
   const priya = view!.orders.find((o) => o.customerName === "Priya")!;
   assert.equal(priya.delivery, "on_the_way");
   assert.ok(priya.tell.delivered.startsWith("https://wa.me/919123456780?text="));
-  ok("mark_delivery marks orders by area at once; each order has a WhatsApp message for the customer");
+  assert.ok(decodeURIComponent(priya.tell.on_the_way).includes("/track/")); // the message carries her tracking link
+  ok("mark_delivery marks orders preparing, then on the way by area; the customer's WhatsApp message has her tracking link");
 
   // 7. mark_sold_out runs at once, no confirmation.
   script = [call("mark_sold_out", { menu_item_id: chapati }), say("ಸರಿ.")];

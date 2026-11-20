@@ -59,7 +59,8 @@ CREATE TABLE IF NOT EXISTS orders (
   customer_language VARCHAR(8)   NOT NULL DEFAULT 'en',
   address           VARCHAR(300) NULL,              -- house, street, landmark; the area above groups deliveries
   status            ENUM('placed','cancelled') NOT NULL DEFAULT 'placed',
-  delivery          VARCHAR(12)  NOT NULL DEFAULT 'waiting', -- waiting, on_the_way, delivered (see delivery.ts)
+  delivery          VARCHAR(12)  NOT NULL DEFAULT 'waiting', -- waiting, preparing, on_the_way, delivered (see delivery.ts)
+  track_code        VARCHAR(24)  NULL UNIQUE,                 -- random code in the customer's tracking link
   allergy_alert     BOOLEAN      NULL,              -- NULL: note not checked yet; set by Claude when the owner reads orders
   idempotency_key   VARCHAR(64)  NOT NULL,
   created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

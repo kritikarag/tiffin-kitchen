@@ -8,7 +8,7 @@ import { inLanguage } from "./menu";
 // Sending WhatsApp messages from the server needs the WhatsApp Business API, so the message opens in her
 // own WhatsApp, already written, and she taps Send.
 
-export const DELIVERY = ["waiting", "on_the_way", "delivered"] as const;
+export const DELIVERY = ["waiting", "preparing", "on_the_way", "delivered"] as const;
 export type Delivery = (typeof DELIVERY)[number];
 export const isDelivery = (v: unknown): v is Delivery => DELIVERY.includes(v as Delivery);
 
@@ -25,8 +25,13 @@ export async function setDelivery(kitchenId: number, orderIds: number[], status:
 }
 
 // The WhatsApp message to the customer, in the language they ordered in, with the kitchen's name in it.
+// The site's own address, for links that leave the app (WhatsApp messages).
+export const SITE_URL = (process.env.SITE_URL ?? "https://tiffin.kitchen").replace(/\/$/, "");
+
+export const trackUrl = (code: string) => `${SITE_URL}/track/${code}`;
+
 export function customerMessage(
-  order: { customer_name: string; phone: string; customer_language: string },
+  order: { customer_name: string; phone: string; customer_language: string; track_code?: string | null },
   kitchen: { name: string; translations: unknown },
   status: Exclude<Delivery, "waiting">,
 ): string {
@@ -34,7 +39,9 @@ export function customerMessage(
   const t = getDictionary(lang);
   const names = (typeof kitchen.translations === "string" ? JSON.parse(kitchen.translations) : kitchen.translations) ?? {};
   const kitchenName = inLanguage<{ name?: string }>(names, lang)?.name || kitchen.name;
-  const text = fill(status === "on_the_way" ? t.msgOnTheWay : t.msgDelivered, { name: order.customer_name, kitchen: kitchenName });
+  const template = { preparing: t.msgPreparing, on_the_way: t.msgOnTheWay, delivered: t.msgDelivered }[status];
+  let text = fill(template, { name: order.customer_name, kitchen: kitchenName });
+  if (order.track_code && status !== "delivered") text += `\n${t.trackHere} ${trackUrl(order.track_code)}`;
   return `https://wa.me/91${order.phone}?text=${encodeURIComponent(text)}`;
 }
 

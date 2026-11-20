@@ -833,6 +833,7 @@
   border-color: #cfe3cf;
 }
 
+.deliveryCooking,
 .deliveryGoing,
 .deliveryDone {
   justify-self: start;
@@ -840,6 +841,11 @@
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.deliveryCooking {
+  background: #fdeee6;
+  color: var(--accent-dark);
 }
 
 .deliveryGoing {

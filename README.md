@@ -82,7 +82,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - **Ordering closes on its own.** Each day's menu has a cut-off time. At that moment the page shows the menu as closed and the server refuses late orders, so she never has to tell anyone "no more orders". She can set tomorrow's menu the evening before.
 - **Get a cooking list at cut-off.** It starts with any allergy or health notes, then exact totals per dish, other requests translated into her language, and deliveries grouped by area.
 - **See allergy notes in red.** A note like "मूंगफली से एलर्जी है" (peanut allergy, in Hindi) shows in red on her orders screen, translated into her language, with the original below it. Claude checks each note once, when she first reads her orders, never while the customer is ordering. It is an extra safeguard: every note is always shown in full, flagged or not.
-- **Mark each delivery and tell the customer.** Every order has **🛵 On the way** and **✓ Delivered** buttons, and she can say it too: "Ravi's tiffin has left", "all Domlur orders are delivered". Then **Tell Ravi on WhatsApp** opens WhatsApp to that customer with the message already written in the customer's own language ("Hi Ravi, your tiffin from Lakshmi Tiffins is on the way."). She taps Send. The orders screen counts how many are delivered so far.
+- **Move each order along and tell the customer.** Every order goes **🍳 Preparing → 🛵 On the way → ✓ Delivered**, with a button for each step, and she can say it too: "I've started cooking", "Ravi's tiffin has left", "all Domlur orders are delivered". **Tell Ravi on WhatsApp** opens WhatsApp to that customer with the message already written in the customer's own language, with their tracking link ("Hi Ravi, your tiffin from Lakshmi Tiffins is on the way. Track it here: …"). She taps Send. The orders screen counts how many are delivered so far.
 - **Keep track of dabbas.** One box goes out with each order. Her orders screen shows how many each customer still has, with a **Mark returned** button, and she can say "Ravi brought back two dabbas" or ask "who still has my boxes?".
 - **Get paid by UPI with no fees.** If she gives her UPI ID, customers see a QR code for the exact amount after ordering. The money goes straight to her UPI ID, with no payment gateway in between.
 
@@ -99,7 +99,8 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
 - Give a full delivery address (house, street, landmark) as well as the area. The cook sees it on each order with a **Map** button that opens it in Google Maps, and it's in the WhatsApp message and the delivery list. The area groups deliveries into routes.
 - Pay by cash or UPI on delivery.
-- Get a WhatsApp message from the cook when the tiffin is on the way and when it has arrived, in their own language. Sending her a copy of the order on WhatsApp is optional.
+- **Track the order.** After ordering, **Track my order** opens a page that shows where it is: order received, being prepared, on the way, delivered. It updates by itself, in the customer's language, and needs no account: the link holds a random code, so only someone who has the link can see it.
+- Get a WhatsApp message from the cook as the tiffin is prepared, sent out and delivered, in their own language. Sending her a copy of the order on WhatsApp is optional.
 - Pay by scanning a UPI QR code for the exact amount, or open a UPI app on the same phone, if she gave her UPI ID. Ticking "I have paid" adds a line saying so to the WhatsApp message; she checks it in her own UPI app.
 - Order again in two taps. The phone remembers the customer's details and last order (only in that browser, never in a link), so next time it says "Welcome back" and offers **Same as last time**. "Not you?" clears them on a shared phone.
 
@@ -187,7 +188,7 @@ On every round, the app also gives Claude the current state from the database: t
 | `update_menu` | Sets a day's dishes, prices and cut-off, or marks a holiday | Yes |
 | `mark_sold_out` | Marks a dish sold out, or back on sale | No |
 | `get_orders` | Reads a day's orders, with totals worked out in SQL, allergy flags and each customer's dabbas | No |
-| `mark_delivery` | Marks orders on the way or delivered, by order, by area or all at once | No |
+| `mark_delivery` | Marks orders preparing, on the way or delivered, by order, by area or all at once | No |
 | `cancel_order` | Cancels one order, and takes its dabba off the customer's count | Yes |
 | `update_customer_boxes` | Checks or lists dabbas still with customers, or marks some returned | No |
 | `update_kitchen_details` | Changes her WhatsApp number or UPI ID, or turns dabba counting on or off | Yes |
@@ -267,7 +268,7 @@ Adding a language means one line in `LANGUAGES` (`src/lib/i18n.ts`) and one run 
 | `menu_items` | Each dish as the owner said it, its usual price, and translations as JSON |
 | `daily_menus` | One row per kitchen per day: cut-off time and `open`, `closed` or `holiday` |
 | `daily_menu_items` | Which dishes are on a day's menu, that day's price, and whether sold out |
-| `orders` | Customer name, phone, area, full delivery address, note, language, `placed` or `cancelled`, delivery status (`waiting`, `on_the_way`, `delivered`), the note's allergy flag (empty until checked), idempotency key |
+| `orders` | Customer name, phone, area, full delivery address, note, language, `placed` or `cancelled`, delivery status (`waiting`, `preparing`, `on_the_way`, `delivered`), the random code in its tracking link, the note's allergy flag (empty until checked), idempotency key |
 | `customer_boxes` | Dabbas still with each customer, by kitchen and phone number |
 | `order_items` | Dishes and quantities in each order, with the price paid |
 | `conversations` | The agent's message history and any action waiting for a Yes |
@@ -286,6 +287,8 @@ The full schema is in [`schema.sql`](schema.sql). Prices are whole rupees.
 | `src/app/api/transcript/route.ts`, `src/lib/transcript.ts` | Fixing misheard dish names in dictation, and translating customer notes |
 | `src/app/k/page.tsx` | Customer list of kitchens |
 | `src/app/k/[slug]/` | Customer menu page, language switch and order form |
+| `src/app/track/[code]/` | The customer's tracking page for one order |
+| `src/lib/delivery.ts` | Order stages and the WhatsApp messages that tell customers about them |
 | `src/app/api/agent/route.ts` | `POST /api/agent` |
 | `src/app/api/orders/route.ts` | `POST /api/orders` |
 | `src/lib/agent.ts` | The loop, system prompt, confirmation gate and conversation storage |
@@ -326,6 +329,7 @@ npm run dev
 | `CLAUDE_FAST_MODEL` | No | Model that fixes misheard dish names in dictation. Defaults to `claude-haiku-5-5` |
 | `GODADDY_API_KEY`, `GODADDY_API_SECRET` | No | GoDaddy test environment keys. Without them, or if GoDaddy can't be reached, domain checks are simulated and labelled as such |
 | `DEMO_OWNER_WHATSAPP` | No | A 10-digit number given to the demo kitchen when it is seeded, so the "Send my order on WhatsApp" button appears. Use your own for a demo |
+| `SITE_URL` | No | The site's address, used in tracking links sent on WhatsApp. Defaults to `https://tiffin.kitchen` |
 | `DEMO_OWNER_UPI` | No | A UPI ID (name@bank) given to the demo kitchen when it is seeded, so the payment QR code appears. Use your own: a made-up one could belong to a real person |
 
 Then open:
@@ -382,6 +386,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 **For owners**
 
+- **Live tracking on a map.** Today the tracking page shows the order's stage, set by the cook. Next, whoever delivers taps **Start delivery** on their phone and shares its location while the tiffin is on the way, so the customer sees it moving on a map with an arrival time, and the stage changes to Delivered on its own at their address.
 - **A delivery charge per area, set by the cook.** Today she includes delivery in her dish prices.
 - **Breakfast, lunch and dinner menus on the same day,** each with its own cut-off and cooking list, and customers ordering ahead for tomorrow. Today each kitchen has one menu a day, which closes automatically at its cut-off; she can already set tomorrow's menu in advance.
 - **A speech model built for Indian languages,** such as Sarvam AI, instead of the browser's own recognition. It would hear mixed Hindi-English and dish names correctly the first time, rather than relying on Claude to fix them afterwards.

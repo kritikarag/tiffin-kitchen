@@ -18,6 +18,7 @@ const ADDED_COLUMNS: [table: string, column: string, definition: string][] = [
   ["orders", "allergy_alert", "BOOLEAN NULL AFTER status"],
   ["orders", "address", "VARCHAR(300) NULL AFTER area"],
   ["orders", "delivery", "VARCHAR(12) NOT NULL DEFAULT 'waiting' AFTER status"],
+  ["orders", "track_code", "VARCHAR(24) NULL UNIQUE AFTER delivery"],
 ];
 
 async function migrate() {

@@ -387,11 +387,11 @@ const markDelivery: Tool = {
   definition: {
     name: "mark_delivery",
     description:
-      "Mark today's orders as on the way or delivered (or back to waiting). Choose the orders by order_ids (from get_orders), by area, or all of today's orders. After it, tell her she can tap \"Tell on WhatsApp\" in Today's orders to message each customer in their own language.",
+      "Mark today's orders as being prepared, on the way or delivered (or back to waiting). Customers see it on their tracking page at once. Choose the orders by order_ids (from get_orders), by area, or all of today's orders. After it, tell her she can tap \"Tell on WhatsApp\" in Today's orders to message each customer in their own language.",
     input_schema: {
       type: "object",
       properties: {
-        status: { type: "string", enum: ["on_the_way", "delivered", "waiting"] },
+        status: { type: "string", enum: ["preparing", "on_the_way", "delivered", "waiting"] },
         order_ids: { type: "array", items: { type: "integer" }, description: "Order ids from get_orders." },
         area: { type: "string", description: "Every order in this delivery area." },
         all: { type: "boolean", description: "True for all of today's orders." },
@@ -401,7 +401,7 @@ const markDelivery: Tool = {
   },
   async run(input, ctx) {
     const kitchen = await loadKitchen(kitchenOf(ctx));
-    if (!isDelivery(input.status)) throw new ToolError('"status" must be on_the_way, delivered or waiting.');
+    if (!isDelivery(input.status)) throw new ToolError('"status" must be preparing, on_the_way, delivered or waiting.');
     const ids = Array.isArray(input.order_ids) ? input.order_ids.map(Number).filter((n) => Number.isInteger(n) && n > 0) : [];
     const area = typeof input.area === "string" ? input.area.trim() : "";
     if (ids.length === 0 && !area && input.all !== true) throw new ToolError("Say which orders: order_ids, an area, or all.");
@@ -424,7 +424,7 @@ const getOrders: Tool = {
   definition: {
     name: "get_orders",
     description:
-      "Read one day's orders: the count, total portions, total per dish, and each order with its area, note, allergy_alert, delivery status (waiting, on_the_way, delivered) and the dabbas (boxes) that customer still has. Use it for any question about orders and for the cooking list. Never state order numbers from memory.",
+      "Read one day's orders: the count, total portions, total per dish, and each order with its area, note, allergy_alert, delivery status (waiting, preparing, on_the_way, delivered) and the dabbas (boxes) that customer still has. Use it for any question about orders and for the cooking list. Never state order numbers from memory.",
     input_schema: {
       type: "object",
       properties: { date: { type: "string", description: "YYYY-MM-DD. Leave out for today." } },
