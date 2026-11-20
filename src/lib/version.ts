@@ -1,3 +1,3 @@
 // Shown in the home page footer and at /api/version, so anyone can tell which build is live.
 // Update it with every change that is pushed.
-export const VERSION = "20 Nov 2026, 20:45 · preparing + order tracking";
+export const VERSION = "20 Nov 2026, 21:10 · my orders";

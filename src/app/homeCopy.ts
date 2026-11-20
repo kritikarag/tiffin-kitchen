@@ -93,7 +93,7 @@ const en = {
     "Exact totals and a cooking list at cut-off",
     "Her language on her side, theirs on theirs",
     "UPI straight to her, and every dabba counted",
-    "Customers track their tiffin: preparing, on the way, delivered",
+    "Customers track every order, today's and past ones, with no account",
   ],
 
   ctaTitle: "See it work in a minute.",

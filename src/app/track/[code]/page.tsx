@@ -1,12 +1,10 @@
-import type { RowDataPacket } from "mysql2";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { Suspense } from "react";
-import { db } from "@/lib/db";
-import { isDelivery } from "@/lib/delivery";
 import { fill, getDictionary, isLang, LANG_COOKIE, type Lang } from "@/lib/i18n";
-import { inLanguage } from "@/lib/menu";
+import { trackOrders } from "@/lib/track";
+import RememberOrder from "./RememberOrder";
 import Refresh from "./Refresh";
 import styles from "./track.module.css";
 
@@ -27,30 +25,18 @@ export default function TrackPage({ params }: Props) {
   );
 }
 
-const parse = (v: unknown) => (typeof v === "string" ? JSON.parse(v) : v) ?? {};
-
 async function Tracking({ params }: Props) {
   await connection();
   const { code } = await params;
   const cookieLang = (await cookies()).get(LANG_COOKIE)?.value;
-  if (!/^[A-Za-z0-9_-]{16}$/.test(code)) return <NotFound lang={isLang(cookieLang) ? cookieLang : "en"} />;
 
-  const [rows] = await db().query<RowDataPacket[]>(
-    `SELECT o.id, o.customer_name, o.area, o.address, o.status, o.delivery, o.customer_language,
-            k.name, k.translations, k.owner_whatsapp, mi.name_original AS dish, mi.translations AS dish_tr, oi.quantity, oi.unit_price
-       FROM orders o JOIN daily_menus dm ON dm.id = o.daily_menu_id JOIN kitchens k ON k.id = dm.kitchen_id
-       JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
-      WHERE o.track_code = ? ORDER BY mi.id`,
-    [code],
-  );
-  const order = rows[0];
-  const lang: Lang = isLang(cookieLang) ? cookieLang : isLang(order?.customer_language) ? order.customer_language : "en";
+  const [order] = await trackOrders([code], isLang(cookieLang) ? cookieLang : "en");
+  const lang: Lang = isLang(cookieLang) ? cookieLang : "en";
   if (!order) return <NotFound lang={lang} />;
   const t = getDictionary(lang);
-
-  const kitchen = inLanguage<{ name?: string }>(parse(order.translations), lang)?.name || order.name;
-  const total = rows.reduce((sum, r) => sum + r.quantity * r.unit_price, 0);
-  const delivery = isDelivery(order.delivery) ? order.delivery : "waiting";
+  const kitchen = order.kitchen;
+  const total = order.total;
+  const delivery = order.delivery;
   const stages = [
     ["waiting", "🧾", t.trackPlaced],
     ["preparing", "🍳", t.trackPreparing],
@@ -83,9 +69,9 @@ async function Tracking({ params }: Props) {
 
       <section className={styles.card}>
         <ul>
-          {rows.map((r, i) => (
+          {order.items.map((item, i) => (
             <li key={i}>
-              {r.quantity} × {inLanguage<{ name?: string }>(parse(r.dish_tr), lang)?.name || r.dish}
+              {item.quantity} × {item.dish}
             </li>
           ))}
         </ul>
@@ -95,12 +81,16 @@ async function Tracking({ params }: Props) {
         <p className={styles.address}>🏠 {order.address ? `${order.address}, ${order.area}` : order.area}</p>
       </section>
 
-      {order.owner_whatsapp && (
-        <a className={styles.contact} href={`https://wa.me/91${order.owner_whatsapp}`} target="_blank" rel="noopener noreferrer">
+      {order.ownerWhatsapp && (
+        <a className={styles.contact} href={`https://wa.me/91${order.ownerWhatsapp}`} target="_blank" rel="noopener noreferrer">
           WhatsApp {kitchen}
         </a>
       )}
       {order.status !== "cancelled" && delivery !== "delivered" && <Refresh label={t.trackRefresh} />}
+      <RememberOrder code={order.code} />
+      <a className={styles.all} href="/orders">
+        {t.myOrders}
+      </a>
     </div>
   );
 }

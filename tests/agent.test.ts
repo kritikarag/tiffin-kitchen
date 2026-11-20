@@ -10,6 +10,7 @@ delete process.env.GODADDY_API_SECRET;
 import { handleOwnerTurn } from "../src/lib/agent";
 import { db } from "../src/lib/db";
 import { kitchenForToken, ownerOrders } from "../src/lib/ownerOrders";
+import { trackOrders } from "../src/lib/track";
 import type { Message, ModelCall, ModelRequest, ModelResponse, ToolResultBlock } from "../src/lib/model";
 
 let seen: ModelRequest[] = [];
@@ -254,7 +255,12 @@ async function main() {
   assert.equal(priya.delivery, "on_the_way");
   assert.ok(priya.tell.delivered.startsWith("https://wa.me/919123456780?text="));
   assert.ok(decodeURIComponent(priya.tell.on_the_way).includes("/track/")); // the message carries her tracking link
-  ok("mark_delivery marks orders preparing, then on the way by area; the customer's WhatsApp message has her tracking link");
+  const code = priya.tell.on_the_way.match(/track%2F([A-Za-z0-9_-]{16})/)?.[1] ?? decodeURIComponent(priya.tell.on_the_way).match(/track\/([A-Za-z0-9_-]{16})/)![1];
+  const [mine] = await trackOrders([code, "not-a-real-code!"], "en");
+  assert.equal(mine.delivery, "on_the_way");
+  assert.equal(mine.current, true);
+  assert.equal((await trackOrders(["AAAAAAAAAAAAAAAA"], "en")).length, 0); // an unknown code shows nothing
+  ok("mark_delivery marks orders preparing, then on the way by area; the customer sees it in My orders and her WhatsApp message has her tracking link");
 
   // 7. mark_sold_out runs at once, no confirmation.
   script = [call("mark_sold_out", { menu_item_id: chapati }), say("ಸರಿ.")];

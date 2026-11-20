@@ -6,6 +6,7 @@ export type Me = { name: string; phone: string; area: string; address?: string }
 export type LastOrder = { items: Record<string, number> }; // menu item id -> quantity
 
 const ME = "tiffin:me";
+const ORDERS = "tiffin:orders"; // tracking codes of orders placed on this phone, newest first
 const lastKey = (slug: string) => `tiffin:last:${slug}`;
 const listeners = new Set<() => void>();
 
@@ -50,6 +51,18 @@ export function remember(slug: string, me: Me, items: Record<string, number>) {
   write(lastKey(slug), JSON.stringify({ items } satisfies LastOrder));
 }
 
+export const readOrders = () => read(ORDERS);
+
+// Keeps an order's tracking code, so "My orders" can show it later. Opening a tracking link on this phone
+// (say, from the cook's WhatsApp message) adds it too.
+export function rememberOrder(code: string) {
+  const codes = parse<string[]>(read(ORDERS)) ?? [];
+  if (codes[0] === code) return;
+  write(ORDERS, JSON.stringify([code, ...codes.filter((c) => c !== code)].slice(0, 50)));
+}
+
+// "Not you?" on a shared phone: forget the details and the list of orders.
 export function forget() {
   write(ME, null);
+  write(ORDERS, null);
 }

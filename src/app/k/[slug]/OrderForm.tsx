@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { fill, type Dictionary, type Lang } from "@/lib/i18n";
 import type { MenuDish } from "@/lib/menu";
 import styles from "./menu.module.css";
-import { forget, parse, readLast, readMe, remember, subscribe, type LastOrder, type Me } from "./remember";
+import { forget, parse, readLast, readMe, remember, rememberOrder, subscribe, type LastOrder, type Me } from "./remember";
 
 type Props = { slug: string; lang: Lang; t: Dictionary; dishes: MenuDish[] };
 
@@ -107,6 +107,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
           { name: customerName, phone: String(form.get("phone") ?? ""), area: String(form.get("area") ?? ""), address: String(form.get("address") ?? "") },
           ordered,
         );
+        if (result.trackPath) rememberOrder(String(result.trackPath).split("/").pop()!);
         setPaid(false);
         setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsapp: result.whatsapp ?? null, upiUri: result.upiUri ?? null, trackPath: result.trackPath ?? null });
         return;
@@ -149,6 +150,11 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
           <a className={styles.track} href={placed.trackPath}>
             {t.trackOrder}
           </a>
+        )}
+        {placed.trackPath && (
+          <p className={styles.whatsappHint}>
+            {t.myOrdersHint} <a href="/orders">{t.myOrders}</a>
+          </p>
         )}
         {placed.upiUri ? (
           <div className={styles.upi}>

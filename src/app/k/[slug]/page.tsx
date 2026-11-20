@@ -7,6 +7,7 @@ import { getTodayMenu } from "@/lib/menu";
 import { formatTime } from "@/lib/time";
 import LanguageSwitch from "./LanguageSwitch";
 import OrderForm from "./OrderForm";
+import MyOrdersLink from "../../orders/MyOrdersLink";
 import styles from "./menu.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -48,6 +49,7 @@ async function Menu({ params }: Props) {
         <Link href="/k" className={styles.back}>
           ‹ {t.allKitchens}
         </Link>
+        <MyOrdersLink label={t.myOrders} className={styles.back} />
         <LanguageSwitch current={lang} />
       </div>
       <header className={styles.header}>
