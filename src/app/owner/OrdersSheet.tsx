@@ -30,9 +30,12 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
   useEffect(() => {
     const first = setTimeout(load, 0);
     const timer = setInterval(load, 30_000);
+    // A new order, or a customer confirming delivery, reloads the list at once (see NewOrderAlert).
+    window.addEventListener("tiffin:orders-changed", load);
     return () => {
       clearTimeout(first);
       clearInterval(timer);
+      window.removeEventListener("tiffin:orders-changed", load);
     };
   }, [load]);
 

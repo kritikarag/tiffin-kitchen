@@ -80,16 +80,21 @@ export default function NewOrderAlert({
             token,
             lastId,
             received: new Set(confirmed.map((o) => o.id)),
-            missing: new Set(placed.filter((o) => o.notReceived).map((o) => o.id)),
+            missing: new Set(
+              placed.filter((o) => o.notReceived).map((o) => o.id),
+            ),
           };
           return;
         }
         // Customers who just said their tiffin didn't arrive.
-        const justMissing = placed.filter((o) => o.notReceived && !seen.current!.missing.has(o.id));
+        const justMissing = placed.filter(
+          (o) => o.notReceived && !seen.current!.missing.has(o.id),
+        );
         if (justMissing.length) {
           justMissing.forEach((o) => seen.current!.missing.add(o.id));
           setMissing((m) => [...m, ...justMissing]);
           chime();
+          window.dispatchEvent(new Event("tiffin:orders-changed")); // the orders screen reloads at once
         }
         // Customers who just tapped "I've received my tiffin".
         const justReceived = confirmed.filter(
@@ -99,12 +104,14 @@ export default function NewOrderAlert({
           justReceived.forEach((o) => seen.current!.received.add(o.id));
           setReceived((r) => [...r, ...justReceived]);
           chime();
+          window.dispatchEvent(new Event("tiffin:orders-changed")); // the orders screen reloads at once
         }
         const newer = placed.filter((o) => o.id > seen.current!.lastId);
         if (newer.length) {
           seen.current.lastId = lastId;
           setFresh((f) => [...f, ...newer]);
           chime();
+          window.dispatchEvent(new Event("tiffin:orders-changed")); // the orders screen reloads at once
         }
       } catch {
         // Offline for a moment: try again on the next tick.
@@ -144,14 +151,28 @@ export default function NewOrderAlert({
     <div className={styles.missingBanner} role="alert">
       <Icon name="alert" />
       <strong>
-        {t.missingAlert.replace("{name}", lastMissing.customerName)} · <a href={`tel:+91${lastMissing.phone}`}><Icon name="phone" /> {lastMissing.phone}</a>
+        {t.missingAlert.replace("{name}", lastMissing.customerName)} ·{" "}
+        <a href={`tel:+91${lastMissing.phone}`}>
+          <Icon name="phone" /> {lastMissing.phone}
+        </a>
       </strong>
-      <button type="button" className={styles.newOrderClose} onClick={() => setMissing([])} aria-label={t.dismiss}>
+      <button
+        type="button"
+        className={styles.newOrderClose}
+        onClick={() => setMissing([])}
+        aria-label={t.dismiss}
+      >
         <Icon name="x" />
       </button>
     </div>
   );
-  if (fresh.length === 0) return missingBanner || receivedBanner ? <>{missingBanner}{receivedBanner}</> : null;
+  if (fresh.length === 0)
+    return missingBanner || receivedBanner ? (
+      <>
+        {missingBanner}
+        {receivedBanner}
+      </>
+    ) : null;
   const latest = fresh[fresh.length - 1];
   return (
     <>
