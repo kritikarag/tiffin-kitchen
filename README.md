@@ -2,13 +2,15 @@
 
 **Built for the GoDaddy Inclusive Innovation Hackathon 2026 with Claude and GoDaddy.**
 
-A woman who cooks well can start a home tiffin service by talking to an assistant in her own language. One conversation gives her a menu with sensible prices, a web address and a live ordering page. After that, she runs the business the same way, by speaking: today's menu, a dish that sold out, a cancelled order, and at cut-off a cooking list telling her exactly what to make and where it goes.
+A woman who cooks well can start a home tiffin service by talking to an assistant in her own language, or by photographing her handwritten menu. One conversation gives her a saved menu, a web address and a live ordering page. After that, she runs the business the same way, by speaking: today's menu, a dish that sold out, a cancelled order, and at cut-off a cooking list telling her exactly what to make and where it goes.
 
-Her customers open a link shared on WhatsApp, read the menu in their own language and order in a few taps, with no app and no account.
+Her customers browse the kitchens near them, read the menu in their own language and order in a few taps, with no app and no account.
 
-| The owner talks to it in Kannada | A customer orders in Hindi |
-| --- | --- |
-| ![Owner chat in Kannada](docs/owner-voice-kannada.png) | ![Customer menu in Hindi](docs/customer-page-hindi.png) |
+![Home page in Kannada](docs/home-page.png)
+
+| The owner talks to it in Kannada | Customers choose a kitchen | And order in Hindi |
+| --- | --- | --- |
+| ![Owner chat in Kannada](docs/owner-voice-kannada.png) | ![Kitchen list in Hindi](docs/kitchen-list-hindi.png) | ![Customer menu in Hindi](docs/customer-page-hindi.png) |
 
 ---
 
@@ -55,6 +57,8 @@ Existing tools help someone who already has a website. Nothing helps her go from
 **For the owner (`/owner`)**
 
 - **Launch in one conversation.** She tells the assistant her dishes and prices, where she delivers and how many people she can feed. It saves exactly what she says, finds a free web address, and publishes her page. If she isn't sure what to cook or charge, she can ask, and it suggests prices from her costs.
+- **Or send a photo of her menu.** She taps 📷 and photographs her handwritten menu. Claude reads each dish and price exactly as written, reads them back, and asks about anything unclear instead of guessing. Nothing is saved until she taps Yes.
+- **Speak at her own pace.** She taps the mic, talks with as many pauses as she needs, and taps ✓ when done. The words land in the message box so she can fix a misheard word before tapping Send. ✕ throws a recording away.
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
 - **Get a cooking list at cut-off.** Exact totals per dish, special requests translated into her language, and deliveries grouped by area.
 - **Stay in control.** Anything that changes her business waits for her to tap **Yes**.
@@ -62,7 +66,7 @@ Existing tools help someone who already has a website. Nothing helps her go from
 
 **For the customer (`/k` lists kitchens, `/k/<kitchen>` shows one)**
 
-- Browse the home kitchens taking orders today, with their areas, dishes, lowest price and cut-off time.
+- Browse the home kitchens taking orders today, with their areas, dishes, lowest price and cut-off time. Open kitchens come first.
 - Today's menu in Kannada, Hindi or English, picked from the phone's language or a switch.
 - Order with name, phone, area and an optional note in any language. No account, no app.
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
@@ -70,15 +74,21 @@ Existing tools help someone who already has a website. Nothing helps her go from
 
 ## 4. A walkthrough: Lakshmi's first day
 
-This is a real conversation with the assistant, condensed and translated from Kannada.
+This walkthrough is put together from real conversations with the assistant, condensed and translated from Kannada.
 
-> **Lakshmi:** Hello, I'm Lakshmi. I want to start a tiffin service from home. I make chapati palya, anna sambar and bisi bele bath. I deliver to Indiranagar and Domlur, I can feed thirty people a day, and a meal costs me about forty rupees.
+> **Lakshmi:** Hello, I'm Lakshmi. I want to start a tiffin service from home. Chapati palya seventy rupees, anna sambar seventy, bisi bele bath eighty. I deliver to Indiranagar and Domlur, thirty people a day.
 >
-> **Assistant:** At a forty-rupee cost, I suggest chapati palya at seventy, anna sambar at seventy and bisi bele bath at eighty. That gives you a good margin. Do these prices suit you?
+> **Assistant:** I've noted chapati palya at seventy rupees, anna sambar at seventy and bisi bele bath at eighty. What should we call your kitchen?
 >
-> **Lakshmi:** Yes. Call it Lakshmi Tiffins.
+> **Lakshmi:** Lakshmi Tiffins.
 >
-> **Assistant:** I'll save Lakshmi Tiffins, delivering to Indiranagar and Domlur, thirty meals a day, with those prices. Shall I save it? **[Yes] [No]**
+> **Assistant:** I'll save Lakshmi Tiffins, delivering to Indiranagar and Domlur, thirty meals a day, with those three dishes and prices. Shall I save it? **[Yes] [No]**
+
+The prices are hers. The assistant only suggests prices if she asks, for example "I don't know what to charge", and then starts by asking what a plate costs her.
+
+Instead of speaking the menu, she could photograph it. Given the sample below, which has a deliberately garbled line, the assistant replied: "I read five dishes. Poha for fifty rupees, Veg Thali for one hundred twenty, Rajma Chawal for one hundred, Aloo Paratha for seventy, and Gulab Jamun (two pieces) for forty. The note says Whitefield only, and orders by 11 am. Is all of this right?"
+
+<img src="docs/sample-handwritten-menu.jpg" alt="Sample handwritten menu used in testing" width="320">
 
 She taps Yes. The kitchen is saved, and each dish is translated into Hindi and English.
 
@@ -110,13 +120,15 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 
 | Part | What it does |
 | --- | --- |
-| Owner page `/owner` | Records speech, shows and speaks replies, shows Yes and No buttons |
+| Home page `/` | Explains the product in Kannada, Hindi or English, and links owners and customers onward |
+| Owner page `/owner` | Records speech into an editable box, sends menu photos, shows and speaks replies, shows Yes and No buttons |
 | Agent route `/api/agent` | Runs the Claude loop and enforces the confirmation gate |
 | Tools | The only code that can change data or call GoDaddy |
+| Kitchen list `/k` | Every live kitchen with today's dishes, lowest price and whether it's open |
 | Menu page `/k/[slug]` | Server-rendered menu in the customer's language, with the order form |
 | Order route `/api/orders` | Validates and saves orders in a locked transaction, with no AI involved |
 | MySQL | Seven tables hold all state |
-| Claude API | Understands the owner, chooses tools, writes replies, translates dishes |
+| Claude API | Understands the owner, reads menu photos, chooses tools, writes replies, translates dishes |
 | GoDaddy Domains API | Checks whether web addresses are free |
 
 ### The agent loop
@@ -148,13 +160,20 @@ Each tool has three parts: a description Claude reads to decide when to use it, 
 
 When Claude asks for a tool that needs a Yes, the app does not run it. It checks the input without changing anything, saves the request with the conversation, and tells Claude the action is waiting. Claude reads it back to her and the page shows Yes and No buttons. The tool runs only when a separate Yes tap arrives. If she taps No, or says something else instead, nothing changes.
 
+### Menu photos
+
+The page shrinks the photo in the browser to at most 1,600 pixels on its longest side, as a JPEG of about 150 to 500 KB, so it uploads quickly on a mobile connection while handwriting stays readable. It goes to Claude as an image alongside her words, for that turn only. The stored conversation keeps a short note, "[A photo was shared here.]", rather than the image, so later turns stay small and cheap. Claude's reading of the menu stays in the history as text, and the save goes through `create_kitchen` or `update_menu` with the usual Yes.
+
 ### The customer side has no AI
 
 Placing an order is ordinary code. The order route locks the day's menu row, then checks in one transaction that the kitchen is live, the cut-off hasn't passed, no dish is sold out and the day's capacity isn't exceeded. A double tap sends the same idempotency key, so it creates one order.
 
 ## 6. Design decisions
 
+- **Her menu, her prices.** The assistant writes down what she says or what her photo shows. It suggests dishes or prices only when she asks.
 - **Voice in both directions.** She may not read comfortably, so she speaks and hears replies. Typing still works, and every reply also appears as text.
+- **She decides when she's finished speaking.** Browsers stop listening after a short pause, which cut owners off mid-sentence. The app keeps listening through pauses until she taps ✓, then puts the words in an editable box rather than sending them straight away.
+- **A photo is read, never guessed.** If a price in a photo is unclear, the assistant asks about that line.
 - **Yes is a button, not a word.** A misheard "yes" should never publish a page or cancel a customer's order. The gate is enforced in code, not left to the prompt.
 - **Claude never touches the database.** It can only call eight functions, each of which validates its input. This keeps the agent's behaviour bounded and testable.
 - **Numbers come from SQL.** Order counts and totals are computed by the database. Claude only phrases them, because language models are unreliable at arithmetic.
@@ -199,20 +218,23 @@ The full schema is in [`schema.sql`](schema.sql). Prices are whole rupees.
 
 | Path | What it does |
 | --- | --- |
-| `src/app/owner/` | Owner page: chat, microphone, spoken replies, language picker (`voice.ts` holds the speech code) |
+| `src/app/page.tsx`, `Home.tsx` | The home page |
+| `src/app/owner/` | Owner page: chat, microphone, spoken replies, language picker. `voice.ts` holds the speech code; `photo.ts` shrinks menu photos |
+| `src/app/k/page.tsx` | Customer list of kitchens |
 | `src/app/k/[slug]/` | Customer menu page, language switch and order form |
 | `src/app/api/agent/route.ts` | `POST /api/agent` |
 | `src/app/api/orders/route.ts` | `POST /api/orders` |
 | `src/lib/agent.ts` | The loop, system prompt, confirmation gate and conversation storage |
 | `src/lib/tools.ts` | The eight tools |
 | `src/lib/model.ts` | The one place that calls Claude |
-| `src/lib/translate.ts` | Dish translation |
+| `src/lib/translate.ts` | Translation of dishes, kitchen names and delivery areas |
 | `src/lib/godaddy.ts` | Domain checks |
 | `src/lib/orders.ts` | Order validation and the locked transaction |
-| `src/lib/menu.ts` | Reads today's menu for the page |
+| `src/lib/menu.ts` | Reads today's menu for a kitchen, and the list of kitchens |
+| `src/lib/startup.ts`, `src/instrumentation.ts` | Create the tables when the server starts, and optionally load the demo |
 | `src/lib/i18n.ts` | Languages and page labels |
 | `src/lib/time.ts` | Today and now in the kitchen's time zone |
-| `schema.sql`, `scripts/` | Tables, migration and a demo kitchen |
+| `schema.sql`, `scripts/` | Tables, migration and demo kitchens |
 | `tests/agent.test.ts` | End-to-end test of the agent |
 | `docs/` | Diagrams and the [agent guide](docs/stage-2-agent-guide.md) |
 
@@ -227,7 +249,7 @@ npm install
 cp .env.example .env      # then fill in the values below
 npm run db:migrate        # creates the tables
 npm run db:seed           # optional: a simple demo kitchen with today's menu
-npm run db:seed-demo      # optional: Lakshmi Tiffins, live, with orders in three languages
+npm run db:seed-demo      # optional: four demo kitchens; Lakshmi Tiffins has orders in three languages
 npm run dev
 ```
 
@@ -244,7 +266,7 @@ Then open:
 - http://localhost:3000/k/ammas-kitchen for the simple demo kitchen's menu
 - After `db:seed-demo`: http://localhost:3000/k for the list of four demo kitchens (one is closed today), http://localhost:3000/k/lakshmi-tiffins for Lakshmi's menu, and http://localhost:3000/owner?t=11a6b5e1-d4e1-4000-8000-000000000001 to talk to the assistant as Lakshmi. It already has six orders (one more cancelled), so you can ask straight away for the cooking list. Re-run the seed to reset.
 
-Voice input needs Chrome, and the microphone only works on `localhost` or an HTTPS address. Never commit `.env`; it is already in `.gitignore`.
+Voice input works best in Chrome, and the microphone only works on `localhost` or an HTTPS address. Safari's speech support is weaker, especially for Kannada. Never commit `.env`; it is already in `.gitignore`.
 
 ## 11. Testing
 
@@ -254,38 +276,55 @@ npm run test:agent
 
 This runs the whole launch flow against the database with a scripted stand-in for Claude, so it needs no API key and costs nothing. It checks 11 behaviours: the interview, bad tool input being corrected, the confirmation gate holding writes, Yes and No, speaking instead of answering, publishing, the daily menu, a real customer order, exact totals, cancelling, sold out, and the eight-round limit. On every request it also checks the two rules Claude's API enforces: roles alternate, and every tool result answers the request right before it.
 
-The full flow has also been run with the real Claude in Kannada and English, which is how two bugs in the confirmation step and translations were found and fixed.
+The full flow has also been run with the real Claude in Kannada and English, including a photographed menu, which found and fixed real bugs: the confirmation step, translations, and empty replies when Claude's thinking used up its reply budget. Voice behaviour (pauses, editing, discard, and phones whose voice list loads late) is checked in a browser with a simulated microphone.
 
 ## 12. Deploying to GoDaddy
 
 The app is built for GoDaddy Node.js Hosting, which runs Next.js as a persistent Node.js 22 process and includes a managed MySQL database. It passes GoDaddy's deploy validator, and it creates its own tables when the server starts, so no shell access is needed.
 
-1. Create a Node.js Hosting app by uploading a zip of this repository (made with `git archive --format=zip -o tiffin.zip HEAD`) or by syncing the GitHub repository.
+1. In Node.js Hosting, choose **Connect GitHub**, pick this repository and the `main` branch, and select **Import & Deploy**. (Uploading a zip made with `git archive --format=zip -o tiffin.zip HEAD` also works.)
 2. In the app's **Settings**, add `ANTHROPIC_API_KEY`. GoDaddy supplies the database settings (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`) itself.
 3. Optionally add `SEED_DEMO_ON_START=1`, restart once to load the Lakshmi Tiffins demo, then remove it so later restarts don't reset the demo.
 4. Publish, and connect a domain in **Settings**. HTTPS comes with the hosting, which the microphone needs.
+5. After pushing changes to GitHub, select **Update preview** to rebuild.
 
 The tables are created automatically on every start, and doing so again is harmless.
 
 ## 13. Status and limitations
 
-**Working:** launch by conversation, menu and prices, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, orders, the cooking list, three languages, and voice in and out.
+**Working:** launch by conversation or menu photo, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, the kitchen list, customer orders, the cooking list, three languages, and voice in and out with editing before sending.
 
 **Known limitations:**
 
 - **Domains:** availability is simulated until GoDaddy test keys are added. Registration reserves the name in the app but does not buy it, and the assistant says "reserved", not "bought".
 - **No owner login yet.** Whoever holds a conversation's token can act for that kitchen. This is fine for a demo, not for real use.
-- **Voice quality depends on the phone.** Speech recognition accuracy and the availability of Kannada and Hindi voices vary by device.
+- **Voice quality depends on the phone and browser.** Speech recognition accuracy and the availability of Kannada and Hindi voices vary by device; Chrome on Android works best. A phone without a Kannada voice shows Kannada replies as text.
+- **Customers can't order by voice yet.** Only the owner side has voice and photos.
 - **Replies take 1 to 8 seconds,** because each turn may run several tool rounds. Streaming would make it feel faster.
 
 ## 14. What comes next
 
-- Owner sign-in by phone number and one-time code
-- Real domain purchase through GoDaddy, and the domain pointing straight at her page
-- Streaming replies so she hears the first words sooner
-- More languages: Tamil, Telugu, Marathi
-- Weekly summaries: what sold, what ran out, which areas order most
-- Other home businesses with the same shape: bakers, tailors, tutors
+**For owners**
+
+- **Sign-in by phone number and one-time code,** so only she can act for her kitchen.
+- **Real domain purchase** through GoDaddy, with the domain pointing straight at her page.
+- **A shopping list from tomorrow's orders.** The cooking list already knows the portions; turning that into ingredients and quantities saves a morning trip.
+- **Reminders to regulars.** A WhatsApp-ready message to customers who ordered last week, when today's menu has their favourite.
+- **Weekly summaries by voice:** what sold, what ran out, which areas order most, what she earned.
+- **Streaming replies,** so she hears the first words sooner.
+
+**For customers**
+
+- **Order by voice.** The customer speaks ("two chapati and one payasa, less spicy"); Claude fills in the form; the customer checks it and taps Place order, so ordering itself stays AI-free.
+- **UPI payment links** generated per order, alongside cash on delivery.
+- **Find kitchens by location,** sorted by distance and by who delivers to their area.
+- **Ratings and repeat orders** in one tap.
+
+**For the platform**
+
+- **More languages:** Tamil, Telugu, Marathi. Each is one list entry and one label dictionary.
+- **Other home businesses with the same shape:** bakers taking orders days ahead, tailors with measurements and delivery dates, home beauticians and tutors with time slots.
+- **Practitioner services,** such as independent counsellors setting up a multilingual practice, with privacy and safety designed in from the start.
 
 ---
 
