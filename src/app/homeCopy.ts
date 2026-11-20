@@ -76,7 +76,7 @@ const en = {
     ["Numbers come from the database", "Orders, totals and dabbas are counted by the database, never guessed."],
     ["Ordering never depends on AI", "If the assistant is down, customers can still order."],
     ["Allergies stand out", "A note about an allergy or health shows in red, translated, with the original below it."],
-    ["Nothing added to her price", "Customers pay her directly by UPI or cash. No gateway, no commission."],
+    ["No commission, no platform fee", "Customers pay her directly by UPI or cash. Her price, including any delivery she charges, is what they pay."],
   ],
 
   withoutTitle: "Without Tiffin",

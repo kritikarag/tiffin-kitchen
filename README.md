@@ -2,7 +2,7 @@
 
 **Built for the GoDaddy Inclusive Innovation Hackathon 2026 with Claude and GoDaddy.** Live at [tiffin.kitchen](https://tiffin.kitchen) · Contact: [hello@tiffin.kitchen](mailto:hello@tiffin.kitchen)
 
-Home-cooked food without the extra charges, and a food business without the English. Tiffin connects home cooks with the people nearby who want their food: the cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs.
+Home-cooked food without platform fees, and a food business without the English. Tiffin connects home cooks with the people nearby who want their food: the cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs.
 
 Most tools that help a small business get online stop once the website is live. A home tiffin kitchen's real work starts after that, and it repeats every day: a new menu each day, orders that close at a cut-off, dishes that run out, and before cooking, an exact count of what to make and where it goes.
 
@@ -57,7 +57,7 @@ Two groups of people want the same thing and struggle to find each other.
 
 **A tiffin kitchen is not a shop.** Its menu changes every day, orders close at a cut-off, dishes run out, boxes have to come back, and before every meal someone has to know exactly what to cook and where it goes. Store builders treat that as a product catalogue and an order inbox, which leaves her counting on paper again.
 
-Tiffin works for both ends. The cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs, with no app, no account, no English needed, and nothing added on top of her price.
+Tiffin works for both ends. The cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs, with no app, no account and no English needed. Tiffin takes no commission and adds no platform fee: customers pay the cook directly, and her price is the price.
 
 ## 2. Who it is for
 
@@ -379,6 +379,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 **For owners**
 
+- **A delivery charge per area, set by the cook.** Today she includes delivery in her dish prices.
 - **Breakfast, lunch and dinner menus on the same day,** each with its own cut-off and cooking list, and customers ordering ahead for tomorrow. Today each kitchen has one menu a day, which closes automatically at its cut-off; she can already set tomorrow's menu in advance.
 - **A speech model built for Indian languages,** such as Sarvam AI, instead of the browser's own recognition. It would hear mixed Hindi-English and dish names correctly the first time, rather than relying on Claude to fix them afterwards.
 - **Sign-in by phone number and one-time code,** so only she can act for her kitchen.
