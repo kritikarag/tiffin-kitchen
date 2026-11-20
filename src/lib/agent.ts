@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 import { db, parseJson } from "./db";
-import type { Message, ModelCall, TextBlock, ToolResultBlock, ToolUseBlock } from "./model";
+import type { ImageBlock, Message, ModelCall, TextBlock, ToolResultBlock, ToolUseBlock } from "./model";
 import { needsConfirmation, runTool, toolDefinitions } from "./tools";
 import { nowInZone } from "./time";
 
@@ -21,7 +21,7 @@ export type AgentReply = {
 };
 
 // "yes" and "no" arrive as their own turn types so the confirmation never depends on reading free text.
-export type OwnerTurn = { type: "message"; text: string } | { type: "confirm" } | { type: "cancel" };
+export type OwnerTurn = { type: "message"; text: string; image?: ImageBlock["source"] } | { type: "confirm" } | { type: "cancel" };
 
 const SYSTEM_PROMPT = `You are the assistant for a woman starting or running a home tiffin service in India.
 She speaks to you by voice and hears your replies read aloud. She may not read comfortably.
@@ -41,6 +41,11 @@ Launching a new kitchen (when there is no kitchen yet):
 6. Suggest two or three web addresses based on her kitchen's name. Call check_domain for each and offer only the free ones.
 7. When she picks one, call register_domain. Then call publish_site.
 8. Finish by writing a short WhatsApp message in her language announcing her kitchen.
+
+Photos of a menu:
+- She may send a photo of her menu, often handwritten. Read every dish and price exactly as written. Do not add, drop or round anything.
+- List what you read back to her in one or two sentences and ask if it is right. If a dish or price is unclear, say which one and ask her; never guess a price.
+- Then use what she confirms: create_kitchen for a new kitchen, or update_menu for a day's menu.
 
 Running a live kitchen:
 - Use update_menu for the day's menu, cut-off time or a holiday. Use the menu_item_id of saved dishes.
@@ -115,8 +120,18 @@ function trim(messages: Message[]): Message[] {
   return messages.slice(start);
 }
 
+// Photos are large, so stored history keeps only a note that one was sent. Claude already wrote down what
+// it read from the photo in its reply, which stays in the history.
+function withoutImages(messages: Message[]): Message[] {
+  return messages.map((m) =>
+    m.role === "user" && typeof m.content !== "string" && m.content.some((b) => b.type === "image")
+      ? { ...m, content: m.content.map((b) => (b.type === "image" ? { type: "text" as const, text: "[A photo was shared here.]" } : b)) }
+      : m,
+  );
+}
+
 async function saveConversation(c: Conversation): Promise<void> {
-  const messages = JSON.stringify(trim(c.messages));
+  const messages = JSON.stringify(trim(withoutImages(c.messages)));
   const pending = c.pending ? JSON.stringify(c.pending) : null;
   if (c.id == null) {
     await db().query("INSERT INTO conversations (token, kitchen_id, messages, pending_action) VALUES (?, ?, ?, ?)", [c.token, c.kitchenId, messages, pending]);
@@ -158,7 +173,15 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
     // as an ordinary user message instead.
     convo.messages.push({ role: "user", content: ownerAnswer(action.name, turn.type === "confirm", result) });
   } else if (turn.type === "message") {
-    const text = turn.text.trim().slice(0, 2000);
+    const words = turn.text.trim().slice(0, 2000);
+    // A photo goes in as an image block next to her words. It is sent to Claude for this turn only;
+    // saveConversation replaces it with a short note so it isn't stored or resent on every later turn.
+    const text: Message["content"] = turn.image
+      ? [
+          { type: "image", source: turn.image },
+          { type: "text", text: words || "[She sent a photo of her menu.]" },
+        ]
+      : words;
     if (convo.pending) {
       // She said something else instead of answering. The held action is dropped, and Claude is told.
       convo.messages.push({
@@ -248,7 +271,7 @@ function mergeUserMessages(messages: Message[]): Message[] {
   for (const m of messages) {
     const last = out[out.length - 1];
     if (last && last.role === "user" && m.role === "user") {
-      const toBlocks = (c: string | (TextBlock | ToolResultBlock)[]) => (typeof c === "string" ? [{ type: "text" as const, text: c }] : c);
+      const toBlocks = (c: string | (TextBlock | ImageBlock | ToolResultBlock)[]) => (typeof c === "string" ? [{ type: "text" as const, text: c }] : c);
       out[out.length - 1] = { role: "user", content: [...toBlocks(last.content), ...toBlocks(m.content)] };
     } else {
       out.push(m);

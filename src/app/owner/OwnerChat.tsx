@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { canListen, canSpeak, listen, speak, stopSpeaking, type Listening, type OwnerLang } from "./voice";
+import { preparePhoto } from "./photo";
 import styles from "./owner.module.css";
 
-type Line = { from: "owner" | "agent"; text: string };
+type Line = { from: "owner" | "agent"; text: string; photo?: string };
 type Pending = { name: string; summary: Record<string, unknown> } | null;
 
 const TOKEN_KEY = "tiffin-owner-token";
@@ -15,10 +16,13 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
   en: {
     title: "Your kitchen assistant",
     startOver: "Start over",
-    hint: "Tap the microphone and tell me about the tiffin service you want to start.",
+    hint: "Tap the microphone and tell me about the tiffin service you want to start. You can also send a photo of your menu with 📷.",
     tapToSpeak: "Tap to speak",
     listening: "Listening… tap when you're done",
     discard: "Discard recording",
+    photo: "Send a photo of your menu",
+    photoSent: "Photo of my menu",
+    photoError: "That photo could not be opened. Please try another photo.",
     yes: "Yes",
     no: "No",
     typeHere: "Type, or tap the mic…",
@@ -34,10 +38,13 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
   hi: {
     title: "आपकी रसोई सहायक",
     startOver: "फिर से शुरू करें",
-    hint: "माइक दबाइए और बताइए आप कैसी टिफ़िन सेवा शुरू करना चाहती हैं।",
+    hint: "माइक दबाइए और बताइए आप कैसी टिफ़िन सेवा शुरू करना चाहती हैं। 📷 से अपने मेन्यू की फ़ोटो भी भेज सकती हैं।",
     tapToSpeak: "बोलने के लिए दबाएँ",
     listening: "सुन रही हूँ… बोल लें तो दबाएँ",
     discard: "रिकॉर्डिंग हटाएँ",
+    photo: "मेन्यू की फ़ोटो भेजें",
+    photoSent: "मेरे मेन्यू की फ़ोटो",
+    photoError: "यह फ़ोटो नहीं खुली। कृपया दूसरी फ़ोटो चुनें।",
     yes: "हाँ",
     no: "नहीं",
     typeHere: "लिखें, या माइक दबाएँ…",
@@ -53,10 +60,13 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
   kn: {
     title: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ ಸಹಾಯಕ",
     startOver: "ಮತ್ತೆ ಶುರು ಮಾಡಿ",
-    hint: "ಮೈಕ್ ಒತ್ತಿ, ನೀವು ಶುರು ಮಾಡಬೇಕಾದ ಟಿಫಿನ್ ಸೇವೆಯ ಬಗ್ಗೆ ಹೇಳಿ.",
+    hint: "ಮೈಕ್ ಒತ್ತಿ, ನೀವು ಶುರು ಮಾಡಬೇಕಾದ ಟಿಫಿನ್ ಸೇವೆಯ ಬಗ್ಗೆ ಹೇಳಿ. 📷 ಮೂಲಕ ನಿಮ್ಮ ಮೆನು ಫೋಟೋ ಕೂಡ ಕಳುಹಿಸಬಹುದು.",
     tapToSpeak: "ಮಾತನಾಡಲು ಒತ್ತಿ",
     listening: "ಕೇಳುತ್ತಿದ್ದೇನೆ… ಮುಗಿದ ಮೇಲೆ ಒತ್ತಿ",
     discard: "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",
+    photo: "ಮೆನು ಫೋಟೋ ಕಳುಹಿಸಿ",
+    photoSent: "ನನ್ನ ಮೆನು ಫೋಟೋ",
+    photoError: "ಈ ಫೋಟೋ ತೆರೆಯಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಬೇರೆ ಫೋಟೋ ಆಯ್ಕೆ ಮಾಡಿ.",
     yes: "ಹೌದು",
     no: "ಬೇಡ",
     typeHere: "ಬರೆಯಿರಿ, ಅಥವಾ ಮೈಕ್ ಒತ್ತಿ…",
@@ -164,10 +174,10 @@ export default function OwnerChat() {
     saveLang(code);
   }
 
-  async function send(body: Record<string, unknown>, shown?: string) {
+  async function send(body: Record<string, unknown>, shown?: string, photo?: string) {
     if (busy) return;
     stopSpeaking();
-    if (shown) setLines((l) => [...l, { from: "owner", text: shown }]);
+    if (shown || photo) setLines((l) => [...l, { from: "owner", text: shown ?? "", photo }]);
     setBusy(true);
     setError(null);
     setPending(null);
@@ -240,6 +250,24 @@ export default function OwnerChat() {
     send({ type: "message", text }, text);
   }
 
+  // A photo of her menu goes with whatever is in the message box, so she can add a note such as
+  // "this is my menu" or "today's menu".
+  const photoInput = useRef<HTMLInputElement>(null);
+  async function sendPhoto(file: File | undefined) {
+    if (!file || busy) return;
+    setError(null);
+    try {
+      const photo = await preparePhoto(file);
+      const note = draft.trim();
+      setDraft("");
+      send({ type: "message", text: note, image: { media_type: photo.media_type, data: photo.data } }, note || t.photoSent, photo.previewUrl);
+    } catch {
+      setError(t.photoError);
+    } finally {
+      if (photoInput.current) photoInput.current.value = ""; // so the same photo can be chosen again
+    }
+  }
+
   function startOver() {
     stopSpeaking();
     token.current = null;
@@ -280,9 +308,13 @@ export default function OwnerChat() {
         {lines.length === 0 && <p className={styles.hint}>{t.hint}</p>}
         {lines.map((line, i) =>
           line.from === "owner" ? (
-            <p key={i} className={styles.owner}>
-              {line.text}
-            </p>
+            <div key={i} className={styles.ownerRow}>
+              {line.photo && (
+                // eslint-disable-next-line @next/next/no-img-element -- a local preview, not a page image
+                <img src={line.photo} alt={t.photoSent} className={styles.photo} />
+              )}
+              {line.text && <p className={styles.owner}>{line.text}</p>}
+            </div>
           ) : (
             <div key={i} className={styles.agentRow}>
               <p className={styles.agent}>{line.text}</p>
@@ -329,6 +361,22 @@ export default function OwnerChat() {
               </span>
               <span>{listening ? t.listening : t.tapToSpeak}</span>
             </button>
+            {!listening && (
+              <>
+                <button
+                  type="button"
+                  className={styles.photoButton}
+                  onClick={() => photoInput.current?.click()}
+                  disabled={busy}
+                  aria-label={t.photo}
+                  title={t.photo}
+                >
+                  <span aria-hidden="true">📷</span>
+                </button>
+                {/* No "capture" attribute, so the phone offers both the camera and the gallery. */}
+                <input ref={photoInput} type="file" accept="image/*" hidden onChange={(e) => sendPhoto(e.target.files?.[0])} />
+              </>
+            )}
             {listening && (
               <button type="button" className={styles.micCancel} onClick={cancelMic} aria-label={t.discard}>
                 ✕

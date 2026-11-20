@@ -8,9 +8,14 @@ export type TextBlock = { type: "text"; text: string };
 export type ToolUseBlock = { type: "tool_use"; id: string; name: string; input: unknown };
 // Our answer to a tool_use block. It goes back to Claude inside a user message.
 export type ToolResultBlock = { type: "tool_result"; tool_use_id: string; content: string; is_error?: boolean };
+// A photo she sends, such as her handwritten menu. Base64 data, sent to Claude for that turn only.
+export type ImageBlock = {
+  type: "image";
+  source: { type: "base64"; media_type: "image/jpeg" | "image/png" | "image/webp" | "image/gif"; data: string };
+};
 
 export type Message =
-  | { role: "user"; content: string | (TextBlock | ToolResultBlock)[] }
+  | { role: "user"; content: string | (TextBlock | ImageBlock | ToolResultBlock)[] }
   | { role: "assistant"; content: (TextBlock | ToolUseBlock)[] };
 
 // What Claude is told about a tool: its name, when to use it, and the JSON shape of its input.
