@@ -7,7 +7,7 @@ const en = {
   langLabel: "Language",
   nav: { day: "A day", agent: "The agent", languages: "Languages", trust: "Safety", demo: "Try the demo" },
   title: "Your kitchen, in your language.",
-  lead: "Home food from the cook next door. She runs her kitchen by speaking her own language, and you order in yours. No app, no commission, no English needed.",
+  lead: "Affordable home food from the cook next door, for daily-wage workers, students and office workers alike. She runs her kitchen by speaking her own language, and you order in yours. No app, no commission, no English needed.",
   start: "Start my kitchen",
   demo: "Browse kitchens",
   newOrder: "New order",

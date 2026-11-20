@@ -45,6 +45,8 @@ Two groups of people want the same thing and struggle to find each other.
 
 **People who want home-cooked food.** Students, office workers, people living away from family and older people living alone want simple, home-style meals every day. Food delivery apps mostly sell restaurant food, and every order carries delivery fees, packaging and platform charges on top of the meal. A cook in the next street can make the same meal for less, but she is hard to find unless someone forwards her number.
 
+**Workers who need a fair daily meal.** It is not only about missing home food. Construction workers, drivers, security guards, delivery riders and domestic workers, many of them far from home, need a filling meal at a fair price every single day. Delivery apps price them out, and most apps assume English, an account and a lot of reading and typing. A tiffin from a local cook is what many already rely on, arranged through phone calls and word of mouth.
+
 **Home cooks who could feed them.** Many women cook well enough to run a tiffin service from home, and many already do, informally. What holds them back is not the cooking, it is everything around it:
 
 - **Delivery platforms are built for restaurants.** Signing up as a partner, managing a menu and reading payouts happen in English, through forms and dashboards, and the commission eats into a meal that sells for a few dozen rupees.
@@ -61,8 +63,8 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 
 | | The owner | The customer |
 | --- | --- | --- |
-| Who | A home cook starting or running a tiffin service | Office workers, students and families nearby |
-| Language | Speaks any of nine Indian languages or English, often mixed | Reads any of the nine |
+| Who | A home cook starting or running a tiffin service | Daily-wage and blue-collar workers, students, office workers, older people living alone, and families nearby |
+| Language | Speaks any of nine Indian languages or English, often mixed | Reads any of the nine; ordering is a few taps, with no account, and "Same as last time" makes a daily order two taps |
 | Device | An Android phone with Chrome | Any phone with a browser |
 | What they need | Set up once, then update by voice in seconds, with no English and no forms | Find home food nearby, read the menu in their language, order quickly, pay her directly by UPI or cash |
 
