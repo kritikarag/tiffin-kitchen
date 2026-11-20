@@ -96,6 +96,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - Today's menu in English by default, switchable to Kannada or Hindi (the choice is remembered).
 - Order with name, phone, area and an optional note in any language. No account, no app.
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
+- Give a full delivery address (house, street, landmark) as well as the area. The cook sees it on each order with a **Map** button that opens it in Google Maps, and it's in the WhatsApp message and the delivery list. The area groups deliveries into routes.
 - Pay by cash or UPI on delivery.
 - Send the order to the cook on WhatsApp in one tap, if she gave her number.
 - Pay by scanning a UPI QR code for the exact amount, or open a UPI app on the same phone, if she gave her UPI ID. Ticking "I have paid" adds a line saying so to the WhatsApp message; she checks it in her own UPI app.
@@ -264,7 +265,7 @@ Adding a language means one line in `LANGUAGES` (`src/lib/i18n.ts`) and one run 
 | `menu_items` | Each dish as the owner said it, its usual price, and translations as JSON |
 | `daily_menus` | One row per kitchen per day: cut-off time and `open`, `closed` or `holiday` |
 | `daily_menu_items` | Which dishes are on a day's menu, that day's price, and whether sold out |
-| `orders` | Customer name, phone, area, note, language, `placed` or `cancelled`, the note's allergy flag (empty until checked), idempotency key |
+| `orders` | Customer name, phone, area, full delivery address, note, language, `placed` or `cancelled`, the note's allergy flag (empty until checked), idempotency key |
 | `customer_boxes` | Dabbas still with each customer, by kitchen and phone number |
 | `order_items` | Dishes and quantities in each order, with the price paid |
 | `conversations` | The agent's message history and any action waiting for a Yes |

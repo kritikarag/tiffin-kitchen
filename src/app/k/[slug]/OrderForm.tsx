@@ -90,6 +90,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
           customerName,
           phone: form.get("phone"),
           area: form.get("area"),
+          address: form.get("address"),
           note: form.get("note"),
           language: lang,
           items: dishes
@@ -100,7 +101,11 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
       const result = await response.json();
       if (result.ok) {
         const ordered = Object.fromEntries(dishes.filter((d) => (quantities[d.id] ?? 0) > 0).map((d) => [d.id, quantities[d.id]]));
-        remember(slug, { name: customerName, phone: String(form.get("phone") ?? ""), area: String(form.get("area") ?? "") }, ordered);
+        remember(
+          slug,
+          { name: customerName, phone: String(form.get("phone") ?? ""), area: String(form.get("area") ?? ""), address: String(form.get("address") ?? "") },
+          ordered,
+        );
         setPaid(false);
         setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsapp: result.whatsapp ?? null, upiUri: result.upiUri ?? null });
         return;
@@ -232,6 +237,10 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
         <label>
           {t.area}
           <input name="area" autoComplete="address-level2" required maxLength={160} defaultValue={me?.area} />
+        </label>
+        <label>
+          {t.address}
+          <textarea name="address" rows={2} autoComplete="street-address" required minLength={5} maxLength={300} defaultValue={me?.address} />
         </label>
         {me && (
           <button type="button" className={styles.forget} onClick={forget}>

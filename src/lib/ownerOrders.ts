@@ -10,6 +10,7 @@ export type OwnerOrder = {
   customerName: string;
   phone: string;
   area: string;
+  address: string | null;
   note: string | null; // as the customer wrote it
   noteTranslated: string | null; // in the owner's chosen language, when it differs
   allergy: boolean; // the note is about an allergy or health (see noteCheck.ts); false also when unchecked
@@ -113,7 +114,7 @@ export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang, 
 
   // created_at is stored in UTC by the database session; the time shown is converted to her time zone.
   const [lines] = await db().query<RowDataPacket[]>(
-    `SELECT o.id, UNIX_TIMESTAMP(o.created_at) AS placed_unix, o.customer_name, o.phone, o.area, o.note_original, o.allergy_alert, o.status,
+    `SELECT o.id, UNIX_TIMESTAMP(o.created_at) AS placed_unix, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status,
             mi.name_original AS dish, mi.translations, oi.quantity, oi.unit_price
        FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
       WHERE o.daily_menu_id = ? ORDER BY o.id, mi.id LIMIT 2000`,
@@ -129,6 +130,7 @@ export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang, 
         customerName: line.customer_name,
         phone: line.phone,
         area: line.area,
+        address: line.address ?? null,
         note: line.note_original,
         noteTranslated: null,
         allergy: Boolean(line.allergy_alert),

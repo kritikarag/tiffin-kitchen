@@ -12,6 +12,7 @@ const added = [
   ["kitchens", "upi_id", "VARCHAR(100) NULL AFTER owner_whatsapp"],
   ["kitchens", "uses_dabbas", "BOOLEAN NOT NULL DEFAULT TRUE AFTER upi_id"],
   ["orders", "allergy_alert", "BOOLEAN NULL AFTER status"],
+  ["orders", "address", "VARCHAR(300) NULL AFTER area"],
 ];
 for (const [table, column, definition] of added) {
   const [found] = await db.query(

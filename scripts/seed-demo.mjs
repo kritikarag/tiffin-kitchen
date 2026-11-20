@@ -20,14 +20,14 @@ const OWNER_TOKEN = "11a6b5e1-d4e1-4000-8000-000000000001";
 
 // Fictional customers. Notes are in the language each customer wrote in.
 const orders = [
-  { name: "Ravi", phone: "9876543210", area: "Indiranagar", lang: "en", note: "காரம் குறைவாக", items: { chapati: 2 } },
-  { name: "Priya", phone: "9123456780", area: "Domlur", lang: "hi", note: "प्याज़ मत डालना", items: { chapati: 1, bbb: 2 } },
-  { name: "ಅರುಣ್", phone: "9988776655", area: "Indiranagar", lang: "kn", note: null, items: { bbb: 1, payasa: 1 } },
-  { name: "Meera", phone: "9811122233", area: "Domlur", lang: "en", note: "Please ring the bell twice", items: { bbb: 3, payasa: 3 } },
-  { name: "Sanjay", phone: "9900011122", area: "Indiranagar", lang: "hi", note: null, items: { chapati: 2, payasa: 2 } },
-  { name: "ಕಾವ್ಯ", phone: "9845098450", area: "Domlur", lang: "kn", note: "ಕಡಿಮೆ ಎಣ್ಣೆ", items: { chapati: 1 } },
+  { name: "Ravi", phone: "9876543210", area: "Indiranagar", address: "12, 2nd Cross, HAL 2nd Stage, near Indiranagar metro", lang: "en", note: "காரம் குறைவாக", items: { chapati: 2 } },
+  { name: "Priya", phone: "9123456780", area: "Domlur", address: "Flat 304, Lakeview Apartments, Domlur Layout", lang: "hi", note: "प्याज़ मत डालना", items: { chapati: 1, bbb: 2 } },
+  { name: "ಅರುಣ್", phone: "9988776655", area: "Indiranagar", address: "45, 6th Main, Indiranagar 1st Stage", lang: "kn", note: null, items: { bbb: 1, payasa: 1 } },
+  { name: "Meera", phone: "9811122233", area: "Domlur", address: "8, Church Road, behind Domlur bus stop", lang: "en", note: "Please ring the bell twice", items: { bbb: 3, payasa: 3 } },
+  { name: "Sanjay", phone: "9900011122", area: "Indiranagar", address: "Security cabin, Prestige Tech building, Old Airport Road", lang: "hi", note: null, items: { chapati: 2, payasa: 2 } },
+  { name: "ಕಾವ್ಯ", phone: "9845098450", area: "Domlur", address: "21, Amarjyothi Layout, Domlur", lang: "kn", note: "ಕಡಿಮೆ ಎಣ್ಣೆ", items: { chapati: 1 } },
   // A peanut allergy written in Hindi, for a cook who reads Kannada: the orders screen flags it in red.
-  { name: "Farhan", phone: "9741234567", area: "Indiranagar", lang: "hi", note: "मूंगफली से एलर्जी है, बिल्कुल मत डालना", items: { bbb: 2 } },
+  { name: "Farhan", phone: "9741234567", area: "Indiranagar", address: "Site office, 100 Feet Road construction, near Indiranagar", lang: "hi", note: "मूंगफली से एलर्जी है, बिल्कुल मत डालना", items: { bbb: 2 } },
 ];
 const CANCELLED = "Sanjay"; // shows that cancelled orders drop out of the totals
 
@@ -79,9 +79,9 @@ for (const dish of dishes) {
 
 for (const o of orders) {
   const [order] = await db.query(
-    `INSERT INTO orders (daily_menu_id, customer_name, phone, area, note_original, customer_language, status, idempotency_key)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [menu.insertId, o.name, o.phone, o.area, o.note, o.lang, o.name === CANCELLED ? "cancelled" : "placed", `demo-${randomUUID()}`],
+    `INSERT INTO orders (daily_menu_id, customer_name, phone, area, address, note_original, customer_language, status, idempotency_key)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [menu.insertId, o.name, o.phone, o.area, o.address, o.note, o.lang, o.name === CANCELLED ? "cancelled" : "placed", `demo-${randomUUID()}`],
   );
   for (const [key, quantity] of Object.entries(o.items)) {
     await db.query("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) VALUES (?, ?, ?, ?)", [

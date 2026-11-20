@@ -2,7 +2,7 @@
 // It lives only in this browser (localStorage): no account, and no personal details in any link.
 // Every read and write is wrapped: private windows and blocked storage simply remember nothing.
 
-export type Me = { name: string; phone: string; area: string };
+export type Me = { name: string; phone: string; area: string; address?: string };
 export type LastOrder = { items: Record<string, number> }; // menu item id -> quantity
 
 const ME = "tiffin:me";

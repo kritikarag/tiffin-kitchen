@@ -132,6 +132,14 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                           <span>₹{o.amount}</span>
                         </div>
                         <div className={styles.orderItems}>{o.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</div>
+                        {o.address && (
+                          <div className={styles.orderAddress}>
+                            <span>🏠 {o.address}</span>
+                            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${o.address}, ${o.area}`)}`} target="_blank" rel="noopener noreferrer">
+                              {t.openMap}
+                            </a>
+                          </div>
+                        )}
                         {o.note && (
                           <div className={o.allergy ? styles.orderNoteAlert : styles.orderNote}>
                             {o.allergy && <strong className={styles.alertLabel}>⚠️ {t.allergyAlert}</strong>}

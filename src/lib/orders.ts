@@ -16,6 +16,7 @@ type OrderInput = {
   customerName: string;
   phone: string;
   area: string;
+  address: string;
   note: string | null;
   language: Lang;
   items: { menuItemId: number; quantity: number }[];
@@ -33,13 +34,15 @@ export function parseOrder(body: unknown): { input: OrderInput } | { error: Orde
   const idempotencyKey = text(b.idempotencyKey, 64);
   const customerName = text(b.customerName, 120);
   const area = text(b.area, 160);
+  const address = text(b.address, 300);
   const note = text(b.note, 500) || null;
 
   // Accept "+91 98765 43210", "098765 43210" and so on; keep the 10-digit Indian mobile number.
   const digits = text(b.phone, 20).replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
   const phoneOk = /^[6-9]\d{9}$/.test(digits);
 
-  if (!slug || idempotencyKey.length < 8 || !customerName || !area || !phoneOk) return { error: "invalid" };
+  // The full address is needed to deliver; the area groups deliveries into routes.
+  if (!slug || idempotencyKey.length < 8 || !customerName || !area || address.length < 5 || !phoneOk) return { error: "invalid" };
 
   // Merge repeated dishes and drop zero quantities.
   const quantities = new Map<number, number>();
@@ -59,6 +62,7 @@ export function parseOrder(body: unknown): { input: OrderInput } | { error: Orde
       customerName,
       phone: digits,
       area,
+      address,
       note,
       language: isLang(b.language) ? b.language : DEFAULT_LANG,
       items: [...quantities].map(([menuItemId, quantity]) => ({ menuItemId, quantity })),
@@ -84,7 +88,7 @@ type WhatsApp = { url: string; paidUrl: string };
 async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderId: number): Promise<WhatsApp | null> {
   if (!kitchen.owner_whatsapp) return null;
   const [lines] = await conn.query<RowDataPacket[]>(
-    `SELECT o.customer_name, o.phone, o.area, o.note_original, mi.name_original AS dish, oi.quantity, oi.unit_price
+    `SELECT o.customer_name, o.phone, o.area, o.address, o.note_original, mi.name_original AS dish, oi.quantity, oi.unit_price
        FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
       WHERE o.id = ? ORDER BY mi.id`,
     [orderId],
@@ -99,7 +103,7 @@ async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderI
     ...lines.map((l) => `${l.quantity} × ${l.dish}`),
     `₹${total}`,
     `${first.customer_name} · ${first.phone}`,
-    first.area,
+    first.address ? `${first.address}, ${first.area}` : first.area,
     ...(first.note_original ? [`${label.note}: ${first.note_original}`] : []),
   ].join("\n");
   const link = (body: string) => `https://wa.me/${kitchen.owner_whatsapp}?text=${encodeURIComponent(body)}`;
@@ -187,9 +191,9 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
     }
 
     const [order] = await conn.query<ResultSetHeader>(
-      `INSERT INTO orders (daily_menu_id, customer_name, phone, area, note_original, customer_language, idempotency_key)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [menu.id, input.customerName, input.phone, input.area, input.note, input.language, input.idempotencyKey],
+      `INSERT INTO orders (daily_menu_id, customer_name, phone, area, address, note_original, customer_language, idempotency_key)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [menu.id, input.customerName, input.phone, input.area, input.address, input.note, input.language, input.idempotencyKey],
     );
     await conn.query("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) VALUES ?", [
       input.items.map((i) => [order.insertId, i.menuItemId, i.quantity, onMenu.get(i.menuItemId)!.price]),

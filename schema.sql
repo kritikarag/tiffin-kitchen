@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS orders (
   area              VARCHAR(160) NOT NULL,
   note_original     VARCHAR(500) NULL,              -- as the customer wrote it, any language
   customer_language VARCHAR(8)   NOT NULL DEFAULT 'en',
+  address           VARCHAR(300) NULL,              -- house, street, landmark; the area above groups deliveries
   status            ENUM('placed','cancelled') NOT NULL DEFAULT 'placed',
   allergy_alert     BOOLEAN      NULL,              -- NULL: note not checked yet; set by Claude when the owner reads orders
   idempotency_key   VARCHAR(64)  NOT NULL,

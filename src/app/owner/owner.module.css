@@ -806,3 +806,22 @@
   outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
+
+.orderAddress {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.98rem;
+  line-height: 1.4;
+}
+
+.orderAddress a {
+  flex-shrink: 0;
+  padding: 0.15rem 0.6rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent-dark);
+  font-weight: 600;
+  text-decoration: none;
+}

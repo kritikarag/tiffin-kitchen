@@ -172,8 +172,10 @@ async function main() {
   await turn(token, { type: "confirm" });
   const [slugRow] = await db().query("SELECT slug FROM kitchens WHERE id = ?", [kitchenId]);
   const { parseOrder, placeOrder } = await import("../src/lib/orders");
-  const parsed = parseOrder({ slug: (slugRow as { slug: string }[])[0].slug, idempotencyKey: "test-key-123", customerName: "Ravi", phone: "9876543210", area: "Domlur", note: "காரம் குறைவாக", items: [{ menuItemId: chapati, quantity: 3 }] });
+  const parsed = parseOrder({ slug: (slugRow as { slug: string }[])[0].slug, idempotencyKey: "test-key-123", customerName: "Ravi", phone: "9876543210", area: "Domlur", address: "12, 2nd Cross, Domlur", note: "காரம் குறைவாக", items: [{ menuItemId: chapati, quantity: 3 }] });
   assert.ok("input" in parsed);
+  // An order without a full address is refused: the area alone isn't enough to deliver.
+  assert.deepEqual(parseOrder({ slug: "x", idempotencyKey: "test-key-noaddr", customerName: "Ravi", phone: "9876543210", area: "Domlur", items: [{ menuItemId: 1, quantity: 1 }] }), { error: "invalid" });
   const placed = await placeOrder(parsed.input);
   assert.ok(placed.ok);
   assert.equal(placed.upiUri, null); // no UPI ID yet, so no QR code
@@ -208,7 +210,7 @@ async function main() {
   assert.equal((upiRow as { upi_id: string }[])[0].upi_id, "test.cook@okaxis");
   const slug = (slugRow as { slug: string }[])[0].slug;
   const order = (key: string, name: string, phone: string, note: string) =>
-    parseOrder({ slug, idempotencyKey: key, customerName: name, phone, area: "Domlur", note, items: [{ menuItemId: chapati, quantity: 2 }] });
+    parseOrder({ slug, idempotencyKey: key, customerName: name, phone, area: "Domlur", address: "Flat 2, Lake Road, Domlur", note, items: [{ menuItemId: chapati, quantity: 2 }] });
   const withAllergy = order("test-key-allergy", "Priya", "9123456780", "Peanut allergy, please be careful");
   const plain = order("test-key-plain", "Meera", "9811122233", "less oil");
   assert.ok("input" in withAllergy && "input" in plain);
