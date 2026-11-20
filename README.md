@@ -372,13 +372,12 @@ The tables are created automatically on every start, and doing so again is harml
 
 **Known limitations:**
 
-- **No owner sign-in yet.** An owner reaches her kitchen through its private link, which works like a key: anyone with it can run that kitchen. The page remembers it in her browser and offers to send it to her WhatsApp. Phone number and one-time code sign-in is the next step.
+- **No accounts yet, for owners or customers.** An owner reaches her kitchen through its private link, which works like a key: anyone with it can run that kitchen. The page remembers it in her browser and offers to send it to her WhatsApp. A customer's details and My orders live on the phone they ordered from, so a new phone starts empty. This is fine for a demo, not for real use; accounts are the first item in What comes next.
 
 - **Domains:** with GoDaddy keys set, availability comes from GoDaddy's Domains API (test environment); without them it is simulated and labelled "GoDaddy · test". Registration reserves the name in the app but does not buy it, and the assistant says "reserved", not "bought".
 - **Order alerts need her page open or the customer's tap.** The banner only appears while the owner page is open, and the WhatsApp message only arrives if the customer taps the button. Push notifications or the WhatsApp Business API would remove both conditions.
 - **Her WhatsApp number is asked for at launch only.** There is no voice command to change it yet.
 - **No rate limits yet** on the agent or order endpoints. Real use needs per-kitchen and per-address limits to cap Claude costs and spam.
-- **No owner login yet.** Whoever holds a conversation's token can act for that kitchen and see its orders. This is fine for a demo, not for real use.
 - **Voice quality depends on the phone and browser.** Speech recognition accuracy and the availability of voices for each language vary by device; Chrome on Android works best. A phone without a voice for her language shows replies as text.
 - **Labels in six languages are machine-translated.** English, Hindi and Kannada were written by hand; Tamil, Telugu, Malayalam, Marathi, Bengali and Gujarati were translated by Claude and checked by script for missing keys and placeholders, not yet by native speakers.
 - **Customers can't order by voice yet.** Only the owner side has voice and photos.
@@ -386,14 +385,18 @@ The tables are created automatically on every start, and doing so again is harml
 
 ## 14. What comes next
 
+**First: personal accounts for owners and customers.** Sign-in with a phone number and a one-time code sent by SMS or WhatsApp, with no password and no email, so it works for people who don't read English.
+
+- **Owners** sign in to their own kitchen instead of keeping a private link. One kitchen can have more than one person (a daughter who handles orders, someone who delivers), each with their own sign-in, and a lost phone no longer means a lost kitchen.
+- **Customers** sign in once and see the same My orders, saved details and favourite dishes on any phone, and can save more than one address (home, work).
+- Kitchens and orders already store the phone number, so existing kitchens and order history move into accounts without asking anyone to start again.
+
 **For owners**
 
-- **Order history on any phone.** My orders lives on the phone the customer ordered from. Signing in with a phone number and one-time code would show the same list on any phone.
 - **Live tracking on a map.** Today the tracking page shows the order's stage, set by the cook. Next, whoever delivers taps **Start delivery** on their phone and shares its location while the tiffin is on the way, so the customer sees it moving on a map with an arrival time, and the stage changes to Delivered on its own at their address.
 - **A delivery charge per area, set by the cook.** Today she includes delivery in her dish prices.
 - **Breakfast, lunch and dinner menus on the same day,** each with its own cut-off and cooking list, and customers ordering ahead for tomorrow. Today each kitchen has one menu a day, which closes automatically at its cut-off; she can already set tomorrow's menu in advance.
 - **A speech model built for Indian languages,** such as Sarvam AI, instead of the browser's own recognition. It would hear mixed Hindi-English and dish names correctly the first time, rather than relying on Claude to fix them afterwards.
-- **Sign-in by phone number and one-time code,** so only she can act for her kitchen.
 - **Order alerts without the page open,** through push notifications or the WhatsApp Business API, so she hears about every order even when the page is closed.
 - **Real domain purchase** through GoDaddy, with the domain pointing straight at her page.
 - **A shopping list from tomorrow's orders.** The cooking list already knows the portions; turning that into ingredients and quantities saves a morning trip.
