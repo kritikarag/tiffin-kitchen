@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { getDictionary, isLang, LANG_COOKIE, LANGUAGES, type Lang } from "@/lib/i18n";
 import CurrentOrders from "./orders/CurrentOrders";
+import MyKitchenCard from "./MyKitchenCard";
 import MyOrdersLink from "./orders/MyOrdersLink";
 import { homeCopy, NOTE_EXAMPLE, ONE_DISH, TICKETS, TOOL_GROUPS, type HomeCopy } from "./homeCopy";
 import styles from "./home.module.css";
@@ -63,6 +64,7 @@ export default function Home() {
 
       <main id="top">
         <div className={styles.currentWrap}>
+          <MyKitchenCard t={t} lang={lang} />
           <CurrentOrders lang={lang} t={getDictionary(lang)} />
         </div>
         <Hero t={t} lang={lang} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { OwnerLabels } from "./labels";
 import styles from "./owner.module.css";
 import Icon from "@/components/Icon";
@@ -15,6 +15,16 @@ export default function KitchenLink({ getToken, t, refreshKey }: { getToken: () 
   const [kitchen, setKitchen] = useState<Kitchen | null>(null);
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isNew, setIsNew] = useState(false);
+  // True once a check found no kitchen. If a later check finds one, she has just created it: open the
+  // link card by itself, so she sees and saves her link without having to look for it.
+  const hadNone = useRef(false);
+  const card = useRef<HTMLDivElement>(null);
+
+  // A new kitchen's link card scrolls into view, since the chat she is reading is further down the page.
+  useEffect(() => {
+    if (isNew) card.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [isNew]);
 
   // Checked again after each reply, because the kitchen appears the moment she says Yes to saving it.
   // The first check waits a moment: the page restores its token in an effect that runs after this one.
@@ -22,10 +32,25 @@ export default function KitchenLink({ getToken, t, refreshKey }: { getToken: () 
     let live = true;
     const check = setTimeout(() => {
       const token = getToken();
-      if (!token) return live && setKitchen(null);
+      if (!token) {
+        hadNone.current = true;
+        return live && setKitchen(null);
+      }
       fetch(`/api/owner/kitchen?token=${encodeURIComponent(token)}`, { cache: "no-store" })
         .then((r) => r.json())
-        .then((d) => live && setKitchen(d.kitchen ? { ...d.kitchen, token } : null))
+        .then((d) => {
+          if (!live) return;
+          if (!d.kitchen) {
+            hadNone.current = true;
+            return setKitchen(null);
+          }
+          if (hadNone.current) {
+            hadNone.current = false;
+            setOpen(true);
+            setIsNew(true);
+          }
+          setKitchen({ ...d.kitchen, token });
+        })
         .catch(() => {});
     }, 600);
     return () => {
@@ -57,7 +82,8 @@ export default function KitchenLink({ getToken, t, refreshKey }: { getToken: () 
         <Icon name="key" /> {t.myLink}
       </button>
       {open && (
-        <div className={styles.keyCard}>
+        <div ref={card} className={isNew ? styles.keyCardNew : styles.keyCard}>
+          {isNew && <p className={styles.keyNew}>{t.linkNew}</p>}
           <strong>{t.linkTitle.replace("{name}", kitchen.name)}</strong>
           <p>{t.linkHelp}</p>
           <code className={styles.keyLink}>{link}</code>

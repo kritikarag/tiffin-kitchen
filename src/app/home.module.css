@@ -1135,6 +1135,10 @@
   display: none;
 }
 
+.currentWrap > * {
+  max-width: 34rem;
+}
+
 .myOrders {
   color: inherit;
   font-weight: 600;
@@ -1145,4 +1149,35 @@
 .myOrders:focus-visible {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* The cook's card on the home page: her kitchen today, one tap back in. */
+.kitchenCard {
+  display: grid;
+  gap: 0.3rem;
+  max-width: 34rem;
+  margin: 0.75rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--leaf);
+  border-radius: 14px;
+  background: #f1f7f2;
+  color: var(--leaf-deep);
+  text-decoration: none;
+}
+
+.kitchenCard:focus-visible {
+  outline: 3px solid var(--leaf);
+  outline-offset: 2px;
+}
+
+.kitchenCardTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+}
+
+.kitchenCardOpen {
+  justify-self: end;
+  font-weight: 600;
 }
