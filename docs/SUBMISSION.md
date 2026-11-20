@@ -1,14 +1,4 @@
-# Tiffin: your kitchen, in your language
-
-**Home food from the cook next door, in your own language, for people new to technology.**
-
-🎥 **Watch the demo:** [video link]
-🌐 **Live now:** [tiffin.kitchen](https://tiffin.kitchen)
-💻 **Code:** [github.com/kritikarag/tiffin-kitchen](https://github.com/kritikarag/tiffin-kitchen)
-
 ## Inspiration
-
-[Your story in two or three sentences: who you saw cooking for others, or going without a fair daily meal, and what stood in the way.]
 
 Students, office workers and daily-wage workers far from home need a filling, home-cooked meal every day. Most food apps assume English, typing and comfort with technology. Many women nearby already cook well enough to feed them, but every platform asks them to work in English, through forms and dashboards. So today it runs on WhatsApp messages and a notebook.
 
@@ -75,16 +65,11 @@ Works best in **Chrome**, on a laptop or a phone. Allow the microphone when aske
 - **Order in your language, by voice:** no account; speak your address or allergy note; track, find past orders in My orders, reorder in two taps; pay at the door.
 - **Nine languages, both ways:** dishes, notes and messages reach each side in their own language; dish names are transliterated, never translated.
 
-## Claude + GoDaddy: how it's built, launched and run
+## Built with Claude and GoDaddy
 
-| | How it's used |
-| --- | --- |
-| **GoDaddy Node.js Hosting** | The whole Next.js app runs on Node.js 22 with GoDaddy's hosted MySQL, deployed from GitHub; API keys live only in GoDaddy's app settings, never in the code |
-| **GoDaddy domain** | tiffin.kitchen, with HTTPS (which the microphone needs) |
-| **GoDaddy Professional Email** | hello@tiffin.kitchen, the contact address on the site |
-| **GoDaddy Domains API** | Checks whether a cook's web address is free (test environment); the app reserves the chosen name |
-| **Claude, in the product** | Claude Sonnet runs the cook's agent and reads handwritten menu photos; Claude Haiku fixes misheard dish names, translates, and flags allergy notes |
-| **Claude, building** | Pair-programmer all week: the agent and its guardrails, nine languages, 14 end-to-end tests |
+- **GoDaddy Node.js Hosting** runs the whole app with GoDaddy's hosted MySQL, deployed from GitHub, at **tiffin.kitchen** (GoDaddy domain, HTTPS), with **hello@tiffin.kitchen** on GoDaddy Professional Email.
+- **GoDaddy Domains API** checks whether a cook's web address is free.
+- **Claude Sonnet** runs the cook's agent and reads menu photos; **Claude Haiku** fixes misheard dish names, translates, and flags allergy notes. Claude was also the pair-programmer all week.
 
 ## Why it's different
 
