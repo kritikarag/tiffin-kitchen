@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { getDictionary, isLang, LANG_COOKIE, LANGUAGES, type Lang } from "@/lib/i18n";
 import MyOrdersLink from "./orders/MyOrdersLink";
-import { homeCopy, NOTE_EXAMPLE, ONE_DISH, PRIYA, TICKETS, TOOL_GROUPS, type HomeCopy } from "./homeCopy";
+import { homeCopy, NOTE_EXAMPLE, ONE_DISH, TICKETS, TOOL_GROUPS, type HomeCopy } from "./homeCopy";
 import styles from "./home.module.css";
 import { VERSION } from "@/lib/version";
 import Icon from "@/components/Icon";
@@ -209,48 +209,48 @@ function Day({ id, title, lead, moments, screen, customer }: DayProps) {
   );
 }
 
-// Priya's phone at each moment of her day, in Hindi, drawn with the real app's pieces.
+// Priya's phone at each moment of her day, in the page's language like Lakshmi's, drawn with the real app's pieces.
 function CustomerScreen({ t, which }: { t: HomeCopy; which: number }) {
   switch (which) {
     case 0:
       return (
-        <div lang="hi" className={styles.phoneStack}>
-          <strong className={styles.phoneTitle}>लक्ष्मी टिफ़िन्स</strong>
-          {PRIYA.dishes.map(([dish, price]) => (
+        <div className={styles.phoneStack}>
+          <strong className={styles.phoneTitle}>{t.pKitchen}</strong>
+          {t.pDishes.map(([dish, price]) => (
             <div key={dish} className={styles.menuRow}>
               <span>{dish}</span>
               <span>{price}</span>
             </div>
           ))}
           <div className={styles.dishRow}>
-            <span>{PRIYA.soldOutDish}</span>
-            <span className={styles.soldOut}>{PRIYA.soldOut}</span>
+            <span>{t.pSoldOutDish}</span>
+            <span className={styles.soldOut}>{t.m3SoldOut}</span>
           </div>
         </div>
       );
     case 1:
       return (
         <>
-          <p className={styles.said} lang="hi">
-            <Icon name="mic" /> {PRIYA.said}
+          <p className={styles.said}>
+            <Icon name="mic" /> {t.pSaid}
           </p>
           <div className={styles.alert}>
             <strong>
               <Icon name="alert" /> {t.c2Note}
             </strong>
-            <span lang="kn">{PRIYA.noteKn}</span>
+            <span>{t.pNoteForCook}</span>
           </div>
         </>
       );
     case 2:
       return (
         <>
-          <div className={styles.payCard} lang="hi">
+          <div className={styles.payCard}>
             <strong className={styles.placedTitle}>
-              <Icon name="delivered" /> {PRIYA.placed}
+              <Icon name="delivered" /> {t.pPlaced}
             </strong>
-            <strong>{PRIYA.amount}</strong>
-            <span>{PRIYA.pay}</span>
+            <strong>{t.pAmount}</strong>
+            <span>{t.pPay}</span>
           </div>
           <span className={styles.paid}>
             <Icon name="rupee" /> {t.c3Direct}
@@ -260,23 +260,23 @@ function CustomerScreen({ t, which }: { t: HomeCopy; which: number }) {
     case 3:
       return (
         <>
-          <ol className={styles.miniStages} lang="hi">
-            {PRIYA.stages.map((stage, i) => (
+          <ol className={styles.miniStages}>
+            {t.pStages.map((stage, i) => (
               <li key={stage} className={i < 2 ? styles.stageDone : i === 2 ? styles.stageNow : styles.stageNext}>
                 <Icon name={(["receipt", "flame", "bike", "check"] as const)[i]} /> {stage}
               </li>
             ))}
           </ol>
-          <p className={styles.whatsappBubble} lang="hi">
-            {PRIYA.whatsapp}
+          <p className={styles.whatsappBubble}>
+            {t.pWhatsapp}
           </p>
         </>
       );
     case 4:
       return (
         <>
-          <span className={styles.receivedButton} lang="hi">
-            <Icon name="check" /> {PRIYA.received}
+          <span className={styles.receivedButton}>
+            <Icon name="check" /> {t.pReceived}
           </span>
           <span className={styles.cookHeading}>{t.c5Chime}</span>
           <div className={styles.banner}>
@@ -286,11 +286,11 @@ function CustomerScreen({ t, which }: { t: HomeCopy; which: number }) {
       );
     default:
       return (
-        <div lang="hi" className={styles.phoneStack}>
+        <div className={styles.phoneStack}>
           <span className={styles.againButton}>
-            <Icon name="repeat" /> {PRIYA.same}: {PRIYA.sameItems}
+            <Icon name="repeat" /> {t.pSame}: {t.pSameItems}
           </span>
-          <span className={styles.receivedButton}>{PRIYA.placeOrder}</span>
+          <span className={styles.receivedButton}>{t.pPlaceOrder}</span>
         </div>
       );
   }
