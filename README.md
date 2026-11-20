@@ -4,7 +4,7 @@
 
 Home-cooked food without the extra charges, and a food business without the English. Tiffin connects home cooks with the people nearby who want their food: the cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs.
 
-Most tools that help a small business get online stop once the website is live. A home tiffin kitchen's real work starts after that, and it repeats every day: a new menu each morning, orders that close at a cut-off, dishes that run out, and at noon a count of exactly what to cook and where it goes.
+Most tools that help a small business get online stop once the website is live. A home tiffin kitchen's real work starts after that, and it repeats every day: a new menu each day, orders that close at a cut-off, dishes that run out, and before cooking, an exact count of what to make and where it goes.
 
 Tiffin is an assistant for that daily loop, in the cook's own language. She speaks tomorrow's menu and taps Yes. She says "the payasa is finished" and the page shows it sold out. New orders ring on her screen. At cut-off she hears the cooking list: allergy notes first, then exact totals, customer notes translated into her language, deliveries grouped by area. Getting started takes one conversation, or one photo of her handwritten menu, and ends with a web address and a live ordering page. Every step the assistant takes is shown on screen, and nothing changes her business until she taps Yes.
 
@@ -55,7 +55,7 @@ Two groups of people want the same thing and struggle to find each other.
 
 **Language cuts both ways.** Not everyone works in an office where English is the default. A cook in Bangalore may be comfortable only in Kannada, while her customers read Hindi, Tamil, Bengali or English. Today one side always has to work in the other's language, or in English that neither is comfortable with, and a note like "peanut allergy" can get lost in between.
 
-**A tiffin kitchen is not a shop.** Its menu changes every day, orders close at a cut-off, dishes run out, boxes have to come back, and at noon someone has to know exactly what to cook and where it goes. Store builders treat that as a product catalogue and an order inbox, which leaves her counting on paper again.
+**A tiffin kitchen is not a shop.** Its menu changes every day, orders close at a cut-off, dishes run out, boxes have to come back, and before every meal someone has to know exactly what to cook and where it goes. Store builders treat that as a product catalogue and an order inbox, which leaves her counting on paper again.
 
 Tiffin works for both ends. The cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs, with no app, no account, no English needed, and nothing added on top of her price.
 
@@ -79,6 +79,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - **See today's orders at a glance.** A **Today's orders** button opens a screen with the number of orders, plates and money to collect, the totals to cook per dish, and every order grouped by delivery area: name, tap-to-call phone, dishes, amount and the customer's note translated into her language. It refreshes by itself every 30 seconds; cancelled orders are listed separately.
 - **Get back to her kitchen from any phone.** Once she has a kitchen, **🔑 My kitchen link** shows her private link, with buttons to copy it or send it to her own WhatsApp. Opening it on any phone or computer brings back her kitchen and her conversation. If she opens a fresh chat and asks to change her menu, the assistant tells her to open that link rather than starting a new kitchen.
 - **Hear about each new order.** While her page is open, a banner and a short chime announce each new order with the name, dishes and amount, and **See orders** opens the orders screen. Customers also get a **Send my order on WhatsApp** button after ordering, which sends her the order, written in her language, from their own WhatsApp.
+- **Ordering closes on its own.** Each day's menu has a cut-off time. At that moment the page shows the menu as closed and the server refuses late orders, so she never has to tell anyone "no more orders". She can set tomorrow's menu the evening before.
 - **Get a cooking list at cut-off.** It starts with any allergy or health notes, then exact totals per dish, other requests translated into her language, and deliveries grouped by area.
 - **See allergy notes in red.** A note like "मूंगफली से एलर्जी है" (peanut allergy, in Hindi) shows in red on her orders screen, translated into her language, with the original below it. Claude checks each note once, when she first reads her orders, never while the customer is ordering. It is an extra safeguard: every note is always shown in full, flagged or not.
 - **Keep track of dabbas.** One box goes out with each order. Her orders screen shows how many each customer still has, with a **Mark returned** button, and she can say "Ravi brought back two dabbas" or ask "who still has my boxes?".
@@ -378,6 +379,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 **For owners**
 
+- **Breakfast, lunch and dinner menus on the same day,** each with its own cut-off and cooking list, and customers ordering ahead for tomorrow. Today each kitchen has one menu a day, which closes automatically at its cut-off; she can already set tomorrow's menu in advance.
 - **A speech model built for Indian languages,** such as Sarvam AI, instead of the browser's own recognition. It would hear mixed Hindi-English and dish names correctly the first time, rather than relying on Claude to fix them afterwards.
 - **Sign-in by phone number and one-time code,** so only she can act for her kitchen.
 - **Order alerts without the page open,** through push notifications or the WhatsApp Business API, so she hears about every order even when the page is closed.
