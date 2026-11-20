@@ -9,6 +9,7 @@ import { VERSION } from "@/lib/version";
 
 const DEMO_OWNER = "/owner?t=11a6b5e1-d4e1-4000-8000-000000000001";
 const DEMO_KITCHEN = "/k/lakshmi-tiffins";
+const CONTACT_EMAIL = "hello@tiffin.kitchen"; // GoDaddy Professional Email on the project's own domain
 
 // The page is pre-rendered in English; in the browser it opens in the language saved in the cookie.
 const noSubscribe = () => () => {};
@@ -79,7 +80,10 @@ export default function Home() {
       </main>
 
       <footer className={styles.footer}>
-        {t.footer}
+        {t.footer}{" "}
+        <span className={styles.contact}>
+          {t.contact} <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </span>
         <span className={styles.version}>Version: {VERSION}</span>
       </footer>
 

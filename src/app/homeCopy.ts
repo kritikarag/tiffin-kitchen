@@ -99,6 +99,7 @@ const en = {
   ctaCook: "Try it as the cook",
   ctaCustomer: "Order as a customer",
   footer: "Built with Claude and GoDaddy for the Inclusive Innovation Hackathon 2026.",
+  contact: "Questions? Write to us at",
 };
 
 export type HomeCopy = typeof en;

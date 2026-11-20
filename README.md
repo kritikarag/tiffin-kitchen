@@ -1,6 +1,6 @@
 # Tiffin: a voice-first assistant for home kitchens
 
-**Built for the GoDaddy Inclusive Innovation Hackathon 2026 with Claude and GoDaddy.**
+**Built for the GoDaddy Inclusive Innovation Hackathon 2026 with Claude and GoDaddy.** Live at [tiffin.kitchen](https://tiffin.kitchen) · Contact: [hello@tiffin.kitchen](mailto:hello@tiffin.kitchen)
 
 Home-cooked food without the extra charges, and a food business without the English. Tiffin connects home cooks with the people nearby who want their food: the cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs.
 
@@ -157,9 +157,11 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 | Kitchen list `/k` | Every live kitchen with today's dishes, lowest price and whether it's open |
 | Menu page `/k/[slug]` | Server-rendered menu in the customer's language, with the order form |
 | Order route `/api/orders` | Validates and saves orders in a locked transaction, with no AI involved |
-| MySQL | Seven tables hold all state |
+| MySQL | Eight tables hold all state, on GoDaddy's hosted MySQL |
 | Claude API | Understands the owner, reads menu photos, chooses tools, writes replies, translates dishes |
 | GoDaddy Domains API | Checks whether web addresses are free |
+| GoDaddy Node.js Hosting | Runs the whole app (Node.js 22), deployed from this repository, on the project's own domain tiffin.kitchen |
+| GoDaddy Professional Email | The project's contact address, hello@tiffin.kitchen |
 
 ### The agent loop
 
