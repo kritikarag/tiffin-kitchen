@@ -15,7 +15,8 @@
     "db:seed": "node --env-file-if-exists=.env scripts/seed.mjs",
     "test:agent": "tsx --env-file-if-exists=.env tests/agent.test.ts",
     "db:seed-demo": "node --env-file-if-exists=.env scripts/seed-demo.mjs",
-    "labels": "tsx --env-file-if-exists=.env scripts/translate-labels.ts"
+    "labels": "tsx --env-file-if-exists=.env scripts/translate-labels.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
