@@ -1101,3 +1101,10 @@
     animation: none;
   }
 }
+
+.version {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}

@@ -5,6 +5,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { isLang, LANG_COOKIE, LANGUAGES, type Lang } from "@/lib/i18n";
 import { homeCopy, NOTE_EXAMPLE, ONE_DISH, TICKETS, TOOL_GROUPS, type HomeCopy } from "./homeCopy";
 import styles from "./home.module.css";
+import { VERSION } from "@/lib/version";
 
 const DEMO_OWNER = "/owner?t=11a6b5e1-d4e1-4000-8000-000000000001";
 const DEMO_KITCHEN = "/k/lakshmi-tiffins";
@@ -77,7 +78,10 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className={styles.footer}>{t.footer}</footer>
+      <footer className={styles.footer}>
+        {t.footer}
+        <span className={styles.version}>Version: {VERSION}</span>
+      </footer>
 
       <Link href={DEMO_OWNER} className={styles.floating}>
         <span aria-hidden="true">▶</span> {t.nav.demo}

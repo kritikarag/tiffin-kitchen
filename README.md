@@ -339,6 +339,8 @@ The full flow has also been run with the real Claude in Kannada and English, inc
 
 ## 12. Deploying to GoDaddy
 
+**Checking which build is live:** the home page footer shows a version line, and `/api/version` returns it. After **Update preview**, if the version hasn't changed, the new build did not go live: open the deployment log in GoDaddy and look for the first error.
+
 The app is built for GoDaddy Node.js Hosting, which runs Next.js as a persistent Node.js 22 process and includes a managed MySQL database. It passes GoDaddy's deploy validator, and it creates its own tables when the server starts, so no shell access is needed.
 
 1. In Node.js Hosting, choose **Connect GitHub**, pick this repository and the `main` branch, and select **Import & Deploy**. (Uploading a zip made with `git archive --format=zip -o tiffin.zip HEAD` also works.)
