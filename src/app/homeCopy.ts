@@ -6,7 +6,7 @@ import { labelsFor, type Lang } from "@/lib/i18n";
 const en = {
   langLabel: "Language",
   title: "Your kitchen, in your language.",
-  lead: "Say tomorrow's menu. Hear the cooking list at noon. Your customers order in their own language, and their notes reach you in yours.",
+  lead: "Home food from the cook next door. She runs her kitchen by speaking her own language, and you order in yours. No app, no commission, no English needed.",
   start: "Start my kitchen",
   demo: "Browse kitchens",
   tiers: ["Dal tadka", "Paneer butter masala", "Jeera rice"],
@@ -48,7 +48,7 @@ export const HOME_COPY: { en: HomeCopy; hi: HomeCopy; kn: HomeCopy } = {
   hi: {
     langLabel: "भाषा",
     title: "आपकी रसोई, आपकी भाषा में।",
-    lead: "कल का मेन्यू बोलिए। दोपहर को पकाने की सूची सुनिए। ग्राहक अपनी भाषा में ऑर्डर करते हैं, और उनके नोट आप तक आपकी भाषा में पहुँचते हैं।",
+    lead: "पड़ोस की रसोई का घर जैसा खाना। वह अपनी भाषा में बोलकर रसोई चलाती है, और आप अपनी भाषा में ऑर्डर करते हैं। न ऐप, न कमीशन, न अंग्रेज़ी की ज़रूरत।",
     start: "मेरी रसोई शुरू करें",
     demo: "रसोइयाँ देखें",
     tiers: ["दाल तड़का", "पनीर बटर मसाला", "जीरा राइस"],
@@ -85,7 +85,7 @@ export const HOME_COPY: { en: HomeCopy; hi: HomeCopy; kn: HomeCopy } = {
   kn: {
     langLabel: "ಭಾಷೆ",
     title: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ, ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ.",
-    lead: "ನಾಳೆಯ ಮೆನು ಹೇಳಿ. ಮಧ್ಯಾಹ್ನ ಅಡುಗೆ ಪಟ್ಟಿ ಕೇಳಿ. ಗ್ರಾಹಕರು ತಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡುತ್ತಾರೆ, ಅವರ ಸೂಚನೆಗಳು ನಿಮಗೆ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ತಲುಪುತ್ತವೆ.",
+    lead: "ಪಕ್ಕದ ಮನೆಯ ಅಡುಗೆಮನೆಯ ಊಟ. ಅವರು ತಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಮಾತನಾಡಿ ಅಡುಗೆಮನೆ ನಡೆಸುತ್ತಾರೆ, ನೀವು ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡುತ್ತೀರಿ. ಆ್ಯಪ್ ಇಲ್ಲ, ಕಮಿಷನ್ ಇಲ್ಲ, ಇಂಗ್ಲಿಷ್ ಬೇಕಿಲ್ಲ.",
     start: "ನನ್ನ ಅಡುಗೆಮನೆ ಶುರು ಮಾಡಿ",
     demo: "ಅಡುಗೆಮನೆಗಳನ್ನು ನೋಡಿ",
     tiers: ["ದಾಲ್ ತಡ್ಕಾ", "ಪನೀರ್ ಬಟರ್ ಮಸಾಲಾ", "ಜೀರಾ ರೈಸ್"],

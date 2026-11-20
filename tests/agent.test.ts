@@ -104,7 +104,7 @@ async function main() {
   ok("interview turn returns a question and a conversation token");
 
   // 2. Claude calls create_kitchen with a bad price: the tool rejects it, Claude fixes it, the call is held.
-  const kitchen = { name: "ಲಕ್ಷ್ಮಿ ಟಿಫಿನ್ಸ್", name_latin: "Test Lakshmi Tiffins", owner_language: "kn", delivery_area: "Domlur", capacity_per_day: 30 };
+  const kitchen = { name: "ಲಕ್ಷ್ಮಿ ಟಿಫಿನ್ಸ್", name_latin: "Test Lakshmi Tiffins", owner_language: "kn", delivery_area: "Domlur" }; // no daily limit: it is optional
   script = [
     call("create_kitchen", { ...kitchen, dishes: [{ name: "ಚಪಾತಿ ಪಲ್ಯ", price: -5 }] }),
     (req) => { assert.match(lastResult(req).error, /price/); return call("create_kitchen", { ...kitchen, dishes: [{ name: "ಚಪಾತಿ ಪಲ್ಯ", price: 60 }, { name: "ಅನ್ನ ಸಾಂಬಾರ್", price: 80 }] })(); },

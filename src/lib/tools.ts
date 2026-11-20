@@ -93,7 +93,7 @@ const createKitchen: Tool = {
         name_latin: { type: "string", description: "The same name in English letters, used for the web address. Example: Lakshmi Tiffins." },
         owner_language: { type: "string", enum: LANGUAGES.map((l) => l.code), description: "The language the owner speaks to you in." },
         delivery_area: { type: "string", description: "Areas she delivers to, comma separated." },
-        capacity_per_day: { type: "integer", description: "How many portions she can cook in a day." },
+        capacity_per_day: { type: "integer", description: "Only if she says so herself: the most portions she can cook in a day. Leave out for no limit." },
         whatsapp: { type: "string", description: "Her WhatsApp number, 10 digits, if she gave one. Customers get a button to send her their order there." },
         upi_id: { type: "string", description: "Her UPI ID (like name@okaxis), if she gave one. Customers get a QR code to pay her directly." },
         dishes: {
@@ -109,7 +109,7 @@ const createKitchen: Tool = {
           },
         },
       },
-      required: ["name", "name_latin", "owner_language", "delivery_area", "capacity_per_day", "dishes"],
+      required: ["name", "name_latin", "owner_language", "delivery_area", "dishes"],
     },
   },
   async run(input, ctx) {
@@ -119,7 +119,8 @@ const createKitchen: Tool = {
     if (!base) throw new ToolError('"name_latin" must contain English letters or digits.');
     if (!isLang(input.owner_language)) throw new ToolError(`"owner_language" must be one of: ${LANGUAGES.map((l) => l.code).join(", ")}.`);
     const area = text(input, "delivery_area", 255);
-    const capacity = whole(input, "capacity_per_day", 1, 2000);
+    // Optional: most home kitchens cook to order and have no fixed daily limit.
+    const capacity = input.capacity_per_day == null ? null : whole(input, "capacity_per_day", 1, 2000);
     if (!Array.isArray(input.dishes) || input.dishes.length === 0 || input.dishes.length > 30) {
       throw new ToolError('"dishes" must list between 1 and 30 dishes.');
     }

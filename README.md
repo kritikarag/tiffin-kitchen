@@ -2,9 +2,11 @@
 
 **Built for the GoDaddy Inclusive Innovation Hackathon 2026 with Claude and GoDaddy.**
 
+Home-cooked food without the extra charges, and a food business without the English. Tiffin connects home cooks with the people nearby who want their food: the cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs.
+
 Most tools that help a small business get online stop once the website is live. A home tiffin kitchen's real work starts after that, and it repeats every day: a new menu each morning, orders that close at a cut-off, dishes that run out, and at noon a count of exactly what to cook and where it goes.
 
-Tiffin is an assistant for that daily loop, in the cook's own language. She speaks tomorrow's menu and taps Yes. She says "the payasa is finished" and the page shows it sold out. At cut-off she hears the cooking list: exact totals, customer notes translated into her language, deliveries grouped by area. Getting started takes one conversation, or one photo of her handwritten menu, and ends with a web address and a live ordering page. Every step the assistant takes is shown on screen, and nothing changes her business until she taps Yes.
+Tiffin is an assistant for that daily loop, in the cook's own language. She speaks tomorrow's menu and taps Yes. She says "the payasa is finished" and the page shows it sold out. New orders ring on her screen. At cut-off she hears the cooking list: allergy notes first, then exact totals, customer notes translated into her language, deliveries grouped by area. Getting started takes one conversation, or one photo of her handwritten menu, and ends with a web address and a live ordering page. Every step the assistant takes is shown on screen, and nothing changes her business until she taps Yes.
 
 Her customers browse the kitchens near them, read the menu in their own language and order in a few taps, with no app and no account.
 
@@ -39,13 +41,21 @@ Every page works in nine languages: English, Hindi, Kannada, Tamil, Telugu, Mala
 
 ## 1. The problem
 
-Across Indian cities, thousands of women run, or want to run, tiffin services from their kitchens. The business is simple: cook one menu a day, take orders before a cut-off, deliver nearby. Running it online is not.
+Two groups of people want the same thing and struggle to find each other.
 
-- **Website builders assume literacy in English.** They ask for typed descriptions, forms and settings. Many home cooks are fluent speakers but not confident readers or typists, especially in English.
-- **The daily work is repetitive and happens on WhatsApp.** The menu changes every morning and is posted as a status half the customers miss. Orders arrive as scattered messages, and someone has to count them by hand before cooking.
-- **Cities mix languages.** In Bangalore, the cook may speak Kannada while her customers come from every state and read Hindi, Tamil or English.
+**People who want home-cooked food.** Students, office workers, people living away from family and older people living alone want simple, home-style meals every day. Food delivery apps mostly sell restaurant food, and every order carries delivery fees, packaging and platform charges on top of the meal. A cook in the next street can make the same meal for less, but she is hard to find unless someone forwards her number.
 
-Website builders, including the new AI ones, solve the first day: they produce a page. A tiffin kitchen needs help on every day after it, with a menu that changes daily, a hard cut-off, a fixed number of plates and a cooking list. Generic store builders treat that as a product catalogue and an order inbox, which leaves her counting on paper again.
+**Home cooks who could feed them.** Many women cook well enough to run a tiffin service from home, and many already do, informally. What holds them back is not the cooking, it is everything around it:
+
+- **Delivery platforms are built for restaurants.** Signing up as a partner, managing a menu and reading payouts happen in English, through forms and dashboards, and the commission eats into a meal that sells for a few dozen rupees.
+- **Website builders, including the new AI ones, also assume English and typing,** and they stop once the page is live.
+- **The daily work happens on WhatsApp.** The menu is posted as a status half the customers miss. Orders arrive as scattered messages and are counted by hand before cooking. Payments are hard to track, and the steel boxes the food goes out in don't always come back.
+
+**Language cuts both ways.** Not everyone works in an office where English is the default. A cook in Bangalore may be comfortable only in Kannada, while her customers read Hindi, Tamil, Bengali or English. Today one side always has to work in the other's language, or in English that neither is comfortable with, and a note like "peanut allergy" can get lost in between.
+
+**A tiffin kitchen is not a shop.** Its menu changes every day, orders close at a cut-off, dishes run out, boxes have to come back, and at noon someone has to know exactly what to cook and where it goes. Store builders treat that as a product catalogue and an order inbox, which leaves her counting on paper again.
+
+Tiffin works for both ends. The cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs, with no app, no account, no English needed, and nothing added on top of her price.
 
 ## 2. Who it is for
 
@@ -54,13 +64,13 @@ Website builders, including the new AI ones, solve the first day: they produce a
 | Who | A home cook starting or running a tiffin service | Office workers, students and families nearby |
 | Language | Speaks any of nine Indian languages or English, often mixed | Reads any of the nine |
 | Device | An Android phone with Chrome | Any phone with a browser |
-| What they need | Set up once, then update by voice in seconds | See today's menu, order quickly, pay on delivery |
+| What they need | Set up once, then update by voice in seconds, with no English and no forms | Find home food nearby, read the menu in their language, order quickly, pay her directly by UPI or cash |
 
 ## 3. What it does
 
 **For the owner (`/owner`)**
 
-- **Launch in one conversation.** She tells the assistant her dishes and prices, where she delivers and how many people she can feed. It saves exactly what she says, finds a free web address, and publishes her page. If she isn't sure what to cook or charge, she can ask, and it suggests prices from her costs.
+- **Launch in one conversation.** She tells the assistant her dishes and prices, and where she delivers. It saves exactly what she says, finds a free web address, and publishes her page. If she isn't sure what to cook or charge, she can ask, and it suggests prices from her costs.
 - **Or photograph her menu.** She taps 📷 and a camera opens inside the page: she frames her handwritten menu, taps **Take photo**, then **Use photo** or **Retake**. (She can also pick a photo from her gallery.) Claude reads each dish and price exactly as written, reads them back, and asks about anything unclear instead of guessing. Nothing is saved until she taps Yes.
 - **Speak at her own pace.** She taps the mic, talks with as many pauses as she needs, and taps ✓ when done. The words land in the message box so she can fix a misheard word before tapping Send. ✕ throws a recording away.
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
@@ -95,13 +105,13 @@ Website builders, including the new AI ones, solve the first day: they produce a
 
 This walkthrough is put together from real conversations with the assistant, condensed and translated from Kannada.
 
-> **Lakshmi:** Hello, I'm Lakshmi. I want to start a tiffin service from home. Chapati palya seventy rupees, anna sambar seventy, bisi bele bath eighty. I deliver to Indiranagar and Domlur, thirty people a day.
+> **Lakshmi:** Hello, I'm Lakshmi. I want to start a tiffin service from home. Chapati palya seventy rupees, anna sambar seventy, bisi bele bath eighty. I deliver to Indiranagar and Domlur.
 >
 > **Assistant:** I've noted chapati palya at seventy rupees, anna sambar at seventy and bisi bele bath at eighty. What should we call your kitchen?
 >
 > **Lakshmi:** Lakshmi Tiffins.
 >
-> **Assistant:** I'll save Lakshmi Tiffins, delivering to Indiranagar and Domlur, thirty meals a day, with those three dishes and prices. Shall I save it? **[Yes] [No]**
+> **Assistant:** I'll save Lakshmi Tiffins, delivering to Indiranagar and Domlur, with those three dishes and prices. Shall I save it? **[Yes] [No]**
 
 The prices are hers. The assistant only suggests prices if she asks, for example "I don't know what to charge", and then starts by asking what a plate costs her.
 
@@ -193,7 +203,7 @@ The camera runs inside the page (the browser's camera API, back camera preferred
 
 ### The customer side has no AI
 
-Placing an order is ordinary code. The order route locks the day's menu row, then checks in one transaction that the kitchen is live, the cut-off hasn't passed, no dish is sold out and the day's capacity isn't exceeded. A double tap sends the same idempotency key, so it creates one order.
+Placing an order is ordinary code. The order route locks the day's menu row, then checks in one transaction that the kitchen is live, the cut-off hasn't passed, no dish is sold out and, if she set a daily plate limit, it isn't exceeded. A double tap sends the same idempotency key, so it creates one order.
 
 ## 6. Design decisions
 
@@ -216,7 +226,7 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 - **The confirmation gate is code, not a prompt.** Tools that save her kitchen, change a menu, publish, reserve a domain or cancel an order run as a dry run first and are stored as pending. They run for real only on a separate Yes request from the button, so neither a misheard word nor text inside a customer's note can trigger them.
 - **Every tool input is checked again.** Claude's requests go through the same validation as any other untrusted input. Bad input goes back to Claude as a plain error, never into the database.
 - **Allergy flags never touch ordering.** Notes are checked by Claude when the owner reads her orders, not when a customer orders, so the order path has no AI in it. A note that isn't flagged is still shown in full.
-- **Prices and limits are enforced on the server.** An order's total is computed from the day's menu in the database, not from the browser. Cut-off, sold-out and the daily plate limit are checked inside one database transaction, with the day's menu row locked so two orders at once can't both take the last plate.
+- **Prices and limits are enforced on the server.** An order's total is computed from the day's menu in the database, not from the browser. Cut-off, sold-out and a daily plate limit (only if she set one) are checked inside one database transaction, with the day's menu row locked so two orders at once can't both take the last plate.
 - **The agent's report comes from the tools.** The steps list above each reply is built from what each tool returned, so it can't show an action that didn't happen.
 - **Translation calls have no tools.** Customer notes are translated by a separate Claude call that can only return text, so a note can't make the agent act.
 - **No secrets in the repository.** API keys live only in the hosting settings; `.env` is excluded from Git.
@@ -244,7 +254,7 @@ Adding a language means one line in `LANGUAGES` (`src/lib/i18n.ts`) and one run 
 
 | Table | Holds |
 | --- | --- |
-| `kitchens` | Name, web address slug, owner's language, delivery area, their translations, daily capacity, time zone, domain, WhatsApp number, UPI ID, whether dabbas are counted, `draft` or `live` |
+| `kitchens` | Name, web address slug, owner's language, delivery area, their translations, an optional daily plate limit, time zone, domain, WhatsApp number, UPI ID, whether dabbas are counted, `draft` or `live` |
 | `menu_items` | Each dish as the owner said it, its usual price, and translations as JSON |
 | `daily_menus` | One row per kitchen per day: cut-off time and `open`, `closed` or `holiday` |
 | `daily_menu_items` | Which dishes are on a day's menu, that day's price, and whether sold out |

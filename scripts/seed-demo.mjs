@@ -55,7 +55,7 @@ await db.query("DELETE FROM conversations WHERE token = ?", [OWNER_TOKEN]);
 await db.query("DELETE FROM kitchens WHERE slug = ?", [SLUG]); // cascades to menus, orders and conversations
 const [k] = await db.query(
   `INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, timezone, domain, owner_whatsapp, upi_id, status)
-   VALUES (?, ?, 'kn', ?, ?, 30, ?, 'lakshmitiffins.in', ?, ?, 'live')`,
+   VALUES (?, ?, 'kn', ?, ?, NULL, ?, 'lakshmitiffins.in', ?, ?, 'live')`, // no daily limit
   [SLUG, kitchen.name, kitchen.area, JSON.stringify(withExtra(kitchen.translations)), TIMEZONE, demoWhatsapp(), demoUpi()],
 );
 const [menu] = await db.query(
@@ -109,7 +109,7 @@ for (const other of others) {
   const [ok] = await db.query(
     `INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, timezone, status)
      VALUES (?, ?, ?, ?, ?, ?, ?, 'live')`,
-    [other.slug, other.names[other.owner][0], other.owner, other.names[other.owner][1], JSON.stringify(translations), other.capacity, TIMEZONE],
+    [other.slug, other.names[other.owner][0], other.owner, other.names[other.owner][1], JSON.stringify(translations), null, TIMEZONE],
   );
   const [om] = await db.query("INSERT INTO daily_menus (kitchen_id, menu_date, cutoff_time, status) VALUES (?, ?, ?, ?)", [
     ok.insertId,
