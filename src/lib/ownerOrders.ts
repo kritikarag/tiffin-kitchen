@@ -16,6 +16,8 @@ export type OwnerOrder = {
   allergy: boolean; // the note is about an allergy or health (see noteCheck.ts); false also when unchecked
   boxesOut: number; // dabbas this customer still has, from all days
   status: "placed" | "cancelled";
+  delivery: Delivery;
+  tell: { on_the_way: string; delivered: string }; // WhatsApp links to tell the customer, in their language
   amount: number;
   items: { dish: string; quantity: number }[];
 };
@@ -30,6 +32,7 @@ export type OwnerOrdersView = {
   revenue: number;
   usesDabbas: boolean;
   boxesOut: number; // all dabbas still with customers
+  deliveredCount: number;
   totals: { dish: string; quantity: number }[];
   orders: OwnerOrder[]; // placed orders first, then cancelled; each group in the order they came in
 };
@@ -40,6 +43,7 @@ import type { Lang } from "./i18n";
 import { inLanguage } from "./menu";
 import type { ModelCall } from "./model";
 import { checkMenuNotes } from "./noteCheck";
+import { customerMessage, isDelivery, type Delivery } from "./delivery";
 
 export async function kitchenForToken(token: string): Promise<Kitchen | null> {
   const [rows] = await db().query<RowDataPacket[]>(
@@ -80,6 +84,7 @@ export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang, 
     revenue: 0,
     usesDabbas: kitchen.usesDabbas,
     boxesOut: 0,
+    deliveredCount: 0,
     totals: [],
     orders: [],
   };
@@ -114,7 +119,7 @@ export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang, 
 
   // created_at is stored in UTC by the database session; the time shown is converted to her time zone.
   const [lines] = await db().query<RowDataPacket[]>(
-    `SELECT o.id, UNIX_TIMESTAMP(o.created_at) AS placed_unix, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status,
+    `SELECT o.id, UNIX_TIMESTAMP(o.created_at) AS placed_unix, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, o.delivery, o.customer_language,
             mi.name_original AS dish, mi.translations, oi.quantity, oi.unit_price
        FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
       WHERE o.daily_menu_id = ? ORDER BY o.id, mi.id LIMIT 2000`,
@@ -136,6 +141,11 @@ export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang, 
         allergy: Boolean(line.allergy_alert),
         boxesOut: boxes.get(line.phone) ?? 0,
         status: line.status,
+        delivery: isDelivery(line.delivery) ? line.delivery : "waiting",
+        tell: {
+          on_the_way: customerMessage(line as never, kitchen, "on_the_way"),
+          delivered: customerMessage(line as never, kitchen, "delivered"),
+        },
         amount: 0,
         items: [],
       };
@@ -147,6 +157,7 @@ export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang, 
   const all = [...byId.values()];
   view.orders = [...all.filter((o) => o.status === "placed"), ...all.filter((o) => o.status === "cancelled")];
   view.orderCount = all.filter((o) => o.status === "placed").length;
+  view.deliveredCount = all.filter((o) => o.status === "placed" && o.delivery === "delivered").length;
   view.revenue = all.filter((o) => o.status === "placed").reduce((sum, o) => sum + o.amount, 0);
   return view;
 }

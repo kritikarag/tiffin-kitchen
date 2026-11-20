@@ -85,6 +85,7 @@ const en = {
     "Orders counted by hand from scattered messages",
     "English forms and dashboards on every platform",
     "Boxes and payments tracked in a notebook",
+    "Customers calling to ask where their food is",
   ],
   withTitle: "With Tiffin",
   with: [
@@ -92,6 +93,7 @@ const en = {
     "Exact totals and a cooking list at cut-off",
     "Her language on her side, theirs on theirs",
     "UPI straight to her, and every dabba counted",
+    "One tap tells each customer it's on the way, in their language",
   ],
 
   ctaTitle: "See it work in a minute.",
@@ -123,10 +125,10 @@ export const ONE_DISH: Record<Lang, string> = {
   gu: "પનીર બટર મસાલા",
 };
 
-// The ten tools, by what they are for. Code names, so they are never translated.
+// The eleven tools, by what they are for. Code names, so they are never translated.
 export const TOOL_GROUPS: string[][] = [
   ["create_kitchen", "check_domain", "register_domain", "publish_site"],
-  ["update_menu", "mark_sold_out", "get_orders", "cancel_order"],
+  ["update_menu", "mark_sold_out", "get_orders", "mark_delivery", "cancel_order"],
   ["update_customer_boxes", "update_kitchen_details"],
 ];
 

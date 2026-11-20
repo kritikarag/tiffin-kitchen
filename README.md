@@ -78,10 +78,11 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
 - **See today's orders at a glance.** A **Today's orders** button opens a screen with the number of orders, plates and money to collect, the totals to cook per dish, and every order grouped by delivery area: name, tap-to-call phone, dishes, amount and the customer's note translated into her language. It refreshes by itself every 30 seconds; cancelled orders are listed separately.
 - **Get back to her kitchen from any phone.** Once she has a kitchen, **🔑 My kitchen link** shows her private link, with buttons to copy it or send it to her own WhatsApp. Opening it on any phone or computer brings back her kitchen and her conversation. If she opens a fresh chat and asks to change her menu, the assistant tells her to open that link rather than starting a new kitchen.
-- **Hear about each new order.** While her page is open, a banner and a short chime announce each new order with the name, dishes and amount, and **See orders** opens the orders screen. Customers also get a **Send my order on WhatsApp** button after ordering, which sends her the order, written in her language, from their own WhatsApp.
+- **Hear about each new order.** While her page is open, a banner and a short chime announce each new order with the name, dishes and amount, and **See orders** opens the orders screen. Customers can also tap **Also tell the cook on WhatsApp** after ordering to send her a copy written in her language. It is optional: the order is already placed and on her screen.
 - **Ordering closes on its own.** Each day's menu has a cut-off time. At that moment the page shows the menu as closed and the server refuses late orders, so she never has to tell anyone "no more orders". She can set tomorrow's menu the evening before.
 - **Get a cooking list at cut-off.** It starts with any allergy or health notes, then exact totals per dish, other requests translated into her language, and deliveries grouped by area.
 - **See allergy notes in red.** A note like "मूंगफली से एलर्जी है" (peanut allergy, in Hindi) shows in red on her orders screen, translated into her language, with the original below it. Claude checks each note once, when she first reads her orders, never while the customer is ordering. It is an extra safeguard: every note is always shown in full, flagged or not.
+- **Mark each delivery and tell the customer.** Every order has **🛵 On the way** and **✓ Delivered** buttons, and she can say it too: "Ravi's tiffin has left", "all Domlur orders are delivered". Then **Tell Ravi on WhatsApp** opens WhatsApp to that customer with the message already written in the customer's own language ("Hi Ravi, your tiffin from Lakshmi Tiffins is on the way."). She taps Send. The orders screen counts how many are delivered so far.
 - **Keep track of dabbas.** One box goes out with each order. Her orders screen shows how many each customer still has, with a **Mark returned** button, and she can say "Ravi brought back two dabbas" or ask "who still has my boxes?".
 - **Get paid by UPI with no fees.** If she gives her UPI ID, customers see a QR code for the exact amount after ordering. The money goes straight to her UPI ID, with no payment gateway in between.
 
@@ -98,7 +99,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
 - Give a full delivery address (house, street, landmark) as well as the area. The cook sees it on each order with a **Map** button that opens it in Google Maps, and it's in the WhatsApp message and the delivery list. The area groups deliveries into routes.
 - Pay by cash or UPI on delivery.
-- Send the order to the cook on WhatsApp in one tap, if she gave her number.
+- Get a WhatsApp message from the cook when the tiffin is on the way and when it has arrived, in their own language. Sending her a copy of the order on WhatsApp is optional.
 - Pay by scanning a UPI QR code for the exact amount, or open a UPI app on the same phone, if she gave her UPI ID. Ticking "I have paid" adds a line saying so to the WhatsApp message; she checks it in her own UPI app.
 - Order again in two taps. The phone remembers the customer's details and last order (only in that browser, never in a link), so next time it says "Welcome back" and offers **Same as last time**. "Not you?" clears them on a shared phone.
 
@@ -154,7 +155,7 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 
 | Part | What it does |
 | --- | --- |
-| Home page `/` | One line on what it is, then a day in a kitchen to tap through (each moment shows the real screen), how the agent and its ten tools work, the guardrails, and a before and after. In any of the nine languages, with a button to the demo kitchen always in reach |
+| Home page `/` | One line on what it is, then a day in a kitchen to tap through (each moment shows the real screen), how the agent and its eleven tools work, the guardrails, and a before and after. In any of the nine languages, with a button to the demo kitchen always in reach |
 | Owner page `/owner` | Records speech into an editable box, sends menu photos, shows and speaks replies, shows Yes and No buttons, and lists today's orders |
 | Agent route `/api/agent` | Runs the Claude loop and enforces the confirmation gate |
 | Tools | The only code that can change data or call GoDaddy |
@@ -169,13 +170,13 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 
 ### The agent loop
 
-Claude never runs code. The app sends Claude the conversation plus descriptions of ten tools. Claude replies either with text for the owner, or with a request to run a tool. The app runs the tool, sends back the result, and asks again. This repeats until Claude answers in text, up to eight rounds per turn.
+Claude never runs code. The app sends Claude the conversation plus descriptions of eleven tools. Claude replies either with text for the owner, or with a request to run a tool. The app runs the tool, sends back the result, and asks again. This repeats until Claude answers in text, up to eight rounds per turn.
 
 ![Agent loop](docs/1-agent-loop.png)
 
 On every round, the app also gives Claude the current state from the database: today's date and time in the kitchen's time zone, the saved dishes with their ids, and today's menu. Claude has no clock and no memory of the database, so without this it would guess.
 
-### The ten tools
+### The eleven tools
 
 | Tool | What it does | Waits for Yes |
 | --- | --- | --- |
@@ -186,6 +187,7 @@ On every round, the app also gives Claude the current state from the database: t
 | `update_menu` | Sets a day's dishes, prices and cut-off, or marks a holiday | Yes |
 | `mark_sold_out` | Marks a dish sold out, or back on sale | No |
 | `get_orders` | Reads a day's orders, with totals worked out in SQL, allergy flags and each customer's dabbas | No |
+| `mark_delivery` | Marks orders on the way or delivered, by order, by area or all at once | No |
 | `cancel_order` | Cancels one order, and takes its dabba off the customer's count | Yes |
 | `update_customer_boxes` | Checks or lists dabbas still with customers, or marks some returned | No |
 | `update_kitchen_details` | Changes her WhatsApp number or UPI ID, or turns dabba counting on or off | Yes |
@@ -225,7 +227,7 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 - **Ordering doesn't depend on AI.** If Claude or GoDaddy is unreachable, customers can still order.
 - **Translate once, at save time.** Dishes are translated when saved, not on every page view, so the menu page is fast and costs nothing to serve.
 - **Transliterate dish names.** "ಬಿಸಿ ಬೇಳೆ ಬಾತ್" becomes "बिसि बेले बाथ" and "Bisi Bele Bath", never a literal translation. A one-line description explains the dish to people who don't know it.
-- **WhatsApp through links, not the Business API.** Sending messages from a server needs Meta's approval. Instead the owner shares her page with a ready message, and customers send her their order with a prefilled wa.me link. Her number is shown only to someone who has just ordered.
+- **WhatsApp through links, not the Business API.** Sending messages from a server needs Meta's approval. Instead the owner shares her page with a ready message, she tells each customer their tiffin is on the way or delivered with a prefilled wa.me message in the customer's language, which she sends with one tap. Her number is shown only to someone who has just ordered.
 - **No online payment.** Cash or UPI on delivery is how tiffin services already work.
 
 ### Security and reliability
@@ -265,7 +267,7 @@ Adding a language means one line in `LANGUAGES` (`src/lib/i18n.ts`) and one run 
 | `menu_items` | Each dish as the owner said it, its usual price, and translations as JSON |
 | `daily_menus` | One row per kitchen per day: cut-off time and `open`, `closed` or `holiday` |
 | `daily_menu_items` | Which dishes are on a day's menu, that day's price, and whether sold out |
-| `orders` | Customer name, phone, area, full delivery address, note, language, `placed` or `cancelled`, the note's allergy flag (empty until checked), idempotency key |
+| `orders` | Customer name, phone, area, full delivery address, note, language, `placed` or `cancelled`, delivery status (`waiting`, `on_the_way`, `delivered`), the note's allergy flag (empty until checked), idempotency key |
 | `customer_boxes` | Dabbas still with each customer, by kitchen and phone number |
 | `order_items` | Dishes and quantities in each order, with the price paid |
 | `conversations` | The agent's message history and any action waiting for a Yes |
@@ -287,7 +289,7 @@ The full schema is in [`schema.sql`](schema.sql). Prices are whole rupees.
 | `src/app/api/agent/route.ts` | `POST /api/agent` |
 | `src/app/api/orders/route.ts` | `POST /api/orders` |
 | `src/lib/agent.ts` | The loop, system prompt, confirmation gate and conversation storage |
-| `src/lib/tools.ts` | The ten tools |
+| `src/lib/tools.ts` | The eleven tools |
 | `src/lib/model.ts` | The one place that calls Claude |
 | `src/lib/translate.ts` | Translation of dishes, kitchen names and delivery areas |
 | `src/lib/godaddy.ts` | Domain checks |

@@ -68,6 +68,7 @@ Running a live kitchen:
 - Use get_orders for any question about orders. Never state counts or totals you did not get from get_orders.
 - To cancel an order, find it with get_orders. If more than one order could match, ask which one.
 - After cut-off, give her the cooking list. Start with every order whose allergy_alert is true: say the customer, the dish and what the note says, translated into her language. Then totals per dish, the other special requests, and deliveries grouped by area, with each customer's address.
+- When food leaves or reaches customers ("Ravi's tiffin has left", "all Domlur orders delivered"), use mark_delivery with order ids, the area, or all. It runs at once. Then tell her she can tap "Tell on WhatsApp" in Today's orders to message each customer in their own language; never claim a message was sent.
 - Food goes out in dabbas (boxes). When she says a customer brought boxes back, or asks who still has boxes, use update_customer_boxes. In the delivery list, mention customers who have 3 or more dabbas with them, so she can ask for them back.
 - Use update_kitchen_details when she wants to change her WhatsApp number or UPI ID.
 
@@ -190,6 +191,8 @@ function stepInfo(name: string, input: unknown, data: unknown): AgentStep["info"
       return { orders: Number(d.order_count ?? 0), plates: Number(d.portions ?? 0) };
     case "cancel_order":
       return { customer: String(d.customer_name ?? "") };
+    case "mark_delivery":
+      return { status: String(d.status ?? i.status ?? ""), orders: Number(d.orders ?? 0) };
     case "update_customer_boxes":
       return {
         action: String(i.action ?? ""),

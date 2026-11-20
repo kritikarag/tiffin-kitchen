@@ -1,5 +1,6 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { checkMenuNotes } from "./noteCheck";
+import { isDelivery, setDelivery } from "./delivery";
 import { boxesByPhone } from "./ownerOrders";
 import { db } from "./db";
 import { checkDomain, isValidDomain, registerDomain } from "./godaddy";
@@ -380,12 +381,50 @@ const markSoldOut: Tool = {
   },
 };
 
+// Delivery status: easy to change back, so it happens at once, like a dish selling out.
+const markDelivery: Tool = {
+  needsConfirmation: false,
+  definition: {
+    name: "mark_delivery",
+    description:
+      "Mark today's orders as on the way or delivered (or back to waiting). Choose the orders by order_ids (from get_orders), by area, or all of today's orders. After it, tell her she can tap \"Tell on WhatsApp\" in Today's orders to message each customer in their own language.",
+    input_schema: {
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["on_the_way", "delivered", "waiting"] },
+        order_ids: { type: "array", items: { type: "integer" }, description: "Order ids from get_orders." },
+        area: { type: "string", description: "Every order in this delivery area." },
+        all: { type: "boolean", description: "True for all of today's orders." },
+      },
+      required: ["status"],
+    },
+  },
+  async run(input, ctx) {
+    const kitchen = await loadKitchen(kitchenOf(ctx));
+    if (!isDelivery(input.status)) throw new ToolError('"status" must be on_the_way, delivered or waiting.');
+    const ids = Array.isArray(input.order_ids) ? input.order_ids.map(Number).filter((n) => Number.isInteger(n) && n > 0) : [];
+    const area = typeof input.area === "string" ? input.area.trim() : "";
+    if (ids.length === 0 && !area && input.all !== true) throw new ToolError("Say which orders: order_ids, an area, or all.");
+    const [rows] = await db().query<RowDataPacket[]>(
+      `SELECT o.id, o.customer_name, o.area FROM orders o JOIN daily_menus dm ON dm.id = o.daily_menu_id
+        WHERE dm.kitchen_id = ? AND dm.menu_date = ? AND o.status = 'placed'`,
+      [kitchen.id, nowInZone(kitchen.timezone).date],
+    );
+    const chosen = rows.filter((r) =>
+      input.all === true || ids.includes(r.id) || (area && String(r.area).toLowerCase() === area.toLowerCase()),
+    );
+    if (chosen.length === 0) throw new ToolError("No order of today matches. Check get_orders for ids and areas.");
+    const changed = await setDelivery(kitchen.id, chosen.map((r) => r.id), input.status);
+    return { ok: true, data: { status: input.status, orders: chosen.length, changed, customers: chosen.map((r) => r.customer_name) } };
+  },
+};
+
 const getOrders: Tool = {
   needsConfirmation: false,
   definition: {
     name: "get_orders",
     description:
-      "Read one day's orders: the count, total portions, total per dish, and each order with its area, note, allergy_alert and the dabbas (boxes) that customer still has. Use it for any question about orders and for the cooking list. Never state order numbers from memory.",
+      "Read one day's orders: the count, total portions, total per dish, and each order with its area, note, allergy_alert, delivery status (waiting, on_the_way, delivered) and the dabbas (boxes) that customer still has. Use it for any question about orders and for the cooking list. Never state order numbers from memory.",
     input_schema: {
       type: "object",
       properties: { date: { type: "string", description: "YYYY-MM-DD. Leave out for today." } },
@@ -413,13 +452,13 @@ const getOrders: Tool = {
       [menus[0].id],
     );
     const [lines] = await db().query<RowDataPacket[]>(
-      `SELECT o.id, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, mi.name_original AS dish, oi.quantity, oi.unit_price
+      `SELECT o.id, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, o.delivery, mi.name_original AS dish, oi.quantity, oi.unit_price
          FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
         WHERE o.daily_menu_id = ? ORDER BY o.id, mi.id LIMIT 600`,
       [menus[0].id],
     );
     type Order = {
-      order_id: number; customer_name: string; phone: string; area: string; address: string | null; note: string | null; allergy_alert: boolean;
+      order_id: number; customer_name: string; phone: string; area: string; address: string | null; note: string | null; allergy_alert: boolean; delivery: string;
       dabbas_with_customer: number; amount: number; items: { dish: string; quantity: number }[];
     };
     const placed = new Map<number, Order>();
@@ -431,7 +470,7 @@ const getOrders: Tool = {
       }
       const order: Order = placed.get(line.id) ?? {
         order_id: line.id, customer_name: line.customer_name, phone: line.phone, area: line.area, address: line.address ?? null, note: line.note_original,
-        allergy_alert: Boolean(line.allergy_alert), dabbas_with_customer: boxes.get(line.phone) ?? 0, amount: 0, items: [],
+        allergy_alert: Boolean(line.allergy_alert), delivery: line.delivery ?? "waiting", dabbas_with_customer: boxes.get(line.phone) ?? 0, amount: 0, items: [],
       };
       order.items.push({ dish: line.dish, quantity: line.quantity });
       order.amount += line.quantity * line.unit_price;
@@ -449,6 +488,8 @@ const getOrders: Tool = {
         portions: dishTotals.reduce((sum, t) => sum + t.quantity, 0),
         totals: dishTotals,
         allergy_alerts: [...placed.values()].filter((o) => o.allergy_alert).length,
+        delivered_count: [...placed.values()].filter((o) => o.delivery === "delivered").length,
+        on_the_way_count: [...placed.values()].filter((o) => o.delivery === "on_the_way").length,
         dabbas_with_customers: [...boxes.values()].reduce((sum, n) => sum + n, 0),
         orders: [...placed.values()],
       },
@@ -593,7 +634,7 @@ const updateKitchenDetails: Tool = {
 };
 
 const TOOLS: Tool[] = [
-  createKitchen, checkDomainTool, registerDomainTool, publishSite, updateMenu, markSoldOut, getOrders, cancelOrder,
+  createKitchen, checkDomainTool, registerDomainTool, publishSite, updateMenu, markSoldOut, getOrders, cancelOrder, markDelivery,
   updateCustomerBoxes, updateKitchenDetails,
 ];
 const byName = new Map(TOOLS.map((tool) => [tool.definition.name, tool]));

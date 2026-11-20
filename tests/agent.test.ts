@@ -9,6 +9,7 @@ delete process.env.GODADDY_API_SECRET;
 
 import { handleOwnerTurn } from "../src/lib/agent";
 import { db } from "../src/lib/db";
+import { kitchenForToken, ownerOrders } from "../src/lib/ownerOrders";
 import type { Message, ModelCall, ModelRequest, ModelResponse, ToolResultBlock } from "../src/lib/model";
 
 let seen: ModelRequest[] = [];
@@ -238,6 +239,18 @@ async function main() {
   assert.equal(await boxesOf("9123456780"), 0);
   assert.equal(await boxesOf("9811122233"), 1);
   ok("allergy notes are flagged and dabbas are marked returned at once");
+
+  // Delivery: marked by area at once, shown in get_orders, and the owner screen offers a WhatsApp message to the customer.
+  script = [call("mark_delivery", { status: "on_the_way", area: "Domlur" }), say("ಸರಿ.")];
+  r = await turn(token, { type: "message", text: "ಡೊಮ್ಲೂರ್ ಆರ್ಡರ್ ಹೊರಟಿವೆ" });
+  assert.equal(r.pending, null);
+  const [dl] = await db().query("SELECT delivery FROM orders o JOIN daily_menus dm ON dm.id = o.daily_menu_id WHERE dm.kitchen_id = ? AND o.status = 'placed'", [kitchenId]);
+  assert.ok((dl as { delivery: string }[]).every((o) => o.delivery === "on_the_way"));
+  const view = await ownerOrders((await kitchenForToken(token))!, undefined, "kn");
+  const priya = view!.orders.find((o) => o.customerName === "Priya")!;
+  assert.equal(priya.delivery, "on_the_way");
+  assert.ok(priya.tell.delivered.startsWith("https://wa.me/919123456780?text="));
+  ok("mark_delivery marks orders by area at once; each order has a WhatsApp message for the customer");
 
   // 7. mark_sold_out runs at once, no confirmation.
   script = [call("mark_sold_out", { menu_item_id: chapati }), say("ಸರಿ.")];

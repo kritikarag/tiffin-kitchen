@@ -29,6 +29,8 @@ function describe(w: StepWords, tool: string, i: Info): string | null {
       return fill(w.get_orders, v);
     case "cancel_order":
       return i.customer ? fill(w.cancel_order, v) : w.cancel_order_unnamed;
+    case "mark_delivery":
+      return fill(i.status === "delivered" ? w.delivery_delivered : i.status === "on_the_way" ? w.delivery_on_the_way : w.delivery_waiting, v);
     case "update_customer_boxes":
       if (i.action === "returned") return fill(w.boxes_returned, v);
       if (i.action === "check") return fill(w.boxes_check, v);
@@ -50,6 +52,7 @@ const SOURCE: Record<string, (i: Info) => string> = {
   mark_sold_out: () => "Database",
   get_orders: () => "Database",
   cancel_order: () => "Database",
+  mark_delivery: () => "Database",
   update_customer_boxes: () => "Database",
   update_kitchen_details: () => "Database",
 };

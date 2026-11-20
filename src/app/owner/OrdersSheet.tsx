@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { OwnerOrdersView } from "@/lib/ownerOrders";
+import type { OwnerOrder, OwnerOrdersView } from "@/lib/ownerOrders";
 import styles from "./owner.module.css";
 
 type Labels = Record<string, string>;
@@ -45,6 +45,14 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
     if (!token) return;
     setView((v) => v && { ...v, orders: v.orders.map((o) => (o.phone === phone ? { ...o, boxesOut: 0 } : o)) });
     await fetch("/api/owner/boxes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, phone }) }).catch(() => {});
+    load();
+  }
+
+  // On the way / Delivered: shown at once, saved, then the list reloads.
+  async function setDelivery(orderId: number, delivery: OwnerOrder["delivery"]) {
+    if (!token) return;
+    setView((v) => v && { ...v, orders: v.orders.map((o) => (o.id === orderId ? { ...o, delivery } : o)) });
+    await fetch("/api/owner/delivery", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, orderId, status: delivery }) }).catch(() => {});
     load();
   }
 
@@ -95,6 +103,12 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                 <strong>₹{view.revenue}</strong>
                 <span>{t.ordersTotal}</span>
               </div>
+              <div>
+                <strong>
+                  {view.deliveredCount}/{view.orderCount}
+                </strong>
+                <span>{t.deliveredCount}</span>
+              </div>
               {view.usesDabbas && (
                 <div>
                   <strong>{view.boxesOut}</strong>
@@ -126,11 +140,16 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                   {placed
                     .filter((o) => o.area === area)
                     .map((o) => (
-                      <li key={o.id} className={styles.orderCard}>
+                      <li key={o.id} className={o.delivery === "delivered" ? styles.orderCardDone : styles.orderCard}>
                         <div className={styles.orderTop}>
                           <strong>{o.customerName}</strong>
                           <span>₹{o.amount}</span>
                         </div>
+                        {o.delivery !== "waiting" && (
+                          <span className={o.delivery === "delivered" ? styles.deliveryDone : styles.deliveryGoing}>
+                            {o.delivery === "delivered" ? `✓ ${t.delivered}` : `🛵 ${t.onTheWay}`}
+                          </span>
+                        )}
                         <div className={styles.orderItems}>{o.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</div>
                         {o.address && (
                           <div className={styles.orderAddress}>
@@ -155,6 +174,23 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                             </button>
                           </div>
                         )}
+                        <div className={styles.delivery}>
+                          {o.delivery === "waiting" && (
+                            <button type="button" onClick={() => setDelivery(o.id, "on_the_way")}>
+                              🛵 {t.onTheWay}
+                            </button>
+                          )}
+                          {o.delivery !== "delivered" && (
+                            <button type="button" onClick={() => setDelivery(o.id, "delivered")}>
+                              ✓ {t.delivered}
+                            </button>
+                          )}
+                          {o.delivery !== "waiting" && (
+                            <a className={styles.tell} href={o.delivery === "delivered" ? o.tell.delivered : o.tell.on_the_way} target="_blank" rel="noopener noreferrer">
+                              {t.tellCustomer.replace("{name}", o.customerName)}
+                            </a>
+                          )}
+                        </div>
                         <div className={styles.orderFoot}>
                           <a href={`tel:+91${o.phone}`}>📞 {o.phone}</a>
                           <span>
