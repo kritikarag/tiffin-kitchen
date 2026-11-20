@@ -13,9 +13,18 @@ const MAX_STORED_MESSAGES = 40; // older turns are dropped so each request stays
 
 export type PendingAction = { toolUseId: string; name: string; input: unknown; summary: Record<string, unknown> };
 
+// One visible step of the agent's work, shown to the owner above its reply ("✓ Checked lakshmitiffins.in").
+// `info` holds the few facts the page needs to word the step in her language.
+export type AgentStep = {
+  tool: string;
+  status: "done" | "waiting" | "cancelled" | "failed";
+  info: Record<string, string | number | boolean | null>;
+};
+
 export type AgentReply = {
   token: string; // the dashboard keeps this to continue the same conversation
   reply: string; // what to show and speak to the owner
+  steps: AgentStep[]; // what the agent did this turn, in order
   pending: { name: string; summary: Record<string, unknown> } | null; // when set, show Yes/No buttons
   kitchenId: number | null;
 };
@@ -150,6 +159,33 @@ function screenLanguageNote(lang: OwnerTurn["screenLanguage"]): string {
   return lang ? `\nShe has chosen ${LANGUAGE_NAMES[lang]} on her screen. Reply in ${LANGUAGE_NAMES[lang]} unless she speaks to you in another language.` : "";
 }
 
+// The facts worth showing for a tool step. Values come from the tool's own input and result, not from Claude's words.
+function stepInfo(name: string, input: unknown, data: unknown): AgentStep["info"] {
+  const i = (input ?? {}) as Record<string, unknown>;
+  const d = (data ?? {}) as Record<string, unknown>;
+  const count = (v: unknown) => (Array.isArray(v) ? v.length : null);
+  switch (name) {
+    case "check_domain":
+      return { domain: String(d.domain ?? i.domain ?? ""), available: d.available === true, simulated: d.simulated === true };
+    case "register_domain":
+      return { domain: String(d.domain ?? i.domain ?? ""), simulated: d.simulated !== false };
+    case "create_kitchen":
+      return { name: String(d.name ?? i.name ?? ""), dishes: count(d.dishes) ?? count(i.dishes) };
+    case "publish_site":
+      return { page: String(d.page_path ?? "") };
+    case "update_menu":
+      return { date: String(d.date ?? i.date ?? ""), holiday: i.holiday === true || d.status === "holiday", dishes: count(d.dishes) ?? count(i.dishes), cutoff: String(d.cutoff_time ?? i.cutoff_time ?? "") };
+    case "mark_sold_out":
+      return { soldOut: i.sold_out !== false };
+    case "get_orders":
+      return { orders: Number(d.order_count ?? 0), plates: Number(d.portions ?? 0) };
+    case "cancel_order":
+      return { customer: String(d.customer_name ?? "") };
+    default:
+      return {};
+  }
+}
+
 // How her Yes or No reaches Claude. "Tool result:" is followed by JSON so it can be read back reliably.
 function ownerAnswer(name: string, yes: boolean, result: { ok: boolean; data: unknown }): string {
   const what = yes ? (result.ok ? `She tapped Yes and ${name} ran.` : `She tapped Yes but ${name} failed.`) : `She tapped No, so ${name} did not run.`;
@@ -168,6 +204,8 @@ const asResult = (toolUseId: string, ok: boolean, data: unknown): ToolResultBloc
 export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, model: ModelCall): Promise<AgentReply> {
   const convo = await loadConversation(token);
 
+  const steps: AgentStep[] = [];
+
   // Step 1: turn what the owner did into the next user message.
   if (convo.pending && turn.type !== "message") {
     // She answered a held action with Yes or No. Only now does the real tool run.
@@ -178,6 +216,7 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
         ? await runTool(action.name, action.input, { kitchenId: convo.kitchenId, model })
         : { ok: true, data: { status: "cancelled_by_owner", note: "Nothing was changed." } };
     if (result.kitchenId != null) convo.kitchenId = result.kitchenId;
+    steps.push({ tool: action.name, status: turn.type !== "confirm" ? "cancelled" : result.ok ? "done" : "failed", info: stepInfo(action.name, action.input, turn.type === "confirm" ? result.data : action.summary) });
     // The original tool_use was already answered ("awaiting_owner_confirmation") in an earlier turn, and
     // Claude has replied since. A tool_result may only follow its own tool_use, so the outcome comes back
     // as an ordinary user message instead.
@@ -204,7 +243,7 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
       convo.messages.push({ role: "user", content: text });
     }
   } else {
-    return { token: convo.token, reply: "", pending: null, kitchenId: convo.kitchenId }; // stale button press
+    return { token: convo.token, reply: "", steps: [], pending: null, kitchenId: convo.kitchenId }; // stale button press
   }
   convo.messages = mergeUserMessages(convo.messages);
 
@@ -237,6 +276,7 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
         const check = await runTool(call.name, call.input, { kitchenId: convo.kitchenId, model, dryRun: true });
         if (check.ok) {
           convo.pending = { toolUseId: call.id, name: call.name, input: call.input, summary: check.data };
+          steps.push({ tool: call.name, status: "waiting", info: stepInfo(call.name, call.input, check.data) });
           results.push(asResult(call.id, true, { status: "awaiting_owner_confirmation", will_do: check.data }));
         } else {
           results.push(asResult(call.id, false, check.data)); // bad input: let Claude fix it first
@@ -247,6 +287,8 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
       } else {
         const result = await runTool(call.name, call.input, { kitchenId: convo.kitchenId, model });
         results.push(asResult(call.id, result.ok, result.data));
+        // A failed step is shown only for real problems; input Claude corrects on its own stays out of sight.
+        if (result.ok) steps.push({ tool: call.name, status: "done", info: stepInfo(call.name, call.input, result.data) });
       }
     }
     convo.messages.push({ role: "user", content: results });
@@ -269,6 +311,7 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
   return {
     token: convo.token,
     reply,
+    steps,
     pending: convo.pending ? { name: convo.pending.name, summary: convo.pending.summary } : null,
     kitchenId: convo.kitchenId,
   };

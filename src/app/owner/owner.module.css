@@ -512,3 +512,80 @@
   color: var(--muted);
   font-size: 0.85rem;
 }
+
+/* The agent's visible work, above its reply. */
+.agentBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 85%;
+}
+
+.agentBlock .agent {
+  max-width: 100%;
+  align-self: flex-start;
+}
+
+.steps {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font-size: 0.9rem;
+}
+
+.stepsHeading {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.steps ol {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: 1.3rem 1fr auto;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.stepIcon {
+  font-weight: 800;
+  text-align: center;
+}
+
+.step_done .stepIcon {
+  color: #1b8a63;
+}
+
+.step_waiting .stepIcon,
+.step_waiting em {
+  color: #a66a00;
+}
+
+.step_cancelled,
+.step_failed {
+  color: var(--muted);
+}
+
+.steps em {
+  font-style: normal;
+  font-weight: 600;
+}
+
+.stepSource {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: #f1f3f5;
+  color: #555;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}

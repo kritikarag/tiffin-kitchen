@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { canListen, canSpeak, listen, speak, stopSpeaking, type Listening, type OwnerLang } from "./voice";
+import type { AgentStep } from "@/lib/agent";
+import AgentSteps from "./AgentSteps";
 import CameraSheet from "./CameraSheet";
 import OrdersSheet from "./OrdersSheet";
 import { preparePhoto, type PhotoForUpload } from "./photo";
 import styles from "./owner.module.css";
 
-type Line = { from: "owner" | "agent"; text: string; photo?: string };
+type Line = { from: "owner" | "agent"; text: string; photo?: string; steps?: AgentStep[] };
 type Pending = { name: string; summary: Record<string, unknown> } | null;
 
 const TOKEN_KEY = "tiffin-owner-token";
@@ -265,8 +267,8 @@ export default function OwnerChat() {
       if (!response.ok) throw new Error(result.error ?? "Something went wrong.");
       token.current = result.token;
       write(TOKEN_KEY, result.token);
-      if (result.reply) {
-        setLines((l) => [...l, { from: "agent", text: result.reply }]);
+      if (result.reply || result.steps?.length) {
+        setLines((l) => [...l, { from: "agent", text: result.reply, steps: result.steps }]);
         speak(result.reply, lang);
       }
       setPending(result.pending);
@@ -423,8 +425,11 @@ export default function OwnerChat() {
             </div>
           ) : (
             <div key={i} className={styles.agentRow}>
-              <p className={styles.agent}>{line.text}</p>
-              {voiceAvailable && (
+              <div className={styles.agentBlock}>
+                {line.steps && <AgentSteps steps={line.steps} lang={lang} />}
+                {line.text && <p className={styles.agent}>{line.text}</p>}
+              </div>
+              {voiceAvailable && line.text && (
                 <button type="button" className={styles.replay} onClick={() => speak(line.text, lang)} aria-label={t.replay}>
                   🔊
                 </button>

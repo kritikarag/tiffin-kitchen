@@ -64,6 +64,7 @@ Existing tools help someone who already has a website. Nothing helps her go from
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
 - **See today's orders at a glance.** A **Today's orders** button opens a screen with the number of orders, plates and money to collect, the totals to cook per dish, and every order grouped by delivery area: name, tap-to-call phone, dishes, amount and the customer's note translated into her language. It refreshes by itself every 30 seconds; cancelled orders are listed separately.
 - **Get a cooking list at cut-off.** Exact totals per dish, special requests translated into her language, and deliveries grouped by area.
+- **See what the assistant did.** Above each reply, a short list shows every action it took that turn: "✓ Read today's orders: 6 orders, 16 plates", "✓ Checked lakshmitiffins.in: available", "⏳ Marked Sunday as a holiday, not done yet, waiting for your Yes". Each line names the system that did the work (GoDaddy, Database, Hosting). The list is built from what the tools returned, not from Claude's wording, so it can't claim something that didn't happen.
 - **Stay in control.** Anything that changes her business waits for her to tap **Yes**.
 - **Write her announcements.** A ready WhatsApp message in her language announces the launch.
 
@@ -156,6 +157,12 @@ On every round, the app also gives Claude the current state from the database: t
 | `cancel_order` | Cancels one order | Yes |
 
 Each tool has three parts: a description Claude reads to decide when to use it, a flag saying whether it needs the owner's Yes, and a plain TypeScript function. The function checks every input again, because model output is never trusted. If an input is wrong, the error goes back to Claude in plain words, and Claude corrects itself or asks her.
+
+### Showing the agent's work
+
+Each reply from `/api/agent` carries a `steps` list next to the text: one entry per tool call, with its status (done, waiting for Yes, cancelled, failed) and the key facts from the tool's own result, such as the domain and whether it is free, or the order and plate counts. The owner page shows these above the reply in her language, with a tag for the system that did the work. A tool call that failed and that Claude then corrected is left out, so she sees only what actually happened.
+
+<img src="docs/agent-steps-en.png" alt="Owner chat showing the assistant's steps above its reply" width="320">
 
 ### The confirmation gate
 
