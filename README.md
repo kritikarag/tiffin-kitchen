@@ -54,7 +54,7 @@ Existing tools help someone who already has a website. Nothing helps her go from
 
 **For the owner (`/owner`)**
 
-- **Launch in one conversation.** The assistant asks what she cooks, where she delivers, how many people she can feed and what a plate costs her. It suggests prices that cover her costs with a fair margin, saves the kitchen, finds a free web address, and publishes her page.
+- **Launch in one conversation.** She tells the assistant her dishes and prices, where she delivers and how many people she can feed. It saves exactly what she says, finds a free web address, and publishes her page. If she isn't sure what to cook or charge, she can ask, and it suggests prices from her costs.
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
 - **Get a cooking list at cut-off.** Exact totals per dish, special requests translated into her language, and deliveries grouped by area.
 - **Stay in control.** Anything that changes her business waits for her to tap **Yes**.
