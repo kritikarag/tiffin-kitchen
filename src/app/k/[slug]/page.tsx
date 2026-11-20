@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { cookies, headers } from "next/headers";
 import { fill, getDictionary, LANG_COOKIE, pickLanguage } from "@/lib/i18n";
 import { getTodayMenu } from "@/lib/menu";
@@ -39,7 +40,12 @@ async function Menu({ params }: Props) {
 
   return (
     <div lang={lang}>
-      <LanguageSwitch current={lang} />
+      <div className={styles.topRow}>
+        <Link href="/k" className={styles.back}>
+          ‹ {t.allKitchens}
+        </Link>
+        <LanguageSwitch current={lang} />
+      </div>
       <header className={styles.header}>
         <h1>{menu.kitchen.name}</h1>
         {menu.kitchen.deliveryArea && <p>{fill(t.deliversTo, { area: menu.kitchen.deliveryArea })}</p>}

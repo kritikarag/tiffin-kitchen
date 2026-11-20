@@ -1,0 +1,109 @@
+.page {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+
+.header {
+  margin: 1.25rem 0 1.5rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.9rem;
+  line-height: 1.2;
+}
+
+.header p {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+.empty {
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: var(--tint);
+  text-align: center;
+}
+
+.list {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card,
+.cardMuted {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: var(--accent);
+}
+
+.card:focus-visible,
+.cardMuted:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cardMuted {
+  background: #fafafa;
+}
+
+.cardMuted .name,
+.cardMuted .dishes {
+  opacity: 0.65;
+}
+
+.top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.name {
+  font-size: 1.25rem;
+}
+
+.price {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+.area {
+  color: var(--muted);
+}
+
+.dishes {
+  font-size: 0.98rem;
+}
+
+.open,
+.closed {
+  justify-self: start;
+  margin-top: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.open {
+  background: #e8f7f1;
+  color: #146c4d;
+}
+
+.closed {
+  background: #f1f1f1;
+  color: #555;
+}

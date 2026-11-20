@@ -24,7 +24,7 @@ const COPY: Record<Lang, {
     title: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ, ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ.",
     lead: "ನೀವು ಮಾತನಾಡಿ. ಮೆನು, ಬೆಲೆ, ವೆಬ್ ವಿಳಾಸ ಮತ್ತು ಆರ್ಡರ್ ಪೇಜ್ ಸಹಾಯಕ ಸಿದ್ಧಪಡಿಸುತ್ತದೆ.",
     start: "ನನ್ನ ಅಡುಗೆಮನೆ ಶುರು ಮಾಡಿ",
-    demo: "ಡೆಮೊ ಮೆನು ನೋಡಿ",
+    demo: "ಅಡುಗೆಮನೆಗಳನ್ನು ನೋಡಿ",
     tiers: ["ಚಪಾತಿ ಪಲ್ಯ", "ಬಿಸಿ ಬೇಳೆ ಬಾತ್", "ಶಾವಿಗೆ ಪಾಯಸ"],
     dayTitle: "ಒಂದು ದಿನ ಹೀಗೆ ನಡೆಯುತ್ತದೆ",
     day: [
@@ -41,7 +41,7 @@ const COPY: Record<Lang, {
     title: "आपकी रसोई, आपकी भाषा में।",
     lead: "आप बोलिए। मेन्यू, दाम, वेब पता और ऑर्डर पेज सहायक तैयार कर देगा।",
     start: "मेरी रसोई शुरू करें",
-    demo: "डेमो मेन्यू देखें",
+    demo: "रसोइयाँ देखें",
     tiers: ["चपाती पल्य", "बिसि बेले बाथ", "शाविगे पायसा"],
     dayTitle: "एक दिन ऐसे चलता है",
     day: [
@@ -58,7 +58,7 @@ const COPY: Record<Lang, {
     title: "Your kitchen, in your language.",
     lead: "Just talk. The assistant sets up your menu, prices, web address and ordering page.",
     start: "Start my kitchen",
-    demo: "See a live menu",
+    demo: "Browse kitchens",
     tiers: ["Chapati palya", "Bisi bele bath", "Shavige payasa"],
     dayTitle: "How a day goes",
     day: [
@@ -114,7 +114,7 @@ export default function Home() {
               <Link href="/owner" className={styles.primary}>
                 <span aria-hidden="true">🎤</span> {t.start}
               </Link>
-              <Link href="/k/lakshmi-tiffins" className={styles.secondary}>
+              <Link href="/k" className={styles.secondary}>
                 {t.demo}
               </Link>
             </div>

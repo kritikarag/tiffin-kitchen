@@ -26,6 +26,16 @@ export function pickLanguage(cookieValue: string | undefined, acceptLanguage: st
 }
 
 const en = {
+  kitchensTitle: "Home kitchens near you",
+  kitchensLead: "Fresh home-cooked food, ordered before the cut-off and delivered the same day.",
+  openUntil: "Open for orders until {time}",
+  closedToday: "Orders closed for today",
+  holidayToday: "Closed today",
+  menuNotUp: "Today's menu is not up yet",
+  from: "From ₹{price}",
+  seeMenu: "See menu",
+  noKitchens: "No kitchens are taking orders yet.",
+  allKitchens: "All kitchens",
   todaysMenu: "Today's menu",
   deliversTo: "Delivers to {area}",
   orderBy: "Order by {time}",
@@ -56,6 +66,16 @@ const en = {
 export type Dictionary = typeof en;
 
 const hi: Dictionary = {
+  kitchensTitle: "आपके पास की घरेलू रसोइयाँ",
+  kitchensLead: "घर का ताज़ा खाना, आख़िरी समय से पहले ऑर्डर करें, उसी दिन डिलीवरी।",
+  openUntil: "{time} तक ऑर्डर लिए जा रहे हैं",
+  closedToday: "आज के ऑर्डर बंद",
+  holidayToday: "आज बंद है",
+  menuNotUp: "आज का मेन्यू अभी नहीं आया",
+  from: "₹{price} से",
+  seeMenu: "मेन्यू देखें",
+  noKitchens: "अभी कोई रसोई ऑर्डर नहीं ले रही है।",
+  allKitchens: "सभी रसोइयाँ",
   todaysMenu: "आज का मेन्यू",
   deliversTo: "डिलीवरी: {area}",
   orderBy: "{time} तक ऑर्डर करें",
@@ -84,6 +104,16 @@ const hi: Dictionary = {
 };
 
 const kn: Dictionary = {
+  kitchensTitle: "ನಿಮ್ಮ ಹತ್ತಿರದ ಮನೆ ಅಡುಗೆಮನೆಗಳು",
+  kitchensLead: "ಮನೆಯ ತಾಜಾ ಊಟ, ಕೊನೆಯ ಸಮಯದೊಳಗೆ ಆರ್ಡರ್ ಮಾಡಿ, ಅದೇ ದಿನ ಡೆಲಿವರಿ.",
+  openUntil: "{time} ವರೆಗೆ ಆರ್ಡರ್ ತೆಗೆದುಕೊಳ್ಳಲಾಗುತ್ತಿದೆ",
+  closedToday: "ಇಂದಿನ ಆರ್ಡರ್‌ಗಳು ಮುಗಿದಿವೆ",
+  holidayToday: "ಇಂದು ಮುಚ್ಚಿದೆ",
+  menuNotUp: "ಇಂದಿನ ಮೆನು ಇನ್ನೂ ಬಂದಿಲ್ಲ",
+  from: "₹{price} ರಿಂದ",
+  seeMenu: "ಮೆನು ನೋಡಿ",
+  noKitchens: "ಇನ್ನೂ ಯಾವ ಅಡುಗೆಮನೆಯೂ ಆರ್ಡರ್ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿಲ್ಲ.",
+  allKitchens: "ಎಲ್ಲಾ ಅಡುಗೆಮನೆಗಳು",
   todaysMenu: "ಇಂದಿನ ಮೆನು",
   deliversTo: "ಡೆಲಿವರಿ: {area}",
   orderBy: "{time} ಒಳಗೆ ಆರ್ಡರ್ ಮಾಡಿ",

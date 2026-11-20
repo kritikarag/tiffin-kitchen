@@ -60,8 +60,9 @@ Existing tools help someone who already has a website. Nothing helps her go from
 - **Stay in control.** Anything that changes her business waits for her to tap **Yes**.
 - **Write her announcements.** A ready WhatsApp message in her language announces the launch.
 
-**For the customer (`/k/<kitchen>`)**
+**For the customer (`/k` lists kitchens, `/k/<kitchen>` shows one)**
 
+- Browse the home kitchens taking orders today, with their areas, dishes, lowest price and cut-off time.
 - Today's menu in Kannada, Hindi or English, picked from the phone's language or a switch.
 - Order with name, phone, area and an optional note in any language. No account, no app.
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
@@ -241,7 +242,7 @@ Then open:
 
 - http://localhost:3000/owner to launch a kitchen by talking to the assistant
 - http://localhost:3000/k/ammas-kitchen for the simple demo kitchen's menu
-- After `db:seed-demo`: http://localhost:3000/k/lakshmi-tiffins for Lakshmi's menu, and http://localhost:3000/owner?t=11a6b5e1-d4e1-4000-8000-000000000001 to talk to the assistant as Lakshmi. It already has six orders (one more cancelled), so you can ask straight away for the cooking list. Re-run the seed to reset.
+- After `db:seed-demo`: http://localhost:3000/k for the list of four demo kitchens (one is closed today), http://localhost:3000/k/lakshmi-tiffins for Lakshmi's menu, and http://localhost:3000/owner?t=11a6b5e1-d4e1-4000-8000-000000000001 to talk to the assistant as Lakshmi. It already has six orders (one more cancelled), so you can ask straight away for the cooking list. Re-run the seed to reset.
 
 Voice input needs Chrome, and the microphone only works on `localhost` or an HTTPS address. Never commit `.env`; it is already in `.gitignore`.
 
