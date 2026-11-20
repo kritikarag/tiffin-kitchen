@@ -2,7 +2,9 @@
 
 **Built for the GoDaddy Inclusive Innovation Hackathon 2026 with Claude and GoDaddy.**
 
-A woman who cooks well can start a home tiffin service by talking to an assistant in her own language, or by photographing her handwritten menu. One conversation gives her a saved menu, a web address and a live ordering page. After that, she runs the business the same way, by speaking: today's menu, a dish that sold out, a cancelled order, and at cut-off a cooking list telling her exactly what to make and where it goes.
+Most tools that help a small business get online stop once the website is live. A home tiffin kitchen's real work starts after that, and it repeats every day: a new menu each morning, orders that close at a cut-off, dishes that run out, and at noon a count of exactly what to cook and where it goes.
+
+Tiffin is an assistant for that daily loop, in the cook's own language. She speaks tomorrow's menu and taps Yes. She says "the payasa is finished" and the page shows it sold out. At cut-off she hears the cooking list: exact totals, customer notes translated into her language, deliveries grouped by area. Getting started takes one conversation, or one photo of her handwritten menu, and ends with a web address and a live ordering page. Every step the assistant takes is shown on screen, and nothing changes her business until she taps Yes.
 
 Her customers browse the kitchens near them, read the menu in their own language and order in a few taps, with no app and no account.
 
@@ -43,7 +45,7 @@ Across Indian cities, thousands of women run, or want to run, tiffin services fr
 - **The daily work is repetitive and happens on WhatsApp.** The menu changes every morning and is posted as a status half the customers miss. Orders arrive as scattered messages, and someone has to count them by hand before cooking.
 - **Cities mix languages.** In Bangalore, the cook may speak Kannada while her customers come from every state and read Hindi, Tamil or English.
 
-Existing tools help someone who already has a website. Nothing helps her go from "I cook well" to "I have a business people can order from" without first learning the tools.
+Website builders, including the new AI ones, solve the first day: they produce a page. A tiffin kitchen needs help on every day after it, with a menu that changes daily, a hard cut-off, a fixed number of plates and a cooking list. Generic store builders treat that as a product catalogue and an order inbox, which leaves her counting on paper again.
 
 ## 2. Who it is for
 
@@ -194,6 +196,16 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 - **No WhatsApp integration.** The owner shares a link with a ready message. This avoids the WhatsApp Business API and its approval process.
 - **No online payment.** Cash or UPI on delivery is how tiffin services already work.
 
+### Security and reliability
+
+- **The confirmation gate is code, not a prompt.** Tools that change her business run as a dry run first and are stored as pending. They run for real only on a separate Yes request from the button, so neither a misheard word nor text inside a customer's note can trigger them.
+- **Every tool input is checked again.** Claude's requests go through the same validation as any other untrusted input. Bad input goes back to Claude as a plain error, never into the database.
+- **Prices and limits are enforced on the server.** An order's total is computed from the day's menu in the database, not from the browser. Cut-off, sold-out and the daily plate limit are checked inside one database transaction, with the day's menu row locked so two orders at once can't both take the last plate.
+- **The agent's report comes from the tools.** The steps list above each reply is built from what each tool returned, so it can't show an action that didn't happen.
+- **Translation calls have no tools.** Customer notes are translated by a separate Claude call that can only return text, so a note can't make the agent act.
+- **No secrets in the repository.** API keys live only in the hosting settings; `.env` is excluded from Git.
+- **Ordering keeps working without AI.** The customer pages and the order endpoint are plain code with no calls to Claude.
+
 ## 7. Languages
 
 The owner and each customer use their own language, and neither needs to know the other's. The launch set is Kannada, Hindi and English.
@@ -306,11 +318,12 @@ The tables are created automatically on every start, and doing so again is harml
 
 ## 13. Status and limitations
 
-**Working:** launch by conversation or menu photo, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, the kitchen list, customer orders, the cooking list, three languages, and voice in and out with editing before sending.
+**Working:** launch by conversation or menu photo, a visible list of the agent's steps on each reply, the Today's orders screen, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, the kitchen list, customer orders, the cooking list, three languages, and voice in and out with editing before sending.
 
 **Known limitations:**
 
-- **Domains:** availability is simulated until GoDaddy test keys are added. Registration reserves the name in the app but does not buy it, and the assistant says "reserved", not "bought".
+- **Domains:** with GoDaddy keys set, availability comes from GoDaddy's Domains API (test environment); without them it is simulated and labelled "GoDaddy · test". Registration reserves the name in the app but does not buy it, and the assistant says "reserved", not "bought".
+- **No rate limits yet** on the agent or order endpoints. Real use needs per-kitchen and per-address limits to cap Claude costs and spam.
 - **No owner login yet.** Whoever holds a conversation's token can act for that kitchen and see its orders. This is fine for a demo, not for real use.
 - **Voice quality depends on the phone and browser.** Speech recognition accuracy and the availability of Kannada and Hindi voices vary by device; Chrome on Android works best. A phone without a Kannada voice shows Kannada replies as text.
 - **Customers can't order by voice yet.** Only the owner side has voice and photos.
@@ -322,6 +335,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 - **A speech model built for Indian languages,** such as Sarvam AI, instead of the browser's own recognition. It would hear mixed Hindi-English and dish names correctly the first time, rather than relying on Claude to fix them afterwards.
 - **Sign-in by phone number and one-time code,** so only she can act for her kitchen.
+- **An alert for each new order,** by email from a domain mailbox or a WhatsApp message, so she doesn't need the page open.
 - **Real domain purchase** through GoDaddy, with the domain pointing straight at her page.
 - **A shopping list from tomorrow's orders.** The cooking list already knows the portions; turning that into ingredients and quantities saves a morning trip.
 - **Reminders to regulars.** A WhatsApp-ready message to customers who ordered last week, when today's menu has their favourite.
