@@ -23,6 +23,14 @@ const fakeModel: ModelCall = async (req) => {
     return { content: [{ type: "tool_use", id: "tr", name: "save_translations",
       input: { dishes: names.map((n) => ({ name: language === "en" ? n : `${n} (${language})`, description: "test" })) } }] };
   }
+  // Allergy check: notes mentioning "allerg" are alerts.
+  if (req.tools.length === 1 && req.tools[0].name === "save_checks") {
+    const checks = String(req.messages[0].content).split("\n").slice(1).map((l) => {
+      const [id, ...rest] = l.split(": ");
+      return { id: Number(id), alert: /allerg/i.test(rest.join(": ")) };
+    });
+    return { content: [{ type: "tool_use", id: "nc", name: "save_checks", input: { checks } }] };
+  }
   if (req.tools.length === 1 && req.tools[0].name === "save_kitchen_text") {
     return { content: [{ type: "tool_use", id: "kt", name: "save_kitchen_text", input: { name: language === "hi" ? "किचन" : "kitchen", delivery_area: "area" } }] };
   }
@@ -168,6 +176,12 @@ async function main() {
   assert.ok("input" in parsed);
   const placed = await placeOrder(parsed.input);
   assert.ok(placed.ok);
+  assert.equal(placed.upiUri, null); // no UPI ID yet, so no QR code
+  const boxesOf = async (phone: string) => {
+    const [rows] = await db().query("SELECT pending_boxes FROM customer_boxes WHERE kitchen_id = ? AND customer_phone = ?", [kitchenId, phone]);
+    return Number((rows as { pending_boxes: number }[])[0]?.pending_boxes ?? 0);
+  };
+  assert.equal(await boxesOf("9876543210"), 1); // one dabba per order, not per plate
   ok("publish and update_menu work end to end; a customer order goes through");
 
   script = [
@@ -181,7 +195,47 @@ async function main() {
   await turn(token, { type: "confirm" });
   const [o] = await db().query("SELECT status FROM orders WHERE id = ?", [placed.ok ? placed.orderId : 0]);
   assert.equal((o as { status: string }[])[0].status, "cancelled");
+  assert.equal(await boxesOf("9876543210"), 0); // the cancelled order's dabba never went out
   ok("get_orders returns exact totals; cancel_order is held and runs on yes");
+
+  // UPI ID, held until yes; then orders come back with a UPI payment link for the exact amount.
+  script = [call("update_kitchen_details", { upi_id: "Test.Cook@okaxis" }), say("UPI ID test.cook@okaxis ಹಾಕಲೇ?")];
+  r = await turn(token, { type: "message", text: "ನನ್ನ UPI test.cook@okaxis" });
+  assert.equal(r.pending?.name, "update_kitchen_details");
+  script = [say("ಆಯಿತು.")];
+  await turn(token, { type: "confirm" });
+  const [upiRow] = await db().query("SELECT upi_id FROM kitchens WHERE id = ?", [kitchenId]);
+  assert.equal((upiRow as { upi_id: string }[])[0].upi_id, "test.cook@okaxis");
+  const slug = (slugRow as { slug: string }[])[0].slug;
+  const order = (key: string, name: string, phone: string, note: string) =>
+    parseOrder({ slug, idempotencyKey: key, customerName: name, phone, area: "Domlur", note, items: [{ menuItemId: chapati, quantity: 2 }] });
+  const withAllergy = order("test-key-allergy", "Priya", "9123456780", "Peanut allergy, please be careful");
+  const plain = order("test-key-plain", "Meera", "9811122233", "less oil");
+  assert.ok("input" in withAllergy && "input" in plain);
+  const paid = await placeOrder(withAllergy.input);
+  await placeOrder(plain.input);
+  assert.ok(paid.ok && paid.upiUri?.startsWith("upi://pay?pa=test.cook%40okaxis") && paid.upiUri.includes("am=120"));
+  ok("update_kitchen_details is held until yes; orders then carry a UPI link for the exact amount");
+
+  // get_orders checks new notes: only the allergy is flagged. Dabbas come back by voice, with no yes needed.
+  script = [
+    call("get_orders", {}),
+    (req) => {
+      const d = lastResult(req);
+      const byName = Object.fromEntries(d.orders.map((o: { customer_name: string }) => [o.customer_name, o]));
+      assert.equal(byName.Priya.allergy_alert, true);
+      assert.equal(byName.Meera.allergy_alert, false);
+      assert.equal(byName.Priya.dabbas_with_customer, 1);
+      assert.equal(d.allergy_alerts, 1);
+      return call("update_customer_boxes", { action: "returned", customer: "Priya" })();
+    },
+    (req) => { const d = lastResult(req); assert.equal(d.returned, 1); assert.equal(d.boxes_left, 0); return say("ಸರಿ.")(); },
+  ];
+  r = await turn(token, { type: "message", text: "ಪ್ರಿಯಾ ಡಬ್ಬಿ ವಾಪಸ್ ಕೊಟ್ರು" });
+  assert.equal(r.pending, null);
+  assert.equal(await boxesOf("9123456780"), 0);
+  assert.equal(await boxesOf("9811122233"), 1);
+  ok("allergy notes are flagged and dabbas are marked returned at once");
 
   // 7. mark_sold_out runs at once, no confirmation.
   script = [call("mark_sold_out", { menu_item_id: chapati }), say("ಸರಿ.")];

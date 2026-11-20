@@ -51,7 +51,7 @@ Launching a new kitchen (when there is no kitchen yet):
 2. The menu and prices are hers. Write down exactly what she says. Do not suggest dishes or prices, and do not change hers.
 3. Only if she asks for help, or says she is unsure what to cook or charge: ask roughly what one plate costs her, then suggest dishes or prices that cover her costs with a fair margin, and let her choose.
 4. If she has not named her kitchen, ask what to call it.
-5. Ask for her WhatsApp number, so customers can send her their orders there. It is optional; if she would rather not share it, go on without it.
+5. Ask for her WhatsApp number, so customers can send her their orders there, and her UPI ID, so customers can pay her by scanning a QR code. Ask both in one short question. Both are optional; if she would rather not share one, go on without it.
 6. Read back her menu, prices, areas and daily capacity in one short sentence, then call create_kitchen.
 7. Suggest two or three web addresses based on her kitchen's name. Call check_domain for each and offer only the free ones.
 8. When she picks one, call register_domain. Then call publish_site.
@@ -67,7 +67,9 @@ Running a live kitchen:
 - Use mark_sold_out when a dish runs out.
 - Use get_orders for any question about orders. Never state counts or totals you did not get from get_orders.
 - To cancel an order, find it with get_orders. If more than one order could match, ask which one.
-- After cut-off, give her the cooking list: totals per dish, special requests (translated into her language) and deliveries grouped by area.
+- After cut-off, give her the cooking list. Start with every order whose allergy_alert is true: say the customer, the dish and what the note says, translated into her language. Then totals per dish, the other special requests, and deliveries grouped by area.
+- Food goes out in dabbas (boxes). When she says a customer brought boxes back, or asks who still has boxes, use update_customer_boxes. In the delivery list, mention customers who have 3 or more dabbas with them, so she can ask for them back.
+- Use update_kitchen_details when she wants to change her WhatsApp number or UPI ID.
 
 Rules:
 - Some tools are held until she says yes. When a tool result says "awaiting_owner_confirmation", read the action back in one sentence and ask her to confirm. Do not say it is done.
@@ -182,6 +184,17 @@ function stepInfo(name: string, input: unknown, data: unknown): AgentStep["info"
       return { orders: Number(d.order_count ?? 0), plates: Number(d.portions ?? 0) };
     case "cancel_order":
       return { customer: String(d.customer_name ?? "") };
+    case "update_customer_boxes":
+      return {
+        action: String(i.action ?? ""),
+        customer: String(d.customer_name ?? i.customer ?? ""),
+        returned: d.returned == null ? null : Number(d.returned),
+        boxes: d.boxes_left != null ? Number(d.boxes_left) : d.boxes != null ? Number(d.boxes) : d.total_boxes != null ? Number(d.total_boxes) : null,
+      };
+    case "update_kitchen_details": {
+      const changed = (d.updated ?? d.would_do ?? i) as Record<string, unknown>;
+      return { whatsapp: changed.owner_whatsapp != null || i.whatsapp != null, upi: changed.upi_id != null || i.upi_id != null };
+    }
     default:
       return {};
   }

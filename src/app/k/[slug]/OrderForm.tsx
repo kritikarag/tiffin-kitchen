@@ -1,10 +1,12 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import QRCode from "qrcode";
 import { useRouter } from "next/navigation";
 import { fill, type Dictionary, type Lang } from "@/lib/i18n";
 import type { MenuDish } from "@/lib/menu";
 import styles from "./menu.module.css";
+import { forget, parse, readLast, readMe, remember, subscribe, type LastOrder, type Me } from "./remember";
 
 type Props = { slug: string; lang: Lang; t: Dictionary; dishes: MenuDish[] };
 
@@ -15,12 +17,47 @@ function newKey(): string {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+type Placed = {
+  id: number;
+  name: string;
+  total: number;
+  whatsapp: { url: string; paidUrl: string } | null;
+  upiUri: string | null;
+};
+
+// The UPI payment link drawn as a QR code, for paying from another phone. Made in the browser.
+function UpiQr({ uri, label }: { uri: string; label: string }) {
+  const [src, setSrc] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    QRCode.toDataURL(uri, { width: 480, margin: 1, errorCorrectionLevel: "M" })
+      .then((url) => live && setSrc(url))
+      .catch(() => live && setSrc(null));
+    return () => {
+      live = false;
+    };
+  }, [uri]);
+  // eslint-disable-next-line @next/next/no-img-element -- a data URL made on this page; nothing to optimise
+  return src ? <img className={styles.qr} src={src} alt={label} width={240} height={240} /> : <div className={styles.qr} aria-hidden="true" />;
+}
+
 export default function OrderForm({ slug, lang, t, dishes }: Props) {
   const router = useRouter();
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [placed, setPlaced] = useState<{ id: number; name: string; total: number; whatsappUrl: string | null } | null>(null);
+  const [placed, setPlaced] = useState<Placed | null>(null);
+  const [paid, setPaid] = useState(false);
+
+  // A returning customer: details and last order remembered on this phone (null on the server).
+  const meRaw = useSyncExternalStore(subscribe, readMe, () => null);
+  const lastRaw = useSyncExternalStore(subscribe, useMemo(() => readLast(slug), [slug]), () => null);
+  const me = useMemo(() => parse<Me>(meRaw), [meRaw]);
+  const last = useMemo(() => {
+    const items = parse<LastOrder>(lastRaw)?.items ?? {};
+    // Only dishes on today's menu and not sold out.
+    return dishes.filter((d) => !d.soldOut && items[d.id] > 0).map((d) => ({ dish: d, quantity: Math.min(MAX_PER_DISH, items[d.id]) }));
+  }, [lastRaw, dishes]);
   // One key per order attempt: a double tap or a retry sends the same key, so only one order is created.
   const idempotencyKey = useRef<string | null>(null);
 
@@ -62,7 +99,10 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
       });
       const result = await response.json();
       if (result.ok) {
-        setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsappUrl: result.whatsappUrl ?? null });
+        const ordered = Object.fromEntries(dishes.filter((d) => (quantities[d.id] ?? 0) > 0).map((d) => [d.id, quantities[d.id]]));
+        remember(slug, { name: customerName, phone: String(form.get("phone") ?? ""), area: String(form.get("area") ?? "") }, ordered);
+        setPaid(false);
+        setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsapp: result.whatsapp ?? null, upiUri: result.upiUri ?? null });
         return;
       }
       const messages: Record<string, string> = {
@@ -91,6 +131,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
   }
 
   if (placed) {
+    const amount = { amount: placed.total };
     return (
       <section className={styles.placed} role="status">
         <h2>✓ {t.orderPlaced}</h2>
@@ -98,10 +139,31 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
         <p className={styles.placedTotal}>
           {t.total}: ₹{placed.total}
         </p>
-        <p>{t.payOnDelivery}</p>
-        {placed.whatsappUrl && (
+        {placed.upiUri ? (
+          <div className={styles.upi}>
+            <h3>{fill(t.payUpiTitle, amount)}</h3>
+            <UpiQr uri={placed.upiUri} label={fill(t.payUpiTitle, amount)} />
+            <p className={styles.whatsappHint}>{t.payUpiHint}</p>
+            <a className={styles.upiOpen} href={placed.upiUri}>
+              {t.openUpi}
+            </a>
+            {placed.whatsapp && (
+              <label className={styles.paidCheck}>
+                <input type="checkbox" checked={paid} onChange={(e) => setPaid(e.target.checked)} />
+                <span>
+                  {fill(t.iPaid, amount)}
+                  <small>{t.iPaidHint}</small>
+                </span>
+              </label>
+            )}
+            <p>{t.orCash}</p>
+          </div>
+        ) : (
+          <p>{t.payOnDelivery}</p>
+        )}
+        {placed.whatsapp && (
           <>
-            <a className={styles.whatsapp} href={placed.whatsappUrl} target="_blank" rel="noopener noreferrer">
+            <a className={styles.whatsapp} href={paid ? placed.whatsapp.paidUrl : placed.whatsapp.url} target="_blank" rel="noopener noreferrer">
               {t.sendWhatsapp}
             </a>
             <p className={styles.whatsappHint}>{t.sendWhatsappHint}</p>
@@ -116,6 +178,20 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
 
   return (
     <form onSubmit={submit} noValidate>
+      {me && (
+        <div className={styles.welcome}>
+          <p>{fill(t.welcomeBack, { name: me.name })}</p>
+          {last.length > 0 && (
+            <button
+              type="button"
+              className={styles.again}
+              onClick={() => setQuantities(Object.fromEntries(last.map((l) => [l.dish.id, l.quantity])))}
+            >
+              ↻ {t.sameAsLast}: {last.map((l) => `${l.quantity} × ${l.dish.name}`).join(", ")}
+            </button>
+          )}
+        </div>
+      )}
       <ul className={styles.dishes}>
         {dishes.map((dish) => {
           const quantity = quantities[dish.id] ?? 0;
@@ -144,19 +220,24 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
         })}
       </ul>
 
-      <div className={styles.fields}>
+      <div className={styles.fields} key={meRaw ?? "new"}>
         <label>
           {t.yourName}
-          <input name="name" autoComplete="name" required maxLength={120} />
+          <input name="name" autoComplete="name" required maxLength={120} defaultValue={me?.name} />
         </label>
         <label>
           {t.phone}
-          <input name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={20} />
+          <input name="phone" type="tel" inputMode="tel" autoComplete="tel" required maxLength={20} defaultValue={me?.phone} />
         </label>
         <label>
           {t.area}
-          <input name="area" autoComplete="address-level2" required maxLength={160} />
+          <input name="area" autoComplete="address-level2" required maxLength={160} defaultValue={me?.area} />
         </label>
+        {me && (
+          <button type="button" className={styles.forget} onClick={forget}>
+            {t.forgetMe}
+          </button>
+        )}
         <label>
           {t.note}
           <textarea name="note" rows={2} maxLength={500} />

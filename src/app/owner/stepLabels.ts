@@ -20,6 +20,13 @@ const en = {
   get_orders: "Read today's orders: {orders} orders, {plates} plates",
   cancel_order: "Cancelled {customer}'s order",
   cancel_order_unnamed: "Cancelled an order",
+  boxes_returned: "{customer} returned {returned} dabbas, {boxes} still out",
+  boxes_check: "{customer} has {boxes} dabbas",
+  boxes_list: "{boxes} dabbas are with customers",
+  details_whatsapp: "Changed your WhatsApp number",
+  details_upi: "Changed your UPI ID",
+  details_both: "Changed your WhatsApp number and UPI ID",
+  details_other: "Changed your kitchen settings",
 };
 export type StepWords = typeof en;
 
@@ -45,6 +52,13 @@ export const STEP_LABELS: { en: StepWords; hi: StepWords; kn: StepWords } = {
     get_orders: "आज के ऑर्डर देखे: {orders} ऑर्डर, {plates} प्लेट",
     cancel_order: "{customer} का ऑर्डर रद्द किया",
     cancel_order_unnamed: "एक ऑर्डर रद्द किया",
+    boxes_returned: "{customer} ने {returned} डिब्बे लौटाए, {boxes} अभी बाकी",
+    boxes_check: "{customer} के पास {boxes} डिब्बे हैं",
+    boxes_list: "ग्राहकों के पास {boxes} डिब्बे हैं",
+    details_whatsapp: "आपका WhatsApp नंबर बदला",
+    details_upi: "आपकी UPI ID बदली",
+    details_both: "आपका WhatsApp नंबर और UPI ID बदले",
+    details_other: "आपकी रसोई की सेटिंग बदली",
   },
   kn: {
     heading: "ನಾನು ಮಾಡಿದ್ದು",
@@ -66,5 +80,12 @@ export const STEP_LABELS: { en: StepWords; hi: StepWords; kn: StepWords } = {
     get_orders: "ಇಂದಿನ ಆರ್ಡರ್ ನೋಡಿದೆ: {orders} ಆರ್ಡರ್, {plates} ಪ್ಲೇಟ್",
     cancel_order: "{customer} ಆರ್ಡರ್ ರದ್ದು ಮಾಡಿದೆ",
     cancel_order_unnamed: "ಒಂದು ಆರ್ಡರ್ ರದ್ದು ಮಾಡಿದೆ",
+    boxes_returned: "{customer} {returned} ಡಬ್ಬಿ ವಾಪಸ್ ಕೊಟ್ಟರು, ಇನ್ನೂ {boxes} ಬಾಕಿ",
+    boxes_check: "{customer} ಹತ್ತಿರ {boxes} ಡಬ್ಬಿಗಳಿವೆ",
+    boxes_list: "ಗ್ರಾಹಕರ ಹತ್ತಿರ {boxes} ಡಬ್ಬಿಗಳಿವೆ",
+    details_whatsapp: "ನಿಮ್ಮ WhatsApp ನಂಬರ್ ಬದಲಿಸಿದೆ",
+    details_upi: "ನಿಮ್ಮ UPI ID ಬದಲಿಸಿದೆ",
+    details_both: "ನಿಮ್ಮ WhatsApp ನಂಬರ್ ಮತ್ತು UPI ID ಬದಲಿಸಿದೆ",
+    details_other: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ ಸೆಟ್ಟಿಂಗ್ ಬದಲಿಸಿದೆ",
   },
 };

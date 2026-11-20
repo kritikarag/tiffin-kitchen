@@ -29,6 +29,12 @@ function describe(w: StepWords, tool: string, i: Info): string | null {
       return fill(w.get_orders, v);
     case "cancel_order":
       return i.customer ? fill(w.cancel_order, v) : w.cancel_order_unnamed;
+    case "update_customer_boxes":
+      if (i.action === "returned") return fill(w.boxes_returned, v);
+      if (i.action === "check") return fill(w.boxes_check, v);
+      return fill(w.boxes_list, v);
+    case "update_kitchen_details":
+      return i.whatsapp && i.upi ? w.details_both : i.whatsapp ? w.details_whatsapp : i.upi ? w.details_upi : w.details_other;
     default:
       return null;
   }
@@ -44,6 +50,8 @@ const SOURCE: Record<string, (i: Info) => string> = {
   mark_sold_out: () => "Database",
   get_orders: () => "Database",
   cancel_order: () => "Database",
+  update_customer_boxes: () => "Database",
+  update_kitchen_details: () => "Database",
 };
 
 const ICON = { done: "✓", waiting: "⏳", cancelled: "✕", failed: "!" };

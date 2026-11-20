@@ -66,7 +66,12 @@ Website builders, including the new AI ones, solve the first day: they produce a
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
 - **See today's orders at a glance.** A **Today's orders** button opens a screen with the number of orders, plates and money to collect, the totals to cook per dish, and every order grouped by delivery area: name, tap-to-call phone, dishes, amount and the customer's note translated into her language. It refreshes by itself every 30 seconds; cancelled orders are listed separately.
 - **Hear about each new order.** While her page is open, a banner and a short chime announce each new order with the name, dishes and amount, and **See orders** opens the orders screen. Customers also get a **Send my order on WhatsApp** button after ordering, which sends her the order, written in her language, from their own WhatsApp.
-- **Get a cooking list at cut-off.** Exact totals per dish, special requests translated into her language, and deliveries grouped by area.
+- **Get a cooking list at cut-off.** It starts with any allergy or health notes, then exact totals per dish, other requests translated into her language, and deliveries grouped by area.
+- **See allergy notes in red.** A note like "मूंगफली से एलर्जी है" (peanut allergy, in Hindi) shows in red on her orders screen, translated into her language, with the original below it. Claude checks each note once, when she first reads her orders, never while the customer is ordering. It is an extra safeguard: every note is always shown in full, flagged or not.
+- **Keep track of dabbas.** One box goes out with each order. Her orders screen shows how many each customer still has, with a **Mark returned** button, and she can say "Ravi brought back two dabbas" or ask "who still has my boxes?".
+- **Get paid by UPI with no fees.** If she gives her UPI ID, customers see a QR code for the exact amount after ordering. The money goes straight to her UPI ID, with no payment gateway in between.
+
+<img src="docs/allergy-and-dabbas.png" alt="An order card with a red peanut allergy note and the dabba count" width="300">
 - **See what the assistant did.** Above each reply, a short list shows every action it took that turn: "✓ Read today's orders: 6 orders, 16 plates", "✓ Checked lakshmitiffins.in: available", "⏳ Marked Sunday as a holiday, not done yet, waiting for your Yes". Each line names the system that did the work (GoDaddy, Database, Hosting). The list is built from what the tools returned, not from Claude's wording, so it can't claim something that didn't happen.
 - **Stay in control.** Anything that changes her business waits for her to tap **Yes**.
 - **Write her announcements.** A ready WhatsApp message in her language announces the launch.
@@ -79,6 +84,10 @@ Website builders, including the new AI ones, solve the first day: they produce a
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
 - Pay by cash or UPI on delivery.
 - Send the order to the cook on WhatsApp in one tap, if she gave her number.
+- Pay by scanning a UPI QR code for the exact amount, or open a UPI app on the same phone, if she gave her UPI ID. Ticking "I have paid" adds a line saying so to the WhatsApp message; she checks it in her own UPI app.
+- Order again in two taps. The phone remembers the customer's details and last order (only in that browser, never in a link), so next time it says "Welcome back" and offers **Same as last time**. "Not you?" clears them on a shared phone.
+
+<img src="docs/upi-payment.png" alt="Order confirmation with a UPI QR code" width="260"> <img src="docs/same-as-last-time.png" alt="A returning customer's Same as last time button" width="260">
 
 <img src="docs/whatsapp-order.png" alt="Order confirmation with the Send my order on WhatsApp button" width="260"> <img src="docs/new-order-alert.png" alt="The owner's new-order banner" width="260">
 
@@ -143,13 +152,13 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 
 ### The agent loop
 
-Claude never runs code. The app sends Claude the conversation plus descriptions of eight tools. Claude replies either with text for the owner, or with a request to run a tool. The app runs the tool, sends back the result, and asks again. This repeats until Claude answers in text, up to eight rounds per turn.
+Claude never runs code. The app sends Claude the conversation plus descriptions of ten tools. Claude replies either with text for the owner, or with a request to run a tool. The app runs the tool, sends back the result, and asks again. This repeats until Claude answers in text, up to eight rounds per turn.
 
 ![Agent loop](docs/1-agent-loop.png)
 
 On every round, the app also gives Claude the current state from the database: today's date and time in the kitchen's time zone, the saved dishes with their ids, and today's menu. Claude has no clock and no memory of the database, so without this it would guess.
 
-### The eight tools
+### The ten tools
 
 | Tool | What it does | Waits for Yes |
 | --- | --- | --- |
@@ -159,8 +168,10 @@ On every round, the app also gives Claude the current state from the database: t
 | `publish_site` | Makes the ordering page public | Yes |
 | `update_menu` | Sets a day's dishes, prices and cut-off, or marks a holiday | Yes |
 | `mark_sold_out` | Marks a dish sold out, or back on sale | No |
-| `get_orders` | Reads a day's orders, with totals worked out in SQL | No |
-| `cancel_order` | Cancels one order | Yes |
+| `get_orders` | Reads a day's orders, with totals worked out in SQL, allergy flags and each customer's dabbas | No |
+| `cancel_order` | Cancels one order, and takes its dabba off the customer's count | Yes |
+| `update_customer_boxes` | Checks or lists dabbas still with customers, or marks some returned | No |
+| `update_kitchen_details` | Changes her WhatsApp number or UPI ID, or turns dabba counting on or off | Yes |
 
 Each tool has three parts: a description Claude reads to decide when to use it, a flag saying whether it needs the owner's Yes, and a plain TypeScript function. The function checks every input again, because model output is never trusted. If an input is wrong, the error goes back to Claude in plain words, and Claude corrects itself or asks her.
 
@@ -204,6 +215,7 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 
 - **The confirmation gate is code, not a prompt.** Tools that save her kitchen, change a menu, publish, reserve a domain or cancel an order run as a dry run first and are stored as pending. They run for real only on a separate Yes request from the button, so neither a misheard word nor text inside a customer's note can trigger them.
 - **Every tool input is checked again.** Claude's requests go through the same validation as any other untrusted input. Bad input goes back to Claude as a plain error, never into the database.
+- **Allergy flags never touch ordering.** Notes are checked by Claude when the owner reads her orders, not when a customer orders, so the order path has no AI in it. A note that isn't flagged is still shown in full.
 - **Prices and limits are enforced on the server.** An order's total is computed from the day's menu in the database, not from the browser. Cut-off, sold-out and the daily plate limit are checked inside one database transaction, with the day's menu row locked so two orders at once can't both take the last plate.
 - **The agent's report comes from the tools.** The steps list above each reply is built from what each tool returned, so it can't show an action that didn't happen.
 - **Translation calls have no tools.** Customer notes are translated by a separate Claude call that can only return text, so a note can't make the agent act.
@@ -232,11 +244,12 @@ Adding a language means one line in `LANGUAGES` (`src/lib/i18n.ts`) and one run 
 
 | Table | Holds |
 | --- | --- |
-| `kitchens` | Name, web address slug, owner's language, delivery area, their translations, daily capacity, time zone, domain, `draft` or `live` |
+| `kitchens` | Name, web address slug, owner's language, delivery area, their translations, daily capacity, time zone, domain, WhatsApp number, UPI ID, whether dabbas are counted, `draft` or `live` |
 | `menu_items` | Each dish as the owner said it, its usual price, and translations as JSON |
 | `daily_menus` | One row per kitchen per day: cut-off time and `open`, `closed` or `holiday` |
 | `daily_menu_items` | Which dishes are on a day's menu, that day's price, and whether sold out |
-| `orders` | Customer name, phone, area, note, language, `placed` or `cancelled`, idempotency key |
+| `orders` | Customer name, phone, area, note, language, `placed` or `cancelled`, the note's allergy flag (empty until checked), idempotency key |
+| `customer_boxes` | Dabbas still with each customer, by kitchen and phone number |
 | `order_items` | Dishes and quantities in each order, with the price paid |
 | `conversations` | The agent's message history and any action waiting for a Yes |
 
@@ -257,7 +270,7 @@ The full schema is in [`schema.sql`](schema.sql). Prices are whole rupees.
 | `src/app/api/agent/route.ts` | `POST /api/agent` |
 | `src/app/api/orders/route.ts` | `POST /api/orders` |
 | `src/lib/agent.ts` | The loop, system prompt, confirmation gate and conversation storage |
-| `src/lib/tools.ts` | The eight tools |
+| `src/lib/tools.ts` | The ten tools |
 | `src/lib/model.ts` | The one place that calls Claude |
 | `src/lib/translate.ts` | Translation of dishes, kitchen names and delivery areas |
 | `src/lib/godaddy.ts` | Domain checks |
@@ -294,6 +307,7 @@ npm run dev
 | `CLAUDE_FAST_MODEL` | No | Model that fixes misheard dish names in dictation. Defaults to `claude-haiku-5-5` |
 | `GODADDY_API_KEY`, `GODADDY_API_SECRET` | No | GoDaddy test environment keys. Without them, or if GoDaddy can't be reached, domain checks are simulated and labelled as such |
 | `DEMO_OWNER_WHATSAPP` | No | A 10-digit number given to the demo kitchen when it is seeded, so the "Send my order on WhatsApp" button appears. Use your own for a demo |
+| `DEMO_OWNER_UPI` | No | A UPI ID (name@bank) given to the demo kitchen when it is seeded, so the payment QR code appears. Use your own: a made-up one could belong to a real person |
 
 Then open:
 
@@ -309,7 +323,7 @@ Voice input works best in Chrome, and the microphone only works on `localhost` o
 npm run test:agent
 ```
 
-This runs the whole launch flow against the database with a scripted stand-in for Claude, so it needs no API key and costs nothing. It checks 11 behaviours: the interview, bad tool input being corrected, the confirmation gate holding writes, Yes and No, speaking instead of answering, publishing, the daily menu, a real customer order, exact totals, cancelling, sold out, and the eight-round limit. On every request it also checks the two rules Claude's API enforces: roles alternate, and every tool result answers the request right before it.
+This runs the whole launch flow against the database with a scripted stand-in for Claude, so it needs no API key and costs nothing. It checks 13 behaviours: the interview, bad tool input being corrected, the confirmation gate holding writes, Yes and No, speaking instead of answering, publishing, the daily menu, a real customer order counting one dabba, exact totals, cancelling (which returns the dabba), changing the UPI ID only after Yes and the exact amount in the UPI link, allergy notes being flagged and plain ones not, marking dabbas returned, sold out, and the eight-round limit. On every request it also checks the two rules Claude's API enforces: roles alternate, and every tool result answers the request right before it.
 
 The full flow has also been run with the real Claude in Kannada and English, including a photographed menu, which found and fixed real bugs: the confirmation step, translations, and empty replies when Claude's thinking used up its reply budget. Voice behaviour (pauses, editing, discard, and phones whose voice list loads late) is checked in a browser with a simulated microphone.
 

@@ -13,6 +13,9 @@ import mysql from "mysql2/promise";
 const ADDED_COLUMNS: [table: string, column: string, definition: string][] = [
   ["kitchens", "translations", "JSON NULL AFTER delivery_area"],
   ["kitchens", "owner_whatsapp", "VARCHAR(15) NULL AFTER domain"],
+  ["kitchens", "upi_id", "VARCHAR(100) NULL AFTER owner_whatsapp"],
+  ["kitchens", "uses_dabbas", "BOOLEAN NOT NULL DEFAULT TRUE AFTER upi_id"],
+  ["orders", "allergy_alert", "BOOLEAN NULL AFTER status"],
 ];
 
 async function migrate() {

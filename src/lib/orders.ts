@@ -1,13 +1,13 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import type { PoolConnection } from "mysql2/promise";
 import { db } from "./db";
-import { DEFAULT_LANG, isLang, labelsFor, type Lang } from "./i18n";
+import { DEFAULT_LANG, fill, isLang, labelsFor, type Lang } from "./i18n";
 import { isPastCutoff, nowInZone } from "./time";
 
 export type OrderErrorCode = "invalid" | "empty" | "not_found" | "closed" | "sold_out" | "capacity";
 
 export type OrderResult =
-  | { ok: true; orderId: number; total: number; whatsappUrl: string | null }
+  | { ok: true; orderId: number; total: number; whatsapp: WhatsApp | null; upiUri: string | null }
   | { ok: false; error: OrderErrorCode };
 
 type OrderInput = {
@@ -72,12 +72,16 @@ export function parseOrder(body: unknown): { input: OrderInput } | { error: Orde
 // customer's own WhatsApp to the owner's. The number is only shown to someone who has just ordered.
 
 export const WHATSAPP_LABELS = {
-  en: { newOrder: "New order", note: "Note" },
-  hi: { newOrder: "नया ऑर्डर", note: "नोट" },
-  kn: { newOrder: "ಹೊಸ ಆರ್ಡರ್", note: "ಸೂಚನೆ" },
+  en: { newOrder: "New order", note: "Note", paid: "Paid ₹{amount} by UPI" },
+  hi: { newOrder: "नया ऑर्डर", note: "नोट", paid: "UPI से ₹{amount} भेज दिए" },
+  kn: { newOrder: "ಹೊಸ ಆರ್ಡರ್", note: "ಸೂಚನೆ", paid: "UPI ಮೂಲಕ ₹{amount} ಪಾವತಿಸಿದ್ದೇನೆ" },
 };
 
-async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderId: number): Promise<string | null> {
+// Two versions of the message: as it is, and with a "Paid by UPI" line for a customer who has paid.
+// The line is the customer's word only; the owner checks her UPI app.
+type WhatsApp = { url: string; paidUrl: string };
+
+async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderId: number): Promise<WhatsApp | null> {
   if (!kitchen.owner_whatsapp) return null;
   const [lines] = await conn.query<RowDataPacket[]>(
     `SELECT o.customer_name, o.phone, o.area, o.note_original, mi.name_original AS dish, oi.quantity, oi.unit_price
@@ -87,7 +91,7 @@ async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderI
   );
   if (lines.length === 0) return null;
   // Labels in the owner's language; dish names as she says them.
-  const label = labelsFor<{ newOrder: string; note: string }>(WHATSAPP_LABELS, "whatsapp", isLang(kitchen.owner_language) ? kitchen.owner_language : "en");
+  const label = labelsFor<{ newOrder: string; note: string; paid: string }>(WHATSAPP_LABELS, "whatsapp", isLang(kitchen.owner_language) ? kitchen.owner_language : "en");
   const first = lines[0];
   const total = lines.reduce((sum, l) => sum + l.quantity * l.unit_price, 0);
   const text = [
@@ -98,7 +102,17 @@ async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderI
     first.area,
     ...(first.note_original ? [`${label.note}: ${first.note_original}`] : []),
   ].join("\n");
-  return `https://wa.me/${kitchen.owner_whatsapp}?text=${encodeURIComponent(text)}`;
+  const link = (body: string) => `https://wa.me/${kitchen.owner_whatsapp}?text=${encodeURIComponent(body)}`;
+  return { url: link(text), paidUrl: link(`${text}\n✅ ${fill(label.paid, { amount: String(total) })}`) };
+}
+
+// ---- UPI: the customer pays the owner directly, with no payment gateway and no fee ----
+// A standard UPI payment link with her UPI ID, the exact amount and the order number. Any UPI app opens it,
+// and the page also shows it as a QR code to scan from another phone. Nothing here confirms a payment.
+function upiLink(kitchen: RowDataPacket, orderId: number, total: number): string | null {
+  if (!kitchen.upi_id) return null;
+  const params = new URLSearchParams({ pa: kitchen.upi_id, pn: kitchen.name, am: String(total), cu: "INR", tn: `Tiffin order ${orderId}` });
+  return `upi://pay?${params.toString().replace(/\+/g, "%20")}`;
 }
 
 // Checks and writes happen in one transaction. The day's menu row is locked first, so two orders for the
@@ -110,7 +124,7 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
     // locking read below: InnoDB takes its snapshot at the first plain SELECT, and that has to happen
     // after the lock is held, or this request would not see an order committed while it was waiting.
     const [kitchens] = await conn.query<RowDataPacket[]>(
-      "SELECT id, timezone, capacity_per_day, owner_whatsapp, owner_language FROM kitchens WHERE slug = ? AND status = 'live'",
+      "SELECT id, name, timezone, capacity_per_day, owner_whatsapp, owner_language, upi_id, uses_dabbas FROM kitchens WHERE slug = ? AND status = 'live'",
       [input.slug],
     );
     const kitchen = kitchens[0];
@@ -141,7 +155,8 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
     if (existing[0]) {
       await conn.commit();
       const orderId = existing[0].id as number;
-      return { ok: true, orderId, total: Number(existing[0].total), whatsappUrl: await whatsappLink(conn, kitchen, orderId) };
+      const total = Number(existing[0].total);
+      return { ok: true, orderId, total, whatsapp: await whatsappLink(conn, kitchen, orderId), upiUri: upiLink(kitchen, orderId, total) };
     }
 
     if (menu.status !== "open" || isPastCutoff(now.time, menu.cutoff_time)) return fail("closed");
@@ -179,9 +194,24 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
     await conn.query("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price) VALUES ?", [
       input.items.map((i) => [order.insertId, i.menuItemId, i.quantity, onMenu.get(i.menuItemId)!.price]),
     ]);
+    // One dabba goes out with the order, however many plates are in it. Counted in the same transaction,
+    // so a box is recorded if and only if the order is.
+    if (kitchen.uses_dabbas) {
+      await conn.query(
+        `INSERT INTO customer_boxes (kitchen_id, customer_phone, customer_name, pending_boxes) VALUES (?, ?, ?, 1)
+         ON DUPLICATE KEY UPDATE pending_boxes = pending_boxes + 1, customer_name = VALUES(customer_name)`,
+        [kitchen.id, input.phone, input.customerName],
+      );
+    }
 
     await conn.commit();
-    return { ok: true, orderId: order.insertId, total, whatsappUrl: await whatsappLink(conn, kitchen, order.insertId) };
+    return {
+      ok: true,
+      orderId: order.insertId,
+      total,
+      whatsapp: await whatsappLink(conn, kitchen, order.insertId),
+      upiUri: upiLink(kitchen, order.insertId, total),
+    };
   } catch (error) {
     await conn.rollback();
     throw error;

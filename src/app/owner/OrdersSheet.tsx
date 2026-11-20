@@ -40,6 +40,14 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
   const cancelled = view?.orders.filter((o) => o.status === "cancelled") ?? [];
   const areas = [...new Set(placed.map((o) => o.area))];
 
+  // "Mark returned": the customer's dabbas are back. Shown as done at once, then the list reloads.
+  async function boxesBack(phone: string) {
+    if (!token) return;
+    setView((v) => v && { ...v, orders: v.orders.map((o) => (o.phone === phone ? { ...o, boxesOut: 0 } : o)) });
+    await fetch("/api/owner/boxes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, phone }) }).catch(() => {});
+    load();
+  }
+
   const status = view
     ? {
         open: view.cutoffTime ? `${t.ordersOpenUntil} ${view.cutoffTime.slice(0, 5)}` : t.ordersOpen,
@@ -87,6 +95,12 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                 <strong>₹{view.revenue}</strong>
                 <span>{t.ordersTotal}</span>
               </div>
+              {view.usesDabbas && (
+                <div>
+                  <strong>{view.boxesOut}</strong>
+                  <span>🥡 {t.dabbasOut}</span>
+                </div>
+              )}
             </div>
 
             {view.totals.length > 0 && (
@@ -119,9 +133,18 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                         </div>
                         <div className={styles.orderItems}>{o.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</div>
                         {o.note && (
-                          <div className={styles.orderNote}>
+                          <div className={o.allergy ? styles.orderNoteAlert : styles.orderNote}>
+                            {o.allergy && <strong className={styles.alertLabel}>⚠️ {t.allergyAlert}</strong>}
                             “{o.noteTranslated ?? o.note}”
                             {o.noteTranslated && <span className={styles.orderNoteOriginal}>{o.note}</span>}
+                          </div>
+                        )}
+                        {view.usesDabbas && o.boxesOut > 0 && (
+                          <div className={styles.dabbas}>
+                            <span>🥡 {t.dabbasWith.replace("{count}", String(o.boxesOut))}</span>
+                            <button type="button" onClick={() => boxesBack(o.phone)}>
+                              {t.markReturned}
+                            </button>
                           </div>
                         )}
                         <div className={styles.orderFoot}>

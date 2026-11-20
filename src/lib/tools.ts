@@ -1,4 +1,6 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
+import { checkMenuNotes } from "./noteCheck";
+import { boxesByPhone } from "./ownerOrders";
 import { db } from "./db";
 import { checkDomain, isValidDomain, registerDomain } from "./godaddy";
 import { LANGUAGES, isLang } from "./i18n";
@@ -48,6 +50,22 @@ function kitchenOf(ctx: ToolContext): number {
   return ctx.kitchenId;
 }
 
+// "98450 98450", "+91 9845098450" -> "919845098450". Null when not given.
+function whatsappNumber(value: unknown): string | null {
+  if (value == null || value === "") return null;
+  const digits = String(value).replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+  if (!/^[6-9]\d{9}$/.test(digits)) throw new ToolError('"whatsapp" must be a 10-digit Indian mobile number.');
+  return `91${digits}`;
+}
+
+// A UPI ID looks like name@bank. Null when not given.
+function upiId(value: unknown): string | null {
+  if (value == null || value === "") return null;
+  const id = String(value).trim().replace(/\s+/g, "").toLowerCase();
+  if (!/^[a-z0-9._-]{2,99}@[a-z]{2,64}$/.test(id)) throw new ToolError('"upi_id" must look like name@bank, for example lakshmi@okaxis.');
+  return id;
+}
+
 async function loadKitchen(id: number) {
   const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM kitchens WHERE id = ?", [id]);
   if (!rows[0]) throw new ToolError("The kitchen no longer exists.");
@@ -77,6 +95,7 @@ const createKitchen: Tool = {
         delivery_area: { type: "string", description: "Areas she delivers to, comma separated." },
         capacity_per_day: { type: "integer", description: "How many portions she can cook in a day." },
         whatsapp: { type: "string", description: "Her WhatsApp number, 10 digits, if she gave one. Customers get a button to send her their order there." },
+        upi_id: { type: "string", description: "Her UPI ID (like name@okaxis), if she gave one. Customers get a QR code to pay her directly." },
         dishes: {
           type: "array",
           description: "Her regular dishes.",
@@ -108,13 +127,9 @@ const createKitchen: Tool = {
       name: text(d as Record<string, unknown>, "name", 160),
       price: whole(d as Record<string, unknown>, "price", 1, 5000),
     }));
-    let whatsapp: string | null = null;
-    if (input.whatsapp != null && input.whatsapp !== "") {
-      const digits = String(input.whatsapp).replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
-      if (!/^[6-9]\d{9}$/.test(digits)) throw new ToolError('"whatsapp" must be a 10-digit Indian mobile number.');
-      whatsapp = `91${digits}`;
-    }
-    if (ctx.dryRun) return held({ name, delivery_area: area, capacity_per_day: capacity, whatsapp, dishes });
+    const whatsapp = whatsappNumber(input.whatsapp);
+    const upi = upiId(input.upi_id);
+    if (ctx.dryRun) return held({ name, delivery_area: area, capacity_per_day: capacity, whatsapp, upi_id: upi, dishes });
 
     // Both translations run at the same time to keep her wait short.
     const [translations, kitchenText] = await Promise.all([
@@ -133,8 +148,8 @@ const createKitchen: Tool = {
         slug = `${base}-${n}`;
       }
       const [kitchen] = await conn.query<ResultSetHeader>(
-        "INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, owner_whatsapp, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft')",
-        [slug, name, input.owner_language, area, JSON.stringify(kitchenText), capacity, whatsapp],
+        "INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, owner_whatsapp, upi_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft')",
+        [slug, name, input.owner_language, area, JSON.stringify(kitchenText), capacity, whatsapp, upi],
       );
       const saved: { menu_item_id: number; name: string; price: number }[] = [];
       for (const [i, dish] of dishes.entries()) {
@@ -369,7 +384,7 @@ const getOrders: Tool = {
   definition: {
     name: "get_orders",
     description:
-      "Read one day's orders: the count, total portions, total per dish, and each order with its area and note. Use it for any question about orders and for the cooking list. Never state order numbers from memory.",
+      "Read one day's orders: the count, total portions, total per dish, and each order with its area, note, allergy_alert and the dabbas (boxes) that customer still has. Use it for any question about orders and for the cooking list. Never state order numbers from memory.",
     input_schema: {
       type: "object",
       properties: { date: { type: "string", description: "YYYY-MM-DD. Leave out for today." } },
@@ -384,6 +399,10 @@ const getOrders: Tool = {
     );
     if (!menus[0]) return { ok: true, data: { date, menu: "none", order_count: 0, portions: 0, totals: [], orders: [] } };
 
+    // New notes are checked for allergies first, so the cooking list can read those out first.
+    await checkMenuNotes(ctx.model, menus[0].id);
+    const boxes = kitchen.uses_dabbas ? await boxesByPhone(kitchen.id) : new Map<string, number>();
+
     // The numbers are added up by the database, not by Claude, so they are exact.
     const [totals] = await db().query<RowDataPacket[]>(
       `SELECT mi.name_original AS dish, SUM(oi.quantity) AS quantity
@@ -393,12 +412,15 @@ const getOrders: Tool = {
       [menus[0].id],
     );
     const [lines] = await db().query<RowDataPacket[]>(
-      `SELECT o.id, o.customer_name, o.phone, o.area, o.note_original, o.status, mi.name_original AS dish, oi.quantity, oi.unit_price
+      `SELECT o.id, o.customer_name, o.phone, o.area, o.note_original, o.allergy_alert, o.status, mi.name_original AS dish, oi.quantity, oi.unit_price
          FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
         WHERE o.daily_menu_id = ? ORDER BY o.id, mi.id LIMIT 600`,
       [menus[0].id],
     );
-    type Order = { order_id: number; customer_name: string; phone: string; area: string; note: string | null; amount: number; items: { dish: string; quantity: number }[] };
+    type Order = {
+      order_id: number; customer_name: string; phone: string; area: string; note: string | null; allergy_alert: boolean;
+      dabbas_with_customer: number; amount: number; items: { dish: string; quantity: number }[];
+    };
     const placed = new Map<number, Order>();
     const cancelled = new Set<number>();
     for (const line of lines) {
@@ -407,7 +429,8 @@ const getOrders: Tool = {
         continue;
       }
       const order: Order = placed.get(line.id) ?? {
-        order_id: line.id, customer_name: line.customer_name, phone: line.phone, area: line.area, note: line.note_original, amount: 0, items: [],
+        order_id: line.id, customer_name: line.customer_name, phone: line.phone, area: line.area, note: line.note_original,
+        allergy_alert: Boolean(line.allergy_alert), dabbas_with_customer: boxes.get(line.phone) ?? 0, amount: 0, items: [],
       };
       order.items.push({ dish: line.dish, quantity: line.quantity });
       order.amount += line.quantity * line.unit_price;
@@ -424,6 +447,8 @@ const getOrders: Tool = {
         cancelled_count: cancelled.size,
         portions: dishTotals.reduce((sum, t) => sum + t.quantity, 0),
         totals: dishTotals,
+        allergy_alerts: [...placed.values()].filter((o) => o.allergy_alert).length,
+        dabbas_with_customers: [...boxes.values()].reduce((sum, n) => sum + n, 0),
         orders: [...placed.values()],
       },
     };
@@ -455,11 +480,121 @@ const cancelOrder: Tool = {
     if (order.status === "cancelled") throw new ToolError(`Order ${orderId} is already cancelled.`);
     if (ctx.dryRun) return held({ order_id: orderId, customer_name: order.customer_name, area: order.area });
     await db().query("UPDATE orders SET status = 'cancelled' WHERE id = ?", [orderId]);
+    // The order's dabba never went out, so take it off the customer's count.
+    await db().query(
+      `UPDATE customer_boxes cb JOIN orders o ON o.phone = cb.customer_phone
+          SET cb.pending_boxes = GREATEST(cb.pending_boxes, 1) - 1
+        WHERE o.id = ? AND cb.kitchen_id = ?`,
+      [orderId, kitchenId],
+    );
     return { ok: true, data: { order_id: orderId, status: "cancelled", customer_name: order.customer_name } };
   },
 };
 
-const TOOLS: Tool[] = [createKitchen, checkDomainTool, registerDomainTool, publishSite, updateMenu, markSoldOut, getOrders, cancelOrder];
+// ---- dabbas: the boxes food goes out in ----
+// One box goes out with each order (counted in orders.ts). She says who brought boxes back, or asks who
+// still has them. No Yes needed, like sold out: it's quick, small and easy to correct.
+const updateCustomerBoxes: Tool = {
+  needsConfirmation: false,
+  definition: {
+    name: "update_customer_boxes",
+    description:
+      "Dabbas (tiffin boxes) still with customers. action \"check\": how many one customer has. action \"returned\": " +
+      "a customer brought boxes back; give count, or leave it out if they returned all. action \"list\": everyone who " +
+      "still has boxes, most first. Find the customer by name or phone. If several customers match, ask her which one.",
+    input_schema: {
+      type: "object",
+      properties: {
+        action: { type: "string", enum: ["check", "returned", "list"] },
+        customer: { type: "string", description: "The customer's name or phone number. Not needed for list." },
+        count: { type: "integer", description: "How many boxes came back. Leave out when all came back." },
+      },
+      required: ["action"],
+    },
+  },
+  async run(input, ctx) {
+    const kitchenId = kitchenOf(ctx);
+    const action = input.action;
+    if (action !== "check" && action !== "returned" && action !== "list") throw new ToolError('"action" must be check, returned or list.');
+    if (action === "list") {
+      const [rows] = await db().query<RowDataPacket[]>(
+        "SELECT customer_name, customer_phone, pending_boxes FROM customer_boxes WHERE kitchen_id = ? AND pending_boxes > 0 ORDER BY pending_boxes DESC, customer_name LIMIT 50",
+        [kitchenId],
+      );
+      return {
+        ok: true,
+        data: {
+          total_boxes: rows.reduce((sum, r) => sum + Number(r.pending_boxes), 0),
+          customers: rows.map((r) => ({ customer_name: r.customer_name, phone: r.customer_phone, boxes: Number(r.pending_boxes) })),
+        },
+      };
+    }
+
+    const who = typeof input.customer === "string" ? input.customer.trim() : "";
+    if (!who) throw new ToolError('"customer" is needed: a name or phone number.');
+    const digits = who.replace(/\D/g, "");
+    const [matches] = await db().query<RowDataPacket[]>(
+      digits.length >= 6
+        ? "SELECT customer_name, customer_phone, pending_boxes FROM customer_boxes WHERE kitchen_id = ? AND customer_phone LIKE ? LIMIT 10"
+        : "SELECT customer_name, customer_phone, pending_boxes FROM customer_boxes WHERE kitchen_id = ? AND customer_name LIKE ? LIMIT 10",
+      [kitchenId, digits.length >= 6 ? `%${digits.slice(-10)}` : `%${who}%`],
+    );
+    if (matches.length === 0) throw new ToolError(`No customer matching "${who}" has boxes on record. Ask her for the phone number, or use action list.`);
+    if (matches.length > 1) {
+      return {
+        ok: false,
+        data: {
+          error: "Several customers match. Ask her which one.",
+          matches: matches.map((m) => ({ customer_name: m.customer_name, phone: m.customer_phone, boxes: Number(m.pending_boxes) })),
+        },
+      };
+    }
+    const customer = matches[0];
+    const before = Number(customer.pending_boxes);
+    if (action === "check") return { ok: true, data: { customer_name: customer.customer_name, boxes: before } };
+
+    const count = input.count == null ? before : whole(input, "count", 1, 100);
+    const after = Math.max(0, before - count);
+    await db().query("UPDATE customer_boxes SET pending_boxes = ? WHERE kitchen_id = ? AND customer_phone = ?", [after, kitchenId, customer.customer_phone]);
+    return { ok: true, data: { customer_name: customer.customer_name, returned: before - after, boxes_left: after } };
+  },
+};
+
+// ---- her payment and contact details, after launch ----
+const updateKitchenDetails: Tool = {
+  needsConfirmation: true,
+  definition: {
+    name: "update_kitchen_details",
+    description:
+      "Change her WhatsApp number or UPI ID after the kitchen is made, or turn dabba counting on or off. " +
+      "Give only what she wants to change. Read the new value back to her before calling.",
+    input_schema: {
+      type: "object",
+      properties: {
+        whatsapp: { type: "string", description: "Her new WhatsApp number, 10 digits." },
+        upi_id: { type: "string", description: "Her new UPI ID, like name@okaxis." },
+        uses_dabbas: { type: "boolean", description: "true if food goes out in boxes that come back and she wants them counted." },
+      },
+    },
+  },
+  async run(input, ctx) {
+    const kitchenId = kitchenOf(ctx);
+    const changes: Record<string, string | boolean> = {};
+    if (input.whatsapp != null && input.whatsapp !== "") changes.owner_whatsapp = whatsappNumber(input.whatsapp)!;
+    if (input.upi_id != null && input.upi_id !== "") changes.upi_id = upiId(input.upi_id)!;
+    if (typeof input.uses_dabbas === "boolean") changes.uses_dabbas = input.uses_dabbas;
+    if (Object.keys(changes).length === 0) throw new ToolError("Give whatsapp, upi_id or uses_dabbas to change.");
+    if (ctx.dryRun) return held(changes);
+    const columns = Object.keys(changes); // fixed names from above, never from input
+    await db().query(`UPDATE kitchens SET ${columns.map((c) => `${c} = ?`).join(", ")} WHERE id = ?`, [...Object.values(changes), kitchenId]);
+    return { ok: true, data: { updated: changes } };
+  },
+};
+
+const TOOLS: Tool[] = [
+  createKitchen, checkDomainTool, registerDomainTool, publishSite, updateMenu, markSoldOut, getOrders, cancelOrder,
+  updateCustomerBoxes, updateKitchenDetails,
+];
 const byName = new Map(TOOLS.map((tool) => [tool.definition.name, tool]));
 
 export const toolDefinitions: ToolDefinition[] = TOOLS.map((tool) => tool.definition);

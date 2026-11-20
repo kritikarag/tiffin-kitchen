@@ -403,7 +403,7 @@
 
 .ordersSummary {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
   gap: 0.5rem;
 }
 
@@ -688,4 +688,45 @@
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* A note about an allergy or health: impossible to miss. The original note stays below the translation. */
+.orderNoteAlert {
+  padding: 0.5rem 0.65rem;
+  border: 2px solid #b3261e;
+  border-radius: 8px;
+  background: #fdecea;
+  color: #5c0f0a;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.alertLabel {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: #b3261e;
+  font-size: 0.9rem;
+}
+
+.dabbas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  background: #f1f3f5;
+  font-size: 0.95rem;
+}
+
+.dabbas button {
+  min-height: 2.25rem;
+  padding: 0 0.8rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--accent-dark);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }

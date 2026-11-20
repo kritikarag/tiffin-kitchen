@@ -24,7 +24,7 @@ Repeating steps 2 to 4 until Claude replies in text is the **agent loop**.
 | File | Job |
 | --- | --- |
 | `src/lib/model.ts` | The only place that calls Claude's API. Defines the message and tool types. |
-| `src/lib/tools.ts` | The eight tools. Each has a description for Claude, a "needs yes" flag, input checks and the work. |
+| `src/lib/tools.ts` | The ten tools. Each has a description for Claude, a "needs yes" flag, input checks and the work. |
 | `src/lib/agent.ts` | The loop, the system prompt, the confirmation gate and saving the conversation. |
 | `src/lib/translate.ts` | Translates dish names with one extra Claude call. |
 | `src/lib/godaddy.ts` | Domain checks. Simulated until you add GoDaddy test keys. |

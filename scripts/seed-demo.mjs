@@ -26,7 +26,8 @@ const orders = [
   { name: "Meera", phone: "9811122233", area: "Domlur", lang: "en", note: "Please ring the bell twice", items: { bbb: 3, payasa: 3 } },
   { name: "Sanjay", phone: "9900011122", area: "Indiranagar", lang: "hi", note: null, items: { chapati: 2, payasa: 2 } },
   { name: "ಕಾವ್ಯ", phone: "9845098450", area: "Domlur", lang: "kn", note: "ಕಡಿಮೆ ಎಣ್ಣೆ", items: { chapati: 1 } },
-  { name: "Farhan", phone: "9741234567", area: "Indiranagar", lang: "en", note: null, items: { bbb: 2 } },
+  // A peanut allergy written in Hindi, for a cook who reads Kannada: the orders screen flags it in red.
+  { name: "Farhan", phone: "9741234567", area: "Indiranagar", lang: "hi", note: "मूंगफली से एलर्जी है, बिल्कुल मत डालना", items: { bbb: 2 } },
 ];
 const CANCELLED = "Sanjay"; // shows that cancelled orders drop out of the totals
 
@@ -39,15 +40,23 @@ function demoWhatsapp() {
   const digits = (process.env.DEMO_OWNER_WHATSAPP ?? "").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
   return /^[6-9]\d{9}$/.test(digits) ? `91${digits}` : null;
 }
+// DEMO_OWNER_UPI=yourname@bank shows the UPI QR code after an order. Use your own UPI ID: a made-up one
+// could belong to a real person. Without it the QR code is hidden.
+function demoUpi() {
+  const upi = (process.env.DEMO_OWNER_UPI ?? "").trim();
+  return /^[\w.-]{2,99}@[a-zA-Z]{2,64}$/.test(upi) ? upi : null;
+}
+// Boxes customers still had from earlier days, before today's orders.
+const EARLIER_BOXES = { Ravi: 2, Meera: 1, Sanjay: 3 };
 
 await db.beginTransaction();
 
 await db.query("DELETE FROM conversations WHERE token = ?", [OWNER_TOKEN]);
 await db.query("DELETE FROM kitchens WHERE slug = ?", [SLUG]); // cascades to menus, orders and conversations
 const [k] = await db.query(
-  `INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, timezone, domain, owner_whatsapp, status)
-   VALUES (?, ?, 'kn', ?, ?, 30, ?, 'lakshmitiffins.in', ?, 'live')`,
-  [SLUG, kitchen.name, kitchen.area, JSON.stringify(withExtra(kitchen.translations)), TIMEZONE, demoWhatsapp()],
+  `INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, timezone, domain, owner_whatsapp, upi_id, status)
+   VALUES (?, ?, 'kn', ?, ?, 30, ?, 'lakshmitiffins.in', ?, ?, 'live')`,
+  [SLUG, kitchen.name, kitchen.area, JSON.stringify(withExtra(kitchen.translations)), TIMEZONE, demoWhatsapp(), demoUpi()],
 );
 const [menu] = await db.query(
   "INSERT INTO daily_menus (kitchen_id, menu_date, cutoff_time, status) VALUES (?, ?, ?, 'open')",
@@ -81,6 +90,15 @@ for (const o of orders) {
       quantity,
       prices[key],
     ]);
+  }
+  // One dabba goes out with each order that wasn't cancelled.
+  const boxes = (EARLIER_BOXES[o.name] ?? 0) + (o.name === CANCELLED ? 0 : 1);
+  if (boxes > 0) {
+    await db.query(
+      `INSERT INTO customer_boxes (kitchen_id, customer_phone, customer_name, pending_boxes) VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE pending_boxes = pending_boxes + VALUES(pending_boxes)`,
+      [k.insertId, o.phone, o.name, boxes],
+    );
   }
 }
 
