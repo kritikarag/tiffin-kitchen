@@ -6,19 +6,17 @@
 🌐 **Live now:** [tiffin.kitchen](https://tiffin.kitchen)
 💻 **Code:** [github.com/kritikarag/tiffin-kitchen](https://github.com/kritikarag/tiffin-kitchen)
 
-Works on any phone, nothing to install, in nine Indian languages. The cook runs her kitchen by speaking her own language; each customer orders, tracks and confirms their food in theirs.
-
 ## Inspiration
 
 [Your story in two or three sentences: who you saw cooking for others, or going without a fair daily meal, and what stood in the way.]
 
-Students, office workers and daily-wage workers far from home need a filling, home-cooked meal every day. Most food apps assume English, typing and comfort with technology. Many women nearby already cook well enough to feed them, but every platform asks them to work in English, through forms and dashboards. So today it runs on WhatsApp statuses, scattered messages and a notebook, and a note like "peanut allergy" can get lost between two languages.
+Students, office workers and daily-wage workers far from home need a filling, home-cooked meal every day. Most food apps assume English, typing and comfort with technology. Many women nearby already cook well enough to feed them, but every platform asks them to work in English, through forms and dashboards. So today it runs on WhatsApp messages and a notebook.
 
 ## Try it yourself
 
 Works best in **Chrome**, on a laptop or a phone. Allow the microphone when asked. Every page has a language dropdown at the top: nine languages, including Hindi, Kannada and Tamil. Speak or type in any of them, or in English.
 
-**See both sides at once:** open the cook's page in one window and [tiffin.kitchen](https://tiffin.kitchen) in a **private window** as the customer, side by side. Changes on one side reach the other within 20 seconds.
+**See both sides at once:** open the cook's page in one window and [tiffin.kitchen](https://tiffin.kitchen) in a **private window** as the customer. Changes reach the other side within 20 seconds.
 
 ### As a customer
 
@@ -68,20 +66,14 @@ Works best in **Chrome**, on a laptop or a phone. Allow the microphone when aske
 
 ## What it does
 
-| Feature | What you get | Under the hood |
-| --- | --- | --- |
-| **Launch from one photo or one conversation** | She photographs or uploads her handwritten menu (Hindi, Kannada or English), or just says her dishes and prices. Kitchen saved, web address checked, page live, each step after her Yes. Her private kitchen link opens by itself | Claude reads the photo exactly as written and asks about anything unclear instead of guessing; GoDaddy Domains API checks the address |
-| **Run the day by voice** | Menus, sold out, holidays, cancellations, dabbas and order questions, by voice. One sentence can hold three requests | A Claude agent picks from 11 checked tools, up to 8 rounds a turn; dish names the browser mishears are fixed against her own menu |
-| **An agent she can watch and trust** | Every reply lists what it did and which system did it; anything that changes her business waits for a Yes button | Steps are built from the tools' own results, not Claude's wording; the Yes gate is code: a dry run, then a separate tap |
-| **Orders and the cooking list** | New orders chime on her screen. At cut-off: allergies first, exact totals, customer notes in her language, deliveries grouped by area with a map link | Totals computed in SQL; each order saved in one locked transaction, so two customers can't take the last plate |
-| **Allergy alerts** | "मूंगफली से एलर्जी है" shows in red, in Kannada, with the Hindi original below | Claude flags each note once, when she reads her orders, never while the customer orders; nothing is ever hidden |
-| **From kitchen to door** | Preparing → On the way, by button or voice. One tap opens WhatsApp to the customer, already written in their language, with their tracking link | Messages built per language; no WhatsApp Business API needed, she taps Send |
-| **Only the customer marks it delivered** | "I've received my tiffin" or "It didn't arrive", required before ordering again. Her screen chimes, or shows a red alert with their number | The cook's tools can't mark delivered; the answer is tied to the order's private tracking code |
-| **Order in your language, by voice if you like** | Read the menu in your language, order with no account, speak your address or allergy note | The mic listens in the language you picked; the words land in the box to check |
-| **Track, find, reorder** | A tracking page that updates by itself; My orders with today's and past orders; "Same as last time" in two taps | Each order has a random 16-character tracking code; the list lives on the customer's phone, not in an account |
-| **Paid at the door** | Cash or UPI to the cook when the tiffin arrives, the way it already works | Nothing paid through the app, so nothing new for a first-time user to learn |
-| **Dabbas come back** | Every steel box counted per customer | One box per order, counted in the same transaction as the order |
-| **Nine languages, both ways** | She writes in Kannada; one customer reads Tamil, another Hindi; notes and WhatsApp updates reach each side in their own language | Dishes and names translated once when saved, nine languages in parallel; dish names transliterated, never translated |
+- **Launch from one photo:** Claude reads a handwritten menu (Hindi, Kannada or English) exactly as written, asks about anything unclear, checks a web address with GoDaddy, and opens her private kitchen link.
+- **Run the day by voice:** menus, sold out, holidays, cancellations, dabbas and order questions. One sentence can hold three requests: a Claude agent picks from 11 checked tools.
+- **An agent she can trust:** every reply shows what it did and which system did it; anything that changes her business waits for a Yes button, enforced in code.
+- **Exact numbers:** order totals come from the database, never from the AI; orders are saved in a locked transaction.
+- **Allergies stand out:** a note like "मूंगफली से एलर्जी है" shows in red, in the cook's language, with the original below.
+- **From kitchen to door:** Preparing → On the way, and one tap tells the customer on WhatsApp in their own language with a tracking link. Only the customer marks it delivered, and must answer before ordering again; the cook's screen chimes.
+- **Order in your language, by voice:** no account; speak your address or allergy note; track, find past orders in My orders, reorder in two taps; pay at the door.
+- **Nine languages, both ways:** dishes, notes and messages reach each side in their own language; dish names are transliterated, never translated.
 
 ## Claude + GoDaddy: how it's built, launched and run
 
@@ -92,7 +84,7 @@ Works best in **Chrome**, on a laptop or a phone. Allow the microphone when aske
 | **GoDaddy Professional Email** | hello@tiffin.kitchen, the contact address on the site |
 | **GoDaddy Domains API** | Checks whether a cook's web address is free (test environment); the app reserves the chosen name |
 | **Claude, in the product** | Claude Sonnet runs the cook's agent and reads handwritten menu photos; Claude Haiku fixes misheard dish names, translates, and flags allergy notes |
-| **Claude, building** | Pair-programmer all week: architecture, the agent loop and its guardrails, nine-language labels, 14 end-to-end tests, deployment and cache fixes |
+| **Claude, building** | Pair-programmer all week: the agent and its guardrails, nine languages, 14 end-to-end tests |
 
 ## Why it's different
 
@@ -105,10 +97,4 @@ Works best in **Chrome**, on a laptop or a phone. Allow the microphone when aske
 
 ## Future scope
 
-- **Personal accounts for cooks and customers, first:** sign-in by phone number and one-time code, so a kitchen and an order history follow you to any phone, and a kitchen can have helpers.
-- **Live map tracking** while the tiffin is on the way, with an arrival time.
-- **Paying ahead online** through a payment gateway, so the cook sees paid or unpaid on each order.
-- **Order alerts when her page is closed,** through push notifications or the WhatsApp Business API.
-- **Real domain purchase** through GoDaddy, and a delivery charge per area.
-- **Breakfast, lunch and dinner menus** on the same day, and customers ordering by voice.
-- **Other daily home businesses:** bakers, tailors, home tutors.
+Phone-number sign-in for cooks and customers, live map tracking, paying ahead online through a gateway, order alerts when the page is closed, real domain purchase, and other daily home businesses like bakers and tailors.
