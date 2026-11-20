@@ -131,6 +131,6 @@ Voice runs entirely in the browser, in `src/app/owner/voice.ts`, so the agent co
 - **Fallbacks:** typing always works. If the browser has no speech recognition (Firefox, some in-app browsers), the microphone is replaced by a note.
 - **Confirmation stays a button tap.** A misheard "yes" should never publish a page or cancel an order.
 
-![Owner page in Kannada](owner-voice-kannada.png)
+![Owner page in English](owner-chat-en.png)
 
 What still needs a real phone: recognition accuracy for Kannada and Hindi, and whether the phone has Kannada and Hindi voices installed.

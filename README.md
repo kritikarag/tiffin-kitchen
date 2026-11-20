@@ -8,9 +8,13 @@ Her customers browse the kitchens near them, read the menu in their own language
 
 ![Home page in Kannada](docs/home-page.png)
 
-| The owner talks to it in Kannada | Customers choose a kitchen | And order in Hindi | She sees her orders |
+| The owner talks to the assistant | Customers choose a kitchen | And order in a few taps | She sees her orders |
 | --- | --- | --- | --- |
-| ![Owner chat in Kannada](docs/owner-voice-kannada.png) | ![Kitchen list in Hindi](docs/kitchen-list-hindi.png) | ![Customer menu in Hindi](docs/customer-page-hindi.png) | ![Orders screen in Kannada](docs/owner-orders-kannada.png) |
+| ![Owner asks for the cooking list and cancels an order](docs/owner-chat-en.png) | ![Kitchen list](docs/kitchen-list-en.png) | ![Lakshmi Tiffins menu](docs/customer-menu-en.png) | ![Today's orders screen](docs/owner-orders-en.png) |
+
+Every page also works in Kannada and Hindi. The same menu, as three customers would see it:
+
+![The same menu in English, Hindi and Kannada](docs/same-menu-three-languages.png)
 
 ---
 
@@ -198,7 +202,7 @@ The owner and each customer use their own language, and neither needs to know th
 | Menu page labels | A small dictionary per language in `src/lib/i18n.ts`. Pages open in English; each person's language choice is remembered |
 | Customer notes | Stored as written, translated into her language in the cooking list |
 
-Adding a language means one entry in the language list and one dictionary of labels.
+Adding a language means one entry in the language list and one dictionary of labels. Pages open in English; anyone can switch with one tap.
 
 ## 8. Data model
 

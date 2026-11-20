@@ -1,5 +1,5 @@
 import type { RowDataPacket } from "mysql2";
-import { db } from "./db";
+import { db, parseJson } from "./db";
 import { isPastCutoff, nowInZone } from "./time";
 
 // Everything the owner's Orders screen shows for one day. Totals are added up by the database.
@@ -30,19 +30,29 @@ export type OwnerOrdersView = {
 };
 
 // The kitchen this owner conversation belongs to, or null before she has created one.
-export async function kitchenForToken(token: string): Promise<{ id: number; name: string; timezone: string } | null> {
+type Kitchen = { id: number; name: string; timezone: string; translations: unknown };
+type Lang = "kn" | "hi" | "en";
+
+export async function kitchenForToken(token: string): Promise<Kitchen | null> {
   const [rows] = await db().query<RowDataPacket[]>(
-    "SELECT k.id, k.name, k.timezone FROM conversations c JOIN kitchens k ON k.id = c.kitchen_id WHERE c.token = ?",
+    "SELECT k.id, k.name, k.timezone, k.translations FROM conversations c JOIN kitchens k ON k.id = c.kitchen_id WHERE c.token = ?",
     [token],
   );
-  return rows[0] ? { id: rows[0].id, name: rows[0].name, timezone: rows[0].timezone } : null;
+  return rows[0] ? { id: rows[0].id, name: rows[0].name, timezone: rows[0].timezone, translations: rows[0].translations } : null;
 }
 
-export async function ownerOrders(kitchen: { id: number; name: string; timezone: string }, date?: string): Promise<OwnerOrdersView> {
+// A name in the chosen language, falling back to what the owner typed.
+function named(original: string, translations: unknown, lang: Lang | undefined): string {
+  if (!lang) return original;
+  return parseJson<Partial<Record<Lang, { name?: string }>>>(translations, {})[lang]?.name || original;
+}
+
+// Dish and kitchen names are shown in the language she chose on the owner page (when a translation exists).
+export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang): Promise<OwnerOrdersView> {
   const now = nowInZone(kitchen.timezone);
   const day = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : now.date;
   const view: OwnerOrdersView = {
-    kitchenName: kitchen.name,
+    kitchenName: named(kitchen.name, kitchen.translations, lang),
     date: day,
     menuState: "none",
     cutoffTime: null,
@@ -68,19 +78,19 @@ export async function ownerOrders(kitchen: { id: number; name: string; timezone:
         : "open";
 
   const [totals] = await db().query<RowDataPacket[]>(
-    `SELECT mi.name_original AS dish, SUM(oi.quantity) AS quantity
+    `SELECT mi.name_original AS dish, mi.translations, SUM(oi.quantity) AS quantity
        FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
       WHERE o.daily_menu_id = ? AND o.status = 'placed'
-      GROUP BY mi.id, mi.name_original ORDER BY quantity DESC, mi.id`,
+      GROUP BY mi.id, mi.name_original, mi.translations ORDER BY quantity DESC, mi.id`,
     [menu.id],
   );
-  view.totals = totals.map((t) => ({ dish: t.dish, quantity: Number(t.quantity) }));
+  view.totals = totals.map((t) => ({ dish: named(t.dish, t.translations, lang), quantity: Number(t.quantity) }));
   view.portions = view.totals.reduce((sum, t) => sum + t.quantity, 0);
 
   // created_at is stored in UTC by the database session; the time shown is converted to her time zone.
   const [lines] = await db().query<RowDataPacket[]>(
     `SELECT o.id, UNIX_TIMESTAMP(o.created_at) AS placed_unix, o.customer_name, o.phone, o.area, o.note_original, o.status,
-            mi.name_original AS dish, oi.quantity, oi.unit_price
+            mi.name_original AS dish, mi.translations, oi.quantity, oi.unit_price
        FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
       WHERE o.daily_menu_id = ? ORDER BY o.id, mi.id LIMIT 2000`,
     [menu.id],
@@ -103,7 +113,7 @@ export async function ownerOrders(kitchen: { id: number; name: string; timezone:
       };
       byId.set(line.id, order);
     }
-    order.items.push({ dish: line.dish, quantity: line.quantity });
+    order.items.push({ dish: named(line.dish, line.translations, lang), quantity: line.quantity });
     order.amount += line.quantity * line.unit_price;
   }
   const all = [...byId.values()];

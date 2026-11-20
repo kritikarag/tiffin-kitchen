@@ -11,9 +11,9 @@ export async function GET(request: Request) {
   try {
     const kitchen = await kitchenForToken(token);
     if (!kitchen) return Response.json({ kitchen: null });
-    const view = await ownerOrders(kitchen, url.searchParams.get("date") ?? undefined);
-    // Customers write notes in their own language; show each one in the language the owner chose.
     const lang = url.searchParams.get("lang");
+    const view = await ownerOrders(kitchen, url.searchParams.get("date") ?? undefined, lang === "kn" || lang === "hi" || lang === "en" ? lang : undefined);
+    // Customers write notes in their own language; show each one in the language the owner chose.
     const withNotes = view.orders.filter((o) => o.note);
     if ((lang === "kn" || lang === "hi" || lang === "en") && withNotes.length && process.env.ANTHROPIC_API_KEY) {
       const translated = await translateNotes(withNotes.map((o) => o.note!), lang);
