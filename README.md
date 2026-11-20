@@ -203,7 +203,7 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 - **She decides when she's finished speaking.** Browsers stop listening after a short pause, which cut owners off mid-sentence. The app keeps listening through pauses until she taps ✓, then puts the words in an editable box rather than sending them straight away.
 - **A photo is read, never guessed.** If a price in a photo is unclear, the assistant asks about that line.
 - **Yes is a button, not a word.** A misheard "yes" should never publish a page or cancel a customer's order. The gate is enforced in code, not left to the prompt.
-- **Claude never touches the database.** It can only call eight functions, each of which validates its input. This keeps the agent's behaviour bounded and testable.
+- **Claude never touches the database.** It can only call ten functions, each of which validates its input. This keeps the agent's behaviour bounded and testable.
 - **Numbers come from SQL.** Order counts and totals are computed by the database. Claude only phrases them, because language models are unreliable at arithmetic.
 - **Ordering doesn't depend on AI.** If Claude or GoDaddy is unreachable, customers can still order.
 - **Translate once, at save time.** Dishes are translated when saved, not on every page view, so the menu page is fast and costs nothing to serve.
