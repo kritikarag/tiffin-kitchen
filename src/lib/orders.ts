@@ -1,4 +1,5 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
+import type { PoolConnection } from "mysql2/promise";
 import { db } from "./db";
 import { DEFAULT_LANG, isLang, type Lang } from "./i18n";
 import { isPastCutoff, nowInZone } from "./time";
@@ -6,7 +7,7 @@ import { isPastCutoff, nowInZone } from "./time";
 export type OrderErrorCode = "invalid" | "empty" | "not_found" | "closed" | "sold_out" | "capacity";
 
 export type OrderResult =
-  | { ok: true; orderId: number; total: number }
+  | { ok: true; orderId: number; total: number; whatsappUrl: string | null }
   | { ok: false; error: OrderErrorCode };
 
 type OrderInput = {
@@ -65,6 +66,41 @@ export function parseOrder(body: unknown): { input: OrderInput } | { error: Orde
   };
 }
 
+// ---- WhatsApp: the customer sends the owner their order ----
+// Sending WhatsApp messages from a server needs the WhatsApp Business API and Meta's approval. Instead, the
+// confirmation screen offers a wa.me link with the order written out, so one tap sends it from the
+// customer's own WhatsApp to the owner's. The number is only shown to someone who has just ordered.
+
+const WHATSAPP_LABELS: Record<string, { newOrder: string; note: string }> = {
+  en: { newOrder: "New order", note: "Note" },
+  hi: { newOrder: "नया ऑर्डर", note: "नोट" },
+  kn: { newOrder: "ಹೊಸ ಆರ್ಡರ್", note: "ಸೂಚನೆ" },
+};
+
+async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderId: number): Promise<string | null> {
+  if (!kitchen.owner_whatsapp) return null;
+  const [lines] = await conn.query<RowDataPacket[]>(
+    `SELECT o.customer_name, o.phone, o.area, o.note_original, mi.name_original AS dish, oi.quantity, oi.unit_price
+       FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
+      WHERE o.id = ? ORDER BY mi.id`,
+    [orderId],
+  );
+  if (lines.length === 0) return null;
+  // Labels in the owner's language; dish names as she says them.
+  const label = WHATSAPP_LABELS[kitchen.owner_language] ?? WHATSAPP_LABELS.en;
+  const first = lines[0];
+  const total = lines.reduce((sum, l) => sum + l.quantity * l.unit_price, 0);
+  const text = [
+    `🍱 ${label.newOrder} #${orderId}`,
+    ...lines.map((l) => `${l.quantity} × ${l.dish}`),
+    `₹${total}`,
+    `${first.customer_name} · ${first.phone}`,
+    first.area,
+    ...(first.note_original ? [`${label.note}: ${first.note_original}`] : []),
+  ].join("\n");
+  return `https://wa.me/${kitchen.owner_whatsapp}?text=${encodeURIComponent(text)}`;
+}
+
 // Checks and writes happen in one transaction. The day's menu row is locked first, so two orders for the
 // same kitchen and day run one after the other and the capacity and sold-out checks cannot race.
 export async function placeOrder(input: OrderInput): Promise<OrderResult> {
@@ -74,7 +110,7 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
     // locking read below: InnoDB takes its snapshot at the first plain SELECT, and that has to happen
     // after the lock is held, or this request would not see an order committed while it was waiting.
     const [kitchens] = await conn.query<RowDataPacket[]>(
-      "SELECT id, timezone, capacity_per_day FROM kitchens WHERE slug = ? AND status = 'live'",
+      "SELECT id, timezone, capacity_per_day, owner_whatsapp, owner_language FROM kitchens WHERE slug = ? AND status = 'live'",
       [input.slug],
     );
     const kitchen = kitchens[0];
@@ -104,7 +140,8 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
     );
     if (existing[0]) {
       await conn.commit();
-      return { ok: true, orderId: existing[0].id, total: Number(existing[0].total) };
+      const orderId = existing[0].id as number;
+      return { ok: true, orderId, total: Number(existing[0].total), whatsappUrl: await whatsappLink(conn, kitchen, orderId) };
     }
 
     if (menu.status !== "open" || isPastCutoff(now.time, menu.cutoff_time)) return fail("closed");
@@ -144,7 +181,7 @@ export async function placeOrder(input: OrderInput): Promise<OrderResult> {
     ]);
 
     await conn.commit();
-    return { ok: true, orderId: order.insertId, total };
+    return { ok: true, orderId: order.insertId, total, whatsappUrl: await whatsappLink(conn, kitchen, order.insertId) };
   } catch (error) {
     await conn.rollback();
     throw error;

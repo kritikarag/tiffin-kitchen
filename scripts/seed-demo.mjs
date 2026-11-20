@@ -85,14 +85,21 @@ const CANCELLED = "Sanjay"; // shows that cancelled orders drop out of the total
 const today = new Intl.DateTimeFormat("en-CA", { timeZone: TIMEZONE }).format(new Date());
 
 const db = await connect();
+// DEMO_OWNER_WHATSAPP=98XXXXXXXX gives Lakshmi a WhatsApp number, so the "Send on WhatsApp" button can be shown.
+// Use your own number for the demo video. Without it the button is hidden.
+function demoWhatsapp() {
+  const digits = (process.env.DEMO_OWNER_WHATSAPP ?? "").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+  return /^[6-9]\d{9}$/.test(digits) ? `91${digits}` : null;
+}
+
 await db.beginTransaction();
 
 await db.query("DELETE FROM conversations WHERE token = ?", [OWNER_TOKEN]);
 await db.query("DELETE FROM kitchens WHERE slug = ?", [SLUG]); // cascades to menus, orders and conversations
 const [k] = await db.query(
-  `INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, timezone, domain, status)
-   VALUES (?, ?, 'kn', ?, ?, 30, ?, 'lakshmitiffins.in', 'live')`,
-  [SLUG, kitchen.name, kitchen.area, JSON.stringify(kitchen.translations), TIMEZONE],
+  `INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, timezone, domain, owner_whatsapp, status)
+   VALUES (?, ?, 'kn', ?, ?, 30, ?, 'lakshmitiffins.in', ?, 'live')`,
+  [SLUG, kitchen.name, kitchen.area, JSON.stringify(kitchen.translations), TIMEZONE, demoWhatsapp()],
 );
 const [menu] = await db.query(
   "INSERT INTO daily_menus (kitchen_id, menu_date, cutoff_time, status) VALUES (?, ?, ?, 'open')",

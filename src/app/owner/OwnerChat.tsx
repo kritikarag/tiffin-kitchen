@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { canListen, canSpeak, listen, speak, stopSpeaking, type Listening, type OwnerLang } from "./voice";
 import type { AgentStep } from "@/lib/agent";
 import AgentSteps from "./AgentSteps";
 import CameraSheet from "./CameraSheet";
+import NewOrderAlert from "./NewOrderAlert";
 import OrdersSheet from "./OrdersSheet";
 import { preparePhoto, type PhotoForUpload } from "./photo";
 import styles from "./owner.module.css";
@@ -26,6 +27,9 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     discard: "Discard recording",
     photo: "Send a photo of your menu",
     ordersButton: "Today's orders",
+    newOrder: "New order",
+    seeOrders: "See orders",
+    dismiss: "Close",
     ordersTitle: "Today's orders",
     refresh: "Refresh",
     ordersCount: "orders",
@@ -72,6 +76,9 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     discard: "रिकॉर्डिंग हटाएँ",
     photo: "मेन्यू की फ़ोटो भेजें",
     ordersButton: "आज के ऑर्डर",
+    newOrder: "नया ऑर्डर",
+    seeOrders: "ऑर्डर देखें",
+    dismiss: "बंद करें",
     ordersTitle: "आज के ऑर्डर",
     refresh: "ताज़ा करें",
     ordersCount: "ऑर्डर",
@@ -118,6 +125,9 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     discard: "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",
     photo: "ಮೆನು ಫೋಟೋ ಕಳುಹಿಸಿ",
     ordersButton: "ಇಂದಿನ ಆರ್ಡರ್‌ಗಳು",
+    newOrder: "ಹೊಸ ಆರ್ಡರ್",
+    seeOrders: "ಆರ್ಡರ್ ನೋಡಿ",
+    dismiss: "ಮುಚ್ಚಿ",
     ordersTitle: "ಇಂದಿನ ಆರ್ಡರ್‌ಗಳು",
     refresh: "ಮತ್ತೆ ನೋಡಿ",
     ordersCount: "ಆರ್ಡರ್",
@@ -217,6 +227,8 @@ export default function OwnerChat() {
   const session = useRef<Listening | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const t = LABELS[lang];
+  // Stable, so the new-order alert keeps one timer across renders.
+  const getToken = useCallback(() => token.current, []);
 
   // Restore the conversation.
   // A link like /owner?t=<token> opens that conversation (the demo seed prints one). The token is then
@@ -393,6 +405,7 @@ export default function OwnerChat() {
       <button type="button" className={styles.ordersButton} onClick={() => setOrdersToken(token.current)}>
         📋 {t.ordersButton}
       </button>
+      <NewOrderAlert getToken={getToken} lang={lang} t={t} onOpenOrders={() => setOrdersToken(token.current)} />
 
       <nav className={styles.languages} aria-label="Language">
         {LANG_NAMES.map((l) => (

@@ -12,6 +12,7 @@ import mysql from "mysql2/promise";
 // so new columns are added here. Keep in step with scripts/migrate.mjs.
 const ADDED_COLUMNS: [table: string, column: string, definition: string][] = [
   ["kitchens", "translations", "JSON NULL AFTER delivery_area"],
+  ["kitchens", "owner_whatsapp", "VARCHAR(15) NULL AFTER domain"],
 ];
 
 async function migrate() {

@@ -65,6 +65,7 @@ Website builders, including the new AI ones, solve the first day: they produce a
 - **Speak at her own pace.** She taps the mic, talks with as many pauses as she needs, and taps ✓ when done. The words land in the message box so she can fix a misheard word before tapping Send. ✕ throws a recording away.
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
 - **See today's orders at a glance.** A **Today's orders** button opens a screen with the number of orders, plates and money to collect, the totals to cook per dish, and every order grouped by delivery area: name, tap-to-call phone, dishes, amount and the customer's note translated into her language. It refreshes by itself every 30 seconds; cancelled orders are listed separately.
+- **Hear about each new order.** While her page is open, a banner and a short chime announce each new order with the name, dishes and amount, and **See orders** opens the orders screen. Customers also get a **Send my order on WhatsApp** button after ordering, which sends her the order, written in her language, from their own WhatsApp.
 - **Get a cooking list at cut-off.** Exact totals per dish, special requests translated into her language, and deliveries grouped by area.
 - **See what the assistant did.** Above each reply, a short list shows every action it took that turn: "✓ Read today's orders: 6 orders, 16 plates", "✓ Checked lakshmitiffins.in: available", "⏳ Marked Sunday as a holiday, not done yet, waiting for your Yes". Each line names the system that did the work (GoDaddy, Database, Hosting). The list is built from what the tools returned, not from Claude's wording, so it can't claim something that didn't happen.
 - **Stay in control.** Anything that changes her business waits for her to tap **Yes**.
@@ -77,6 +78,9 @@ Website builders, including the new AI ones, solve the first day: they produce a
 - Order with name, phone, area and an optional note in any language. No account, no app.
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
 - Pay by cash or UPI on delivery.
+- Send the order to the cook on WhatsApp in one tap, if she gave her number.
+
+<img src="docs/whatsapp-order.png" alt="Order confirmation with the Send my order on WhatsApp button" width="260"> <img src="docs/new-order-alert.png" alt="The owner's new-order banner" width="260">
 
 ## 4. A walkthrough: Lakshmi's first day
 
@@ -193,7 +197,7 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 - **Ordering doesn't depend on AI.** If Claude or GoDaddy is unreachable, customers can still order.
 - **Translate once, at save time.** Dishes are translated when saved, not on every page view, so the menu page is fast and costs nothing to serve.
 - **Transliterate dish names.** "ಬಿಸಿ ಬೇಳೆ ಬಾತ್" becomes "बिसि बेले बाथ" and "Bisi Bele Bath", never a literal translation. A one-line description explains the dish to people who don't know it.
-- **No WhatsApp integration.** The owner shares a link with a ready message. This avoids the WhatsApp Business API and its approval process.
+- **WhatsApp through links, not the Business API.** Sending messages from a server needs Meta's approval. Instead the owner shares her page with a ready message, and customers send her their order with a prefilled wa.me link. Her number is shown only to someone who has just ordered.
 - **No online payment.** Cash or UPI on delivery is how tiffin services already work.
 
 ### Security and reliability
@@ -284,7 +288,8 @@ npm run dev
 | `ANTHROPIC_API_KEY` | For `/owner` | Your Claude API key, starting `sk-ant-` |
 | `CLAUDE_MODEL` | No | Defaults to `claude-sonnet-5-5` |
 | `CLAUDE_FAST_MODEL` | No | Model that fixes misheard dish names in dictation. Defaults to `claude-haiku-5-5` |
-| `GODADDY_API_KEY`, `GODADDY_API_SECRET` | No | GoDaddy test environment keys. Without them, domain checks are simulated |
+| `GODADDY_API_KEY`, `GODADDY_API_SECRET` | No | GoDaddy test environment keys. Without them, or if GoDaddy can't be reached, domain checks are simulated and labelled as such |
+| `DEMO_OWNER_WHATSAPP` | No | A 10-digit number given to the demo kitchen when it is seeded, so the "Send my order on WhatsApp" button appears. Use your own for a demo |
 
 Then open:
 
@@ -318,11 +323,13 @@ The tables are created automatically on every start, and doing so again is harml
 
 ## 13. Status and limitations
 
-**Working:** launch by conversation or menu photo, a visible list of the agent's steps on each reply, the Today's orders screen, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, the kitchen list, customer orders, the cooking list, three languages, and voice in and out with editing before sending.
+**Working:** launch by conversation or menu photo, a visible list of the agent's steps on each reply, the Today's orders screen, new-order alerts and WhatsApp order messages, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, the kitchen list, customer orders, the cooking list, three languages, and voice in and out with editing before sending.
 
 **Known limitations:**
 
 - **Domains:** with GoDaddy keys set, availability comes from GoDaddy's Domains API (test environment); without them it is simulated and labelled "GoDaddy · test". Registration reserves the name in the app but does not buy it, and the assistant says "reserved", not "bought".
+- **Order alerts need her page open or the customer's tap.** The banner only appears while the owner page is open, and the WhatsApp message only arrives if the customer taps the button. Push notifications or the WhatsApp Business API would remove both conditions.
+- **Her WhatsApp number is asked for at launch only.** There is no voice command to change it yet.
 - **No rate limits yet** on the agent or order endpoints. Real use needs per-kitchen and per-address limits to cap Claude costs and spam.
 - **No owner login yet.** Whoever holds a conversation's token can act for that kitchen and see its orders. This is fine for a demo, not for real use.
 - **Voice quality depends on the phone and browser.** Speech recognition accuracy and the availability of Kannada and Hindi voices vary by device; Chrome on Android works best. A phone without a Kannada voice shows Kannada replies as text.
@@ -335,7 +342,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 - **A speech model built for Indian languages,** such as Sarvam AI, instead of the browser's own recognition. It would hear mixed Hindi-English and dish names correctly the first time, rather than relying on Claude to fix them afterwards.
 - **Sign-in by phone number and one-time code,** so only she can act for her kitchen.
-- **An alert for each new order,** by email from a domain mailbox or a WhatsApp message, so she doesn't need the page open.
+- **Order alerts without the page open,** through push notifications or the WhatsApp Business API, so she hears about every order even when the page is closed.
 - **Real domain purchase** through GoDaddy, with the domain pointing straight at her page.
 - **A shopping list from tomorrow's orders.** The cooking list already knows the portions; turning that into ingredients and quantities saves a morning trip.
 - **Reminders to regulars.** A WhatsApp-ready message to customers who ordered last week, when today's menu has their favourite.

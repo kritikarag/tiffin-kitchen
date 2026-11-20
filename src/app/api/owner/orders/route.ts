@@ -2,6 +2,7 @@ import { kitchenForToken, ownerOrders } from "@/lib/ownerOrders";
 import { translateNotes } from "@/lib/transcript";
 
 // GET /api/owner/orders?token=<conversation token>&date=YYYY-MM-DD (date optional, default today)
+// &notes=0 leaves customer notes untranslated (used by the new-order alert).
 // The token is the same one the owner page uses for the assistant.
 // TODO(before launch): like /api/agent, this has no sign-in yet; anyone with the token can read the orders.
 export async function GET(request: Request) {
@@ -15,7 +16,8 @@ export async function GET(request: Request) {
     const view = await ownerOrders(kitchen, url.searchParams.get("date") ?? undefined, lang === "kn" || lang === "hi" || lang === "en" ? lang : undefined);
     // Customers write notes in their own language; show each one in the language the owner chose.
     const withNotes = view.orders.filter((o) => o.note);
-    if ((lang === "kn" || lang === "hi" || lang === "en") && withNotes.length && process.env.ANTHROPIC_API_KEY) {
+    // notes=0 skips translation: the new-order alert polls often and only needs names and totals.
+    if (url.searchParams.get("notes") !== "0" && (lang === "kn" || lang === "hi" || lang === "en") && withNotes.length && process.env.ANTHROPIC_API_KEY) {
       const translated = await translateNotes(withNotes.map((o) => o.note!), lang);
       withNotes.forEach((o, i) => (o.noteTranslated = translated[i] !== o.note ? translated[i] : null));
     }

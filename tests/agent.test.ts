@@ -2,6 +2,11 @@
 // No API key is needed: each "Claude" reply below is what the real model would plausibly send.
 // Run with: npm run test:agent   (needs DATABASE_URL in .env; it creates and deletes its own kitchen)
 import assert from "node:assert/strict";
+
+// Always use simulated domain checks, so the test never depends on GoDaddy being reachable.
+delete process.env.GODADDY_API_KEY;
+delete process.env.GODADDY_API_SECRET;
+
 import { handleOwnerTurn } from "../src/lib/agent";
 import { db } from "../src/lib/db";
 import type { Message, ModelCall, ModelRequest, ModelResponse, ToolResultBlock } from "../src/lib/model";

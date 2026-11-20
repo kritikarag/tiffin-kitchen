@@ -304,3 +304,26 @@
 .back:hover {
   text-decoration: underline;
 }
+
+/* WhatsApp's own green, so customers recognise the button at once. */
+.whatsapp {
+  display: block;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: #1a8d4a;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.whatsapp:focus-visible {
+  outline: 3px solid #146c4d;
+  outline-offset: 2px;
+}
+
+.whatsappHint {
+  color: #3d5a4c;
+  font-size: 0.9rem;
+}

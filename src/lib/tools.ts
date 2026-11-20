@@ -76,6 +76,7 @@ const createKitchen: Tool = {
         owner_language: { type: "string", enum: LANGUAGES.map((l) => l.code), description: "The language the owner speaks to you in." },
         delivery_area: { type: "string", description: "Areas she delivers to, comma separated." },
         capacity_per_day: { type: "integer", description: "How many portions she can cook in a day." },
+        whatsapp: { type: "string", description: "Her WhatsApp number, 10 digits, if she gave one. Customers get a button to send her their order there." },
         dishes: {
           type: "array",
           description: "Her regular dishes.",
@@ -107,7 +108,13 @@ const createKitchen: Tool = {
       name: text(d as Record<string, unknown>, "name", 160),
       price: whole(d as Record<string, unknown>, "price", 1, 5000),
     }));
-    if (ctx.dryRun) return held({ name, delivery_area: area, capacity_per_day: capacity, dishes });
+    let whatsapp: string | null = null;
+    if (input.whatsapp != null && input.whatsapp !== "") {
+      const digits = String(input.whatsapp).replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+      if (!/^[6-9]\d{9}$/.test(digits)) throw new ToolError('"whatsapp" must be a 10-digit Indian mobile number.');
+      whatsapp = `91${digits}`;
+    }
+    if (ctx.dryRun) return held({ name, delivery_area: area, capacity_per_day: capacity, whatsapp, dishes });
 
     // Both translations run at the same time to keep her wait short.
     const [translations, kitchenText] = await Promise.all([
@@ -126,8 +133,8 @@ const createKitchen: Tool = {
         slug = `${base}-${n}`;
       }
       const [kitchen] = await conn.query<ResultSetHeader>(
-        "INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, status) VALUES (?, ?, ?, ?, ?, ?, 'draft')",
-        [slug, name, input.owner_language, area, JSON.stringify(kitchenText), capacity],
+        "INSERT INTO kitchens (slug, name, owner_language, delivery_area, translations, capacity_per_day, owner_whatsapp, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'draft')",
+        [slug, name, input.owner_language, area, JSON.stringify(kitchenText), capacity, whatsapp],
       );
       const saved: { menu_item_id: number; name: string; price: number }[] = [];
       for (const [i, dish] of dishes.entries()) {

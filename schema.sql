@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS kitchens (
   capacity_per_day INT UNSIGNED NULL,               -- total portions per day; NULL means no limit
   timezone         VARCHAR(64)  NOT NULL DEFAULT 'Asia/Kolkata',
   domain           VARCHAR(255) NULL,
+  owner_whatsapp   VARCHAR(15)  NULL,                 -- 91XXXXXXXXXX; customers get a link to send her their order
   status           ENUM('draft','live') NOT NULL DEFAULT 'draft',
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

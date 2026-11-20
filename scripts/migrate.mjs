@@ -6,7 +6,10 @@ const sql = await readFile(new URL("../schema.sql", import.meta.url), "utf8");
 const db = await connect({ multipleStatements: true });
 await db.query(sql);
 // Columns added after the first release. CREATE TABLE IF NOT EXISTS skips existing tables, so add them here.
-const added = [["kitchens", "translations", "JSON NULL AFTER delivery_area"]];
+const added = [
+  ["kitchens", "translations", "JSON NULL AFTER delivery_area"],
+  ["kitchens", "owner_whatsapp", "VARCHAR(15) NULL AFTER domain"],
+];
 for (const [table, column, definition] of added) {
   const [found] = await db.query(
     "SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?",

@@ -20,7 +20,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [placed, setPlaced] = useState<{ id: number; name: string; total: number } | null>(null);
+  const [placed, setPlaced] = useState<{ id: number; name: string; total: number; whatsappUrl: string | null } | null>(null);
   // One key per order attempt: a double tap or a retry sends the same key, so only one order is created.
   const idempotencyKey = useRef<string | null>(null);
 
@@ -62,7 +62,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
       });
       const result = await response.json();
       if (result.ok) {
-        setPlaced({ id: result.orderId, name: customerName, total: result.total });
+        setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsappUrl: result.whatsappUrl ?? null });
         return;
       }
       const messages: Record<string, string> = {
@@ -99,6 +99,14 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
           {t.total}: ₹{placed.total}
         </p>
         <p>{t.payOnDelivery}</p>
+        {placed.whatsappUrl && (
+          <>
+            <a className={styles.whatsapp} href={placed.whatsappUrl} target="_blank" rel="noopener noreferrer">
+              {t.sendWhatsapp}
+            </a>
+            <p className={styles.whatsappHint}>{t.sendWhatsappHint}</p>
+          </>
+        )}
         <button type="button" className={styles.secondary} onClick={startAgain}>
           {t.orderAgain}
         </button>

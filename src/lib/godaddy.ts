@@ -16,12 +16,25 @@ function keys(): { key: string; secret: string } | null {
   return key && secret ? { key, secret } : null;
 }
 
+// Simulated rule: very short names count as taken, so the "try another name" path can be exercised.
+function simulated(domain: string): DomainCheck {
+  return { domain, available: domain.split(".")[0].length >= 8, simulated: true };
+}
+
 export async function checkDomain(domain: string): Promise<DomainCheck> {
   const auth = keys();
-  if (!auth) {
-    // Simulated rule: very short names count as taken, so the "try another name" path can be exercised.
-    return { domain, available: domain.split(".")[0].length >= 8, simulated: true };
+  if (!auth) return simulated(domain);
+  try {
+    return await askGoDaddy(domain, auth);
+  } catch (error) {
+    // GoDaddy unreachable, slow or refusing the keys: keep the launch moving with a simulated answer.
+    // The result is still marked simulated, so the owner page shows "GoDaddy · test" and Claude says so.
+    console.warn(`GoDaddy check for ${domain} failed; using a simulated answer.`, error);
+    return simulated(domain);
   }
+}
+
+async function askGoDaddy(domain: string, auth: { key: string; secret: string }): Promise<DomainCheck> {
   const response = await fetch(`${BASE_URL}/v1/domains/available?domain=${encodeURIComponent(domain)}`, {
     headers: { Authorization: `sso-key ${auth.key}:${auth.secret}`, Accept: "application/json" },
     signal: AbortSignal.timeout(10_000),
