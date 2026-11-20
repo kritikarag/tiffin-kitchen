@@ -220,6 +220,8 @@ export default function OwnerChat() {
     send({ type: "message", text: note, image: { media_type: photo.media_type, data: photo.data } }, note || t.photoSent, photo.previewUrl);
   }
 
+  const [dragging, setDragging] = useState(false);
+
   async function sendPhoto(file: File | undefined) {
     if (!file || busy) return;
     setError(null);
@@ -242,7 +244,26 @@ export default function OwnerChat() {
   }
 
   return (
-    <div className={styles.wrap} lang={lang}>
+    <div
+      className={dragging ? styles.wrapDrop : styles.wrap}
+      lang={lang}
+      // On a laptop she can also drag a photo of her menu onto the page.
+      onDragOver={(e) => {
+        if (!e.dataTransfer.types.includes("Files")) return;
+        e.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setDragging(false);
+      }}
+      onDrop={(e) => {
+        if (!e.dataTransfer.files.length) return;
+        e.preventDefault();
+        setDragging(false);
+        sendPhoto([...e.dataTransfer.files].find((f) => f.type.startsWith("image/")));
+      }}
+    >
+      {dragging && <div className={styles.dropHint}>🖼 {t.dropPhoto}</div>}
       <header className={styles.top}>
         <h1>{t.title}</h1>
         <button type="button" className={styles.link} onClick={startOver}>
@@ -362,6 +383,22 @@ export default function OwnerChat() {
                   title={t.photo}
                 >
                   <span aria-hidden="true">📷</span>
+                  <span className={styles.photoLabel}>{t.takePhotoShort}</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.photoButton}
+                  onClick={() => {
+                    stopSpeaking();
+                    setError(null);
+                    photoInput.current?.click();
+                  }}
+                  disabled={busy}
+                  aria-label={t.uploadPhoto}
+                  title={t.uploadPhoto}
+                >
+                  <span aria-hidden="true">🖼</span>
+                  <span className={styles.photoLabel}>{t.uploadShort}</span>
                 </button>
                 {/* No "capture" attribute, so the phone offers both the camera and the gallery. */}
                 <input ref={photoInput} type="file" accept="image/*" hidden onChange={(e) => sendPhoto(e.target.files?.[0])} />
