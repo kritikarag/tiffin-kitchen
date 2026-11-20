@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { isLang, LANG_COOKIE, LANGUAGES, type Lang } from "@/lib/i18n";
+import { getDictionary, isLang, LANG_COOKIE, LANGUAGES, type Lang } from "@/lib/i18n";
+import CurrentOrders from "./orders/CurrentOrders";
+import MyOrdersLink from "./orders/MyOrdersLink";
 import { homeCopy, NOTE_EXAMPLE, ONE_DISH, TICKETS, TOOL_GROUPS, type HomeCopy } from "./homeCopy";
 import styles from "./home.module.css";
 import { VERSION } from "@/lib/version";
@@ -43,6 +45,7 @@ export default function Home() {
           <a href="#languages">{t.nav.languages}</a>
           <a href="#trust">{t.nav.trust}</a>
         </nav>
+        <MyOrdersLink label={getDictionary(lang).myOrders} className={styles.myOrders} />
         <label className={styles.langPick}>
           <span aria-hidden="true">🌐</span>
           <span className={styles.hidden}>{t.langLabel}</span>
@@ -58,6 +61,9 @@ export default function Home() {
       </header>
 
       <main id="top">
+        <div className={styles.currentWrap}>
+          <CurrentOrders lang={lang} t={getDictionary(lang)} />
+        </div>
         <Hero t={t} lang={lang} />
         <Day t={t} />
         <Agent t={t} />

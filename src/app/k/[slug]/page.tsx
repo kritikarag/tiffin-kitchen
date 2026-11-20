@@ -8,6 +8,7 @@ import { formatTime } from "@/lib/time";
 import LanguageSwitch from "./LanguageSwitch";
 import OrderForm from "./OrderForm";
 import MyOrdersLink from "../../orders/MyOrdersLink";
+import CurrentOrders from "../../orders/CurrentOrders";
 import styles from "./menu.module.css";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -56,6 +57,8 @@ async function Menu({ params }: Props) {
         <h1>{menu.kitchen.name}</h1>
         {menu.kitchen.deliveryArea && <p>{fill(t.deliversTo, { area: menu.kitchen.deliveryArea })}</p>}
       </header>
+
+      <CurrentOrders lang={lang} t={t} slug={slug} />
 
       {notice && <p className={styles.notice}>{notice}</p>}
 

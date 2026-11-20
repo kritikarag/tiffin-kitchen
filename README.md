@@ -100,6 +100,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - Give a full delivery address (house, street, landmark) as well as the area. The cook sees it on each order with a **Map** button that opens it in Google Maps, and it's in the WhatsApp message and the delivery list. The area groups deliveries into routes.
 - Pay by cash or UPI on delivery.
 - **Track the order.** After ordering, **Track my order** opens a page that shows where it is: order received, being prepared, on the way, delivered. It updates by itself, in the customer's language, and needs no account: the link holds a random code, so only someone who has the link can see it.
+- **See the order wherever they land.** While an order is on its way, a card at the top of the home page, the kitchen list and that kitchen's menu shows its stage (received, preparing, on the way) with a progress bar, refreshing every 30 seconds. One tap opens its tracking page. A phone with no current order sees nothing extra.
 - **See current and past orders.** **🧾 My orders** (on the kitchen list and every menu page, once the phone has ordered) lists orders still on their way at the top, with their live stage, and earlier ones below, each with **Track** and **Place another order**. The list lives on the phone, like the saved details: no account, no sign-in, and "Not you?" clears it on a shared phone. Opening a tracking link from the cook's WhatsApp message adds that order to the list too.
 - Get a WhatsApp message from the cook as the tiffin is prepared, sent out and delivered, in their own language. Sending her a copy of the order on WhatsApp is optional.
 - Pay by scanning a UPI QR code for the exact amount, or open a UPI app on the same phone, if she gave her UPI ID. Ticking "I have paid" adds a line saying so to the WhatsApp message; she checks it in her own UPI app.
@@ -289,7 +290,7 @@ The full schema is in [`schema.sql`](schema.sql). Prices are whole rupees.
 | `src/app/k/page.tsx` | Customer list of kitchens |
 | `src/app/k/[slug]/` | Customer menu page, language switch and order form |
 | `src/app/track/[code]/` | The customer's tracking page for one order |
-| `src/app/orders/`, `src/lib/track.ts` | My orders: the orders placed on this phone, looked up by their tracking codes |
+| `src/app/orders/`, `src/lib/track.ts` | My orders and the current-order card: the orders placed on this phone, looked up by their tracking codes |
 | `src/lib/delivery.ts` | Order stages and the WhatsApp messages that tell customers about them |
 | `src/app/api/agent/route.ts` | `POST /api/agent` |
 | `src/app/api/orders/route.ts` | `POST /api/orders` |
