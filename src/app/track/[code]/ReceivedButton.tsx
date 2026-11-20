@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./track.module.css";
+import Icon from "@/components/Icon";
 
 type Props = { code: string; notReceived: boolean; t: { yes: string; no: string; hint: string; thanks: string; noDone: string } };
 
@@ -28,12 +29,12 @@ export default function ReceivedButton({ code, notReceived, t }: Props) {
     }
   }
 
-  if (state === "yes") return <p className={styles.thanks}>✓ {t.thanks}</p>;
+  if (state === "yes") return <p className={styles.thanks}><Icon name="delivered" /> {t.thanks}</p>;
   return (
     <div className={styles.received}>
       {state === "no" && <p className={styles.reported}>{t.noDone}</p>}
       <button type="button" onClick={() => answer(true)} disabled={state === "sending"}>
-        ✓ {t.yes}
+        <Icon name="check" /> {t.yes}
       </button>
       {state !== "no" && (
         <>

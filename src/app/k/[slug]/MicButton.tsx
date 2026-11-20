@@ -4,6 +4,7 @@ import { useRef, useState, useSyncExternalStore } from "react";
 import type { Lang } from "@/lib/i18n";
 import { canListen, listen, type Listening } from "../../owner/voice";
 import styles from "./menu.module.css";
+import Icon from "@/components/Icon";
 
 const noop = () => () => {};
 
@@ -53,7 +54,7 @@ export default function MicButton({ lang, t }: { lang: Lang; t: { speak: string;
   return (
     <>
       <button type="button" className={on ? styles.micOn : styles.mic} onClick={(e) => toggle(e.currentTarget)} aria-pressed={on} aria-label={on ? t.stop : t.speak} title={on ? t.stop : t.speak}>
-        {on ? "✓" : "🎤"}
+        <Icon name={on ? "check" : "mic"} />
       </button>
       {problem && <span className={styles.micProblem}>{t.blocked}</span>}
     </>

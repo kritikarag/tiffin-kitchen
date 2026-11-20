@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { OwnerOrder } from "@/lib/ownerOrders";
 import styles from "./owner.module.css";
+import Icon from "@/components/Icon";
 
 // While the owner page is open, checks for new orders every 20 seconds and shows a banner with a short
 // chime, so she hears about an order without opening the orders screen. The first check only records
@@ -123,7 +124,7 @@ export default function NewOrderAlert({
   const lastReceived = received[received.length - 1];
   const receivedBanner = lastReceived && (
     <div className={styles.receivedBanner} role="status">
-      <span aria-hidden="true">✅</span>
+      <Icon name="delivered" />
       <strong>
         {t.receivedAlert.replace("{name}", lastReceived.customerName)}
         {received.length > 1 ? ` (+${received.length - 1})` : ""}
@@ -134,19 +135,19 @@ export default function NewOrderAlert({
         onClick={() => setReceived([])}
         aria-label={t.dismiss}
       >
-        ✕
+        <Icon name="x" />
       </button>
     </div>
   );
   const lastMissing = missing[missing.length - 1];
   const missingBanner = lastMissing && (
     <div className={styles.missingBanner} role="alert">
-      <span aria-hidden="true">⚠️</span>
+      <Icon name="alert" />
       <strong>
-        {t.missingAlert.replace("{name}", lastMissing.customerName)} · <a href={`tel:+91${lastMissing.phone}`}>📞 {lastMissing.phone}</a>
+        {t.missingAlert.replace("{name}", lastMissing.customerName)} · <a href={`tel:+91${lastMissing.phone}`}><Icon name="phone" /> {lastMissing.phone}</a>
       </strong>
       <button type="button" className={styles.newOrderClose} onClick={() => setMissing([])} aria-label={t.dismiss}>
-        ✕
+        <Icon name="x" />
       </button>
     </div>
   );
@@ -158,7 +159,7 @@ export default function NewOrderAlert({
       {receivedBanner}
       <div className={styles.newOrder} role="status">
         <span className={styles.newOrderIcon} aria-hidden="true">
-          🔔
+          <Icon name="bell" />
         </span>
         <div className={styles.newOrderText}>
           <strong>
@@ -187,7 +188,7 @@ export default function NewOrderAlert({
             onClick={() => setFresh([])}
             aria-label={t.dismiss}
           >
-            ✕
+            <Icon name="x" />
           </button>
         </div>
       </div>

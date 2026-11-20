@@ -10,6 +10,7 @@ import OrderForm from "./OrderForm";
 import MyOrdersLink from "../../orders/MyOrdersLink";
 import CurrentOrders from "../../orders/CurrentOrders";
 import styles from "./menu.module.css";
+import Icon from "@/components/Icon";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -48,7 +49,7 @@ async function Menu({ params }: Props) {
     <div lang={lang}>
       <div className={styles.topRow}>
         <Link href="/k" className={styles.back}>
-          ‹ {t.allKitchens}
+          <Icon name="chevronLeft" /> {t.allKitchens}
         </Link>
         <MyOrdersLink label={t.myOrders} className={styles.back} />
         <LanguageSwitch current={lang} />

@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { parse, readOrders, subscribe } from "../k/[slug]/remember";
+import Icon from "@/components/Icon";
 
 // A link to "My orders", shown only on a phone that has placed an order.
 export default function MyOrdersLink({ label, className }: { label: string; className?: string }) {
@@ -10,7 +11,7 @@ export default function MyOrdersLink({ label, className }: { label: string; clas
   if (count === 0) return null;
   return (
     <a href="/orders" className={className}>
-      🧾 {label}
+      <Icon name="receipt" /> {label}
     </a>
   );
 }

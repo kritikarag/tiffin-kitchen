@@ -6,6 +6,7 @@ import type { Dictionary, Lang } from "@/lib/i18n";
 import type { TrackedOrder } from "@/lib/track";
 import { parse, readOrders, subscribe } from "../k/[slug]/remember";
 import styles from "./orders.module.css";
+import Icon, { type IconName } from "@/components/Icon";
 
 // Reads the phone's list of tracking codes, asks the server for each order's current state, and refreshes
 // every 30 seconds while any order is still on its way.
@@ -86,11 +87,11 @@ export default function MyOrders({ lang, t }: { lang: Lang; t: Dictionary }) {
   );
 }
 
-const STAGE: Record<TrackedOrder["delivery"], [icon: string, key: "trackPlaced" | "trackPreparing" | "trackOnTheWay" | "trackDelivered"]> = {
-  waiting: ["🧾", "trackPlaced"],
-  preparing: ["🍳", "trackPreparing"],
-  on_the_way: ["🛵", "trackOnTheWay"],
-  delivered: ["✓", "trackDelivered"],
+const STAGE: Record<TrackedOrder["delivery"], [icon: IconName, key: "trackPlaced" | "trackPreparing" | "trackOnTheWay" | "trackDelivered"]> = {
+  waiting: ["receipt", "trackPlaced"],
+  preparing: ["flame", "trackPreparing"],
+  on_the_way: ["bike", "trackOnTheWay"],
+  delivered: ["delivered", "trackDelivered"],
 };
 
 function OrderCard({ order, lang, t }: { order: TrackedOrder; lang: Lang; t: Dictionary }) {
@@ -107,7 +108,7 @@ function OrderCard({ order, lang, t }: { order: TrackedOrder; lang: Lang; t: Dic
       </div>
       <div className={styles.items}>{order.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</div>
       <span className={order.status === "cancelled" ? styles.badgeCancelled : order.delivery === "delivered" ? styles.badgeDone : styles.badge}>
-        {order.status === "cancelled" ? t.myOrdersCancelled : `${icon} ${t[key]}`}
+        {order.status === "cancelled" ? t.myOrdersCancelled : <><Icon name={icon} /> {t[key]}</>}
       </span>
       <div className={styles.actions}>
         <Link href={`/track/${order.code}`}>{t.myOrdersTrack}</Link>

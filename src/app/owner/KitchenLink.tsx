@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { OwnerLabels } from "./labels";
 import styles from "./owner.module.css";
+import Icon from "@/components/Icon";
 
 // Her private kitchen link. Until owners sign in with a phone number, this link is how she gets back to her
 // kitchen on any phone or computer, so the page offers it as soon as she has a kitchen: copy it, or send it to
@@ -53,7 +54,7 @@ export default function KitchenLink({ getToken, t, refreshKey }: { getToken: () 
   return (
     <>
       <button type="button" className={styles.keyButton} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        🔑 {t.myLink}
+        <Icon name="key" /> {t.myLink}
       </button>
       {open && (
         <div className={styles.keyCard}>
@@ -65,7 +66,7 @@ export default function KitchenLink({ getToken, t, refreshKey }: { getToken: () 
               {t.sendSelf}
             </a>
             <button type="button" onClick={copy}>
-              {copied ? `✓ ${t.copied}` : t.copyLink}
+              {copied ? <><Icon name="check" /> {t.copied}</> : t.copyLink}
             </button>
           </div>
         </div>

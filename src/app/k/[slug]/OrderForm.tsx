@@ -9,6 +9,7 @@ import styles from "./menu.module.css";
 import MicButton from "./MicButton";
 import PendingConfirm, { usePendingConfirmations } from "../../orders/PendingConfirm";
 import { forget, parse, readLast, readMe, remember, rememberOrder, subscribe, type LastOrder, type Me } from "./remember";
+import Icon from "@/components/Icon";
 
 type Props = { slug: string; lang: Lang; t: Dictionary; dishes: MenuDish[] };
 
@@ -169,7 +170,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
     const amount = { amount: placed.total };
     return (
       <section className={styles.placed} role="status">
-        <h2>✓ {t.orderPlaced}</h2>
+        <h2><Icon name="delivered" /> {t.orderPlaced}</h2>
         <p>{fill(t.thanks, { name: placed.name, id: placed.id })}</p>
         <p className={styles.placedTotal}>
           {t.total}: ₹{placed.total}
@@ -246,7 +247,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
               className={styles.again}
               onClick={() => setQuantities(Object.fromEntries(last.map((l) => [l.dish.id, l.quantity])))}
             >
-              ↻ {t.sameAsLast}: {last.map((l) => `${l.quantity} × ${l.dish.name}`).join(", ")}
+              <Icon name="repeat" /> {t.sameAsLast}: {last.map((l) => `${l.quantity} × ${l.dish.name}`).join(", ")}
             </button>
           )}
         </div>

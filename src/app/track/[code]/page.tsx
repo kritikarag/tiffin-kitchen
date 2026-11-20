@@ -8,6 +8,7 @@ import RememberOrder from "./RememberOrder";
 import ReceivedButton from "./ReceivedButton";
 import Refresh from "./Refresh";
 import styles from "./track.module.css";
+import Icon from "@/components/Icon";
 
 // The customer's tracking page: where their tiffin is, from order received to delivered. Reached only
 // through the random code in its link, so it shows nothing to anyone who doesn't have the link.
@@ -39,10 +40,10 @@ async function Tracking({ params }: Props) {
   const total = order.total;
   const delivery = order.delivery;
   const stages = [
-    ["waiting", "🧾", t.trackPlaced],
-    ["preparing", "🍳", t.trackPreparing],
-    ["on_the_way", "🛵", t.trackOnTheWay],
-    ["delivered", "✓", t.trackDelivered],
+    ["waiting", "receipt", t.trackPlaced],
+    ["preparing", "flame", t.trackPreparing],
+    ["on_the_way", "bike", t.trackOnTheWay],
+    ["delivered", "check", t.trackDelivered],
   ] as const;
   const reached = stages.findIndex(([s]) => s === delivery);
 
@@ -60,7 +61,7 @@ async function Tracking({ params }: Props) {
           {stages.map(([stage, icon, label], i) => (
             <li key={stage} className={i < reached ? styles.done : i === reached ? styles.now : styles.next} aria-current={i === reached ? "step" : undefined}>
               <span className={styles.icon} aria-hidden="true">
-                {icon}
+                <Icon name={icon} />
               </span>
               {label}
             </li>
@@ -75,7 +76,7 @@ async function Tracking({ params }: Props) {
           t={{ yes: t.receivedButton, no: t.notReceivedButton, hint: t.receivedHint, thanks: t.receivedThanks, noDone: t.notReceivedDone }}
         />
       )}
-      {order.receivedByCustomer && <p className={styles.thanks}>✓ {t.receivedThanks}</p>}
+      {order.receivedByCustomer && <p className={styles.thanks}><Icon name="delivered" /> {t.receivedThanks}</p>}
 
       <section className={styles.card}>
         <ul>
@@ -88,7 +89,7 @@ async function Tracking({ params }: Props) {
         <p className={styles.total}>
           {t.total}: ₹{total}
         </p>
-        <p className={styles.address}>🏠 {order.address ? `${order.address}, ${order.area}` : order.area}</p>
+        <p className={styles.address}><Icon name="home" /> {order.address ? `${order.address}, ${order.area}` : order.area}</p>
       </section>
 
       {order.ownerWhatsapp && (

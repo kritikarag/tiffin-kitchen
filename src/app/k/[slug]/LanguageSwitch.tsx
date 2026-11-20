@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { LANG_COOKIE, LANGUAGES, type Lang } from "@/lib/i18n";
 import styles from "./menu.module.css";
+import Icon from "@/components/Icon";
 
 function saveLanguage(code: Lang) {
   document.cookie = `${LANG_COOKIE}=${code}; path=/; max-age=31536000; samesite=lax`;
@@ -19,7 +20,7 @@ export default function LanguageSwitch({ current }: { current: Lang }) {
 
   return (
     <label className={styles.languagePick}>
-      <span aria-hidden="true">🌐</span>
+      <span aria-hidden="true"><Icon name="globe" /></span>
       <span className={styles.visuallyHidden}>Language</span>
       <select value={current} onChange={(e) => choose(e.target.value as Lang)}>
         {LANGUAGES.map((language) => (

@@ -5,7 +5,7 @@ export const OWNER_LABELS = {
   en: {
     title: "Your kitchen assistant",
     startOver: "Start over",
-    hint: "Tap the microphone and tell me about the tiffin service you want to start. You can also send a photo of your menu with 📷.",
+    hint: "Tap the microphone and tell me about the tiffin service you want to start. You can also send a photo of your menu with Camera or Upload.",
     tapToSpeak: "Tap to speak",
     listening: "Listening… tap when you're done",
     discard: "Discard recording",
@@ -80,7 +80,7 @@ export const OWNER_LABELS = {
   hi: {
     title: "आपकी रसोई सहायक",
     startOver: "फिर से शुरू करें",
-    hint: "माइक दबाइए और बताइए आप कैसी टिफ़िन सेवा शुरू करना चाहती हैं। 📷 से अपने मेन्यू की फ़ोटो भी भेज सकती हैं।",
+    hint: "माइक दबाइए और बताइए आप कैसी टिफ़िन सेवा शुरू करना चाहती हैं। कैमरा या अपलोड से अपने मेन्यू की फ़ोटो भी भेज सकती हैं।",
     tapToSpeak: "बोलने के लिए दबाएँ",
     listening: "सुन रही हूँ… बोल लें तो दबाएँ",
     discard: "रिकॉर्डिंग हटाएँ",
@@ -155,7 +155,7 @@ export const OWNER_LABELS = {
   kn: {
     title: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ ಸಹಾಯಕ",
     startOver: "ಮತ್ತೆ ಶುರು ಮಾಡಿ",
-    hint: "ಮೈಕ್ ಒತ್ತಿ, ನೀವು ಶುರು ಮಾಡಬೇಕಾದ ಟಿಫಿನ್ ಸೇವೆಯ ಬಗ್ಗೆ ಹೇಳಿ. 📷 ಮೂಲಕ ನಿಮ್ಮ ಮೆನು ಫೋಟೋ ಕೂಡ ಕಳುಹಿಸಬಹುದು.",
+    hint: "ಮೈಕ್ ಒತ್ತಿ, ನೀವು ಶುರು ಮಾಡಬೇಕಾದ ಟಿಫಿನ್ ಸೇವೆಯ ಬಗ್ಗೆ ಹೇಳಿ. ಕ್ಯಾಮೆರಾ ಅಥವಾ ಅಪ್‌ಲೋಡ್ ಮೂಲಕ ನಿಮ್ಮ ಮೆನು ಫೋಟೋ ಕೂಡ ಕಳುಹಿಸಬಹುದು.",
     tapToSpeak: "ಮಾತನಾಡಲು ಒತ್ತಿ",
     listening: "ಕೇಳುತ್ತಿದ್ದೇನೆ… ಮುಗಿದ ಮೇಲೆ ಒತ್ತಿ",
     discard: "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",

@@ -5,6 +5,7 @@ import { fill, type Dictionary, type Lang } from "@/lib/i18n";
 import type { TrackedOrder } from "@/lib/track";
 import { parse, readOrders, subscribe } from "../k/[slug]/remember";
 import styles from "./orders.module.css";
+import Icon from "@/components/Icon";
 
 // Orders from this phone whose arrival the customer hasn't confirmed yet: on the way, or from an earlier day.
 export function usePendingConfirmations(lang: Lang) {
@@ -59,7 +60,7 @@ export default function PendingConfirm({ order, lang, t, onAnswered }: { order: 
       <p className={styles.confirmItems}>{order.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</p>
       <div className={styles.confirmActions}>
         <button type="button" onClick={() => answer(true)} disabled={sending}>
-          ✓ {t.confirmYes}
+          <Icon name="check" /> {t.confirmYes}
         </button>
         <button type="button" className={styles.confirmNo} onClick={() => answer(false)} disabled={sending}>
           {t.confirmNo}

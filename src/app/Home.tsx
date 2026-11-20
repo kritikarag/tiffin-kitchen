@@ -8,6 +8,7 @@ import MyOrdersLink from "./orders/MyOrdersLink";
 import { homeCopy, NOTE_EXAMPLE, ONE_DISH, TICKETS, TOOL_GROUPS, type HomeCopy } from "./homeCopy";
 import styles from "./home.module.css";
 import { VERSION } from "@/lib/version";
+import Icon from "@/components/Icon";
 
 const DEMO_OWNER = "/owner?t=11a6b5e1-d4e1-4000-8000-000000000001";
 const DEMO_KITCHEN = "/k/lakshmi-tiffins";
@@ -47,7 +48,7 @@ export default function Home() {
         </nav>
         <MyOrdersLink label={getDictionary(lang).myOrders} className={styles.myOrders} />
         <label className={styles.langPick}>
-          <span aria-hidden="true">🌐</span>
+          <Icon name="globe" />
           <span className={styles.hidden}>{t.langLabel}</span>
           <select value={lang} onChange={(e) => choose(e.target.value as Lang)}>
             {LANGUAGES.map((l) => (
@@ -76,7 +77,7 @@ export default function Home() {
           <p>{t.ctaText}</p>
           <div className={styles.actions}>
             <Link href={DEMO_OWNER} className={styles.primaryLight}>
-              🎤 {t.ctaCook}
+              <Icon name="mic" /> {t.ctaCook}
             </Link>
             <Link href={DEMO_KITCHEN} className={styles.secondaryLight}>
               {t.ctaCustomer}
@@ -94,7 +95,7 @@ export default function Home() {
       </footer>
 
       <Link href={DEMO_OWNER} className={styles.floating}>
-        <span aria-hidden="true">▶</span> {t.nav.demo}
+        <Icon name="play" /> {t.nav.demo}
       </Link>
     </div>
   );
@@ -110,7 +111,7 @@ function Hero({ t, lang }: { t: HomeCopy; lang: Lang }) {
         <p className={styles.lead}>{t.lead}</p>
         <div className={styles.actions}>
           <Link href="/owner" className={styles.primary}>
-            <span aria-hidden="true">🎤</span> {t.start}
+            <Icon name="mic" /> {t.start}
           </Link>
           <Link href="/k" className={styles.secondary}>
             {t.demo}
@@ -140,7 +141,7 @@ function Hero({ t, lang }: { t: HomeCopy; lang: Lang }) {
         {TICKETS.map((ticket, i) => (
           <div key={i} className={`${styles.ticket} ${styles[`ticket${i}`]}`} style={{ animationDelay: `${600 + i * 700}ms` }}>
             <span className={styles.ticketHead}>
-              🔔 {t.newOrder} · {ticket.who}
+              <Icon name="bell" /> {t.newOrder} · {ticket.who}
             </span>
             <span>{ticket.text}</span>
           </div>
@@ -200,7 +201,7 @@ function Screen({ t, which }: { t: HomeCopy; which: number }) {
       <span className={styles.didHeading}>{t.stepsHeading}</span>
       <p>
         <span className={icon === "done" ? styles.tick : styles.wait} aria-hidden="true">
-          {icon === "done" ? "✓" : "⏳"}
+          <Icon name={icon === "done" ? "check" : "clock"} />
         </span>
         <span>
           {text}
@@ -214,12 +215,12 @@ function Screen({ t, which }: { t: HomeCopy; which: number }) {
     case 0:
       return (
         <>
-          <p className={styles.said}>🎤 {t.m1Said}</p>
+          <p className={styles.said}><Icon name="mic" /> {t.m1Said}</p>
           {steps("wait", t.m1Step)}
           <p className={styles.reply}>{t.m1Reply}</p>
           <div className={styles.yesNo} aria-hidden="true">
-            <span className={styles.yes}>✓ {t.yes}</span>
-            <span className={styles.no}>✕ {t.no}</span>
+            <span className={styles.yes}><Icon name="check" /> {t.yes}</span>
+            <span className={styles.no}><Icon name="x" /> {t.no}</span>
           </div>
         </>
       );
@@ -227,12 +228,12 @@ function Screen({ t, which }: { t: HomeCopy; which: number }) {
       return (
         <>
           <div className={styles.banner}>
-            🔔 <strong>{t.newOrder}</strong> · {t.m2Who}
+            <Icon name="bell" /> <strong>{t.newOrder}</strong> · {t.m2Who}
           </div>
           <div className={styles.orderCard}>
             <strong>{t.m2Who}</strong>
             <span>{t.m2Items}</span>
-            <span className={styles.paid}>✅ {t.m2Paid}</span>
+            <span className={styles.paid}><Icon name="delivered" /> {t.m2Paid}</span>
           </div>
           <div className={styles.orderCard}>
             <strong>{TICKETS[0].who}</strong>
@@ -243,7 +244,7 @@ function Screen({ t, which }: { t: HomeCopy; which: number }) {
     case 2:
       return (
         <>
-          <p className={styles.said}>🎤 {t.m3Said}</p>
+          <p className={styles.said}><Icon name="mic" /> {t.m3Said}</p>
           {steps("done", t.m3Step)}
           <div className={styles.dishRow}>
             <span>{t.m3Dish}</span>
@@ -255,7 +256,7 @@ function Screen({ t, which }: { t: HomeCopy; which: number }) {
       return (
         <>
           <div className={styles.alert}>
-            <strong>⚠️ {t.m4Alert}</strong>
+            <strong><Icon name="alert" /> {t.m4Alert}</strong>
             {t.m4AlertText}
           </div>
           <span className={styles.cookHeading}>{t.m4Cook}</span>
@@ -270,10 +271,10 @@ function Screen({ t, which }: { t: HomeCopy; which: number }) {
     default:
       return (
         <>
-          <p className={styles.said}>🎤 {t.m5Said}</p>
+          <p className={styles.said}><Icon name="mic" /> {t.m5Said}</p>
           {steps("done", t.m5Step)}
           <div className={styles.dabbaCount}>
-            <strong>🥡 12</strong> {t.m5Out}
+            <strong><Icon name="box" /> 12</strong> {t.m5Out}
           </div>
         </>
       );
@@ -354,7 +355,7 @@ function Languages({ t, lang, choose }: { t: HomeCopy; lang: Lang; choose: (l: L
 }
 
 function Trust({ t }: { t: HomeCopy }) {
-  const icons = ["✋", "👁", "🔢", "🛡", "⚠️", "₹"];
+  const icons = ["hand", "eye", "hash", "shield", "alert", "rupee"] as const;
   return (
     <section id="trust" className={styles.trust}>
       <div className={styles.inner}>
@@ -363,7 +364,7 @@ function Trust({ t }: { t: HomeCopy }) {
           {t.trust.map(([title, text], i) => (
             <li key={i}>
               <span className={styles.guardIcon} aria-hidden="true">
-                {icons[i]}
+                <Icon name={icons[i]} />
               </span>
               <strong>{title}</strong>
               <span>{text}</span>

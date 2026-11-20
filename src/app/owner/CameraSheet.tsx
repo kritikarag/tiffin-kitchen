@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { captureFrame, openCamera, type PhotoForUpload } from "./photo";
 import styles from "./owner.module.css";
+import Icon from "@/components/Icon";
 
 // The owner page's labels for her language; this sheet uses cameraTitle, takePhoto, usePhoto, retake,
 // fromGallery, close and cameraBlocked.
@@ -73,20 +74,20 @@ export default function CameraSheet({ t, onPhoto, onGallery, onClose }: Props) {
         {blocked ? null : taken ? (
           <>
             <button type="button" className={styles.yes} onClick={() => onPhoto(taken)}>
-              ✓ {t.usePhoto}
+              <Icon name="check" /> {t.usePhoto}
             </button>
             <button type="button" className={styles.no} onClick={() => setTaken(null)}>
-              ↺ {t.retake}
+              <Icon name="repeat" /> {t.retake}
             </button>
           </>
         ) : (
           <button type="button" className={styles.shutter} onClick={take} aria-label={t.takePhoto}>
-            <span aria-hidden="true">📸</span> {t.takePhoto}
+            <Icon name="camera" /> {t.takePhoto}
           </button>
         )}
       </div>
       <button type="button" className={styles.galleryLink} onClick={onGallery}>
-        🖼 {t.fromGallery}
+        <Icon name="upload" /> {t.fromGallery}
       </button>
     </div>
   );

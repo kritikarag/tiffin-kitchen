@@ -286,6 +286,7 @@ The full schema is in [`schema.sql`](schema.sql). Prices are whole rupees.
 | Path | What it does |
 | --- | --- |
 | `src/app/page.tsx`, `Home.tsx` | The home page |
+| `src/components/Icon.tsx` | One set of line icons (from Lucide) for every button and status, drawn in the app's own colours, so they look the same on every phone; emoji appear only inside WhatsApp messages |
 | `src/app/owner/` | Owner page: chat, microphone, spoken replies, language picker. `voice.ts` holds the speech code; `CameraSheet.tsx` is the in-page camera; `photo.ts` shrinks photos; `OrdersSheet.tsx` is the orders screen |
 | `src/app/api/owner/orders/route.ts`, `src/lib/ownerOrders.ts` | Today's orders for the owner, with totals from SQL |
 | `src/app/api/transcript/route.ts`, `src/lib/transcript.ts` | Fixing misheard dish names in dictation, and translating customer notes |

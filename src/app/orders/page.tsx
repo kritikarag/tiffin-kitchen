@@ -7,6 +7,7 @@ import { getDictionary, LANG_COOKIE, pickLanguage } from "@/lib/i18n";
 import LanguageSwitch from "../k/[slug]/LanguageSwitch";
 import MyOrders from "./MyOrders";
 import styles from "./orders.module.css";
+import Icon from "@/components/Icon";
 
 // "My orders": every order placed on this phone, current ones first. The list of orders lives on the phone
 // (see remember.ts), so there is no account and nothing to sign in to.
@@ -30,7 +31,7 @@ async function Orders() {
     <div lang={lang}>
       <div className={styles.topRow}>
         <Link href="/k" className={styles.back}>
-          ‹ {t.allKitchens}
+          <Icon name="chevronLeft" /> {t.allKitchens}
         </Link>
         <LanguageSwitch current={lang} />
       </div>

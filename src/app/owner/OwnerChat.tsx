@@ -12,6 +12,7 @@ import { preparePhoto, type PhotoForUpload } from "./photo";
 import styles from "./owner.module.css";
 import { ownerLabels } from "./labels";
 import { isLang, LANGUAGES } from "@/lib/i18n";
+import Icon from "@/components/Icon";
 
 type Line = { from: "owner" | "agent"; text: string; photo?: string; steps?: AgentStep[] };
 type Pending = { name: string; summary: Record<string, unknown> } | null;
@@ -263,7 +264,7 @@ export default function OwnerChat() {
         sendPhoto([...e.dataTransfer.files].find((f) => f.type.startsWith("image/")));
       }}
     >
-      {dragging && <div className={styles.dropHint}>🖼 {t.dropPhoto}</div>}
+      {dragging && <div className={styles.dropHint}><Icon name="upload" /> {t.dropPhoto}</div>}
       <header className={styles.top}>
         <h1>{t.title}</h1>
         <button type="button" className={styles.link} onClick={startOver}>
@@ -271,13 +272,13 @@ export default function OwnerChat() {
         </button>
       </header>
       <button type="button" className={styles.ordersButton} onClick={() => setOrdersToken(token.current)}>
-        📋 {t.ordersButton}
+        <Icon name="orders" /> {t.ordersButton}
       </button>
       <NewOrderAlert getToken={getToken} lang={lang} t={t} onOpenOrders={() => setOrdersToken(token.current)} />
       <KitchenLink getToken={getToken} t={t} refreshKey={lines.length} />
 
       <label className={styles.languagePick}>
-        <span aria-hidden="true">🌐</span>
+        <Icon name="globe" />
         <span className={styles.visuallyHidden}>Language</span>
         <select value={lang} onChange={(e) => chooseLanguage(e.target.value as OwnerLang)} disabled={listening}>
           {LANGUAGES.map((l) => (
@@ -310,7 +311,7 @@ export default function OwnerChat() {
               </div>
               {voiceAvailable && line.text && (
                 <button type="button" className={styles.replay} onClick={() => speak(line.text, lang)} aria-label={t.replay}>
-                  🔊
+                  <Icon name="volume" />
                 </button>
               )}
             </div>
@@ -321,10 +322,10 @@ export default function OwnerChat() {
         {pending && (
           <div className={styles.confirm}>
             <button type="button" className={styles.yes} onClick={() => send({ type: "confirm" }, `✓ ${t.yes}`)}>
-              ✓ {t.yes}
+              <Icon name="check" /> {t.yes}
             </button>
             <button type="button" className={styles.no} onClick={() => send({ type: "cancel" }, `✗ ${t.no}`)}>
-              ✗ {t.no}
+              <Icon name="x" /> {t.no}
             </button>
           </div>
         )}
@@ -364,7 +365,7 @@ export default function OwnerChat() {
               aria-pressed={listening}
             >
               <span className={styles.micIcon} aria-hidden="true">
-                {listening ? "✓" : "🎤"}
+                <Icon name={listening ? "check" : "mic"} size="1em" />
               </span>
               <span>{listening ? t.listening : t.tapToSpeak}</span>
             </button>
@@ -382,7 +383,7 @@ export default function OwnerChat() {
                   aria-label={t.photo}
                   title={t.photo}
                 >
-                  <span aria-hidden="true">📷</span>
+                  <Icon name="camera" size="1.6rem" />
                   <span className={styles.photoLabel}>{t.takePhotoShort}</span>
                 </button>
                 <button
@@ -397,7 +398,7 @@ export default function OwnerChat() {
                   aria-label={t.uploadPhoto}
                   title={t.uploadPhoto}
                 >
-                  <span aria-hidden="true">🖼</span>
+                  <Icon name="upload" size="1.6rem" />
                   <span className={styles.photoLabel}>{t.uploadShort}</span>
                 </button>
                 {/* No "capture" attribute, so the phone offers both the camera and the gallery. */}
@@ -406,7 +407,7 @@ export default function OwnerChat() {
             )}
             {listening && (
               <button type="button" className={styles.micCancel} onClick={cancelMic} aria-label={t.discard}>
-                ✕
+                <Icon name="x" />
               </button>
             )}
           </div>

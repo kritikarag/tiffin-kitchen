@@ -6,9 +6,10 @@ import { fill, type Dictionary, type Lang } from "@/lib/i18n";
 import type { TrackedOrder } from "@/lib/track";
 import { parse, readOrders, subscribe } from "../k/[slug]/remember";
 import styles from "./orders.module.css";
+import Icon from "@/components/Icon";
 
 const STAGES = ["waiting", "preparing", "on_the_way", "delivered"] as const;
-const ICON = { waiting: "🧾", preparing: "🍳", on_the_way: "🛵", delivered: "✓" };
+const ICON = { waiting: "receipt", preparing: "flame", on_the_way: "bike", delivered: "delivered" } as const;
 const LABEL = { waiting: "trackPlaced", preparing: "trackPreparing", on_the_way: "trackOnTheWay", delivered: "trackDelivered" } as const;
 
 // A card for each order from this phone that is still on its way, shown wherever the customer lands
@@ -58,14 +59,14 @@ export default function CurrentOrders({ lang, t, slug }: { lang: Lang; t: Dictio
               <span>{fill(t.trackFrom, { kitchen: o.kitchen })}</span>
             </span>
             <span className={styles.currentStage}>
-              {ICON[o.delivery]} {t[LABEL[o.delivery]]}
+              <Icon name={ICON[o.delivery]} /> {t[LABEL[o.delivery]]}
             </span>
             <span className={styles.progress} aria-hidden="true">
               {STAGES.map((s, i) => (
                 <span key={s} className={i <= at ? styles.stepOn : styles.stepOff} />
               ))}
             </span>
-            <span className={styles.currentLink}>{t.myOrdersTrack} ›</span>
+            <span className={styles.currentLink}>{t.myOrdersTrack} <Icon name="chevronRight" /></span>
           </Link>
         );
       })}

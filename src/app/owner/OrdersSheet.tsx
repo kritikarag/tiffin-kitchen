@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { OwnerOrder, OwnerOrdersView } from "@/lib/ownerOrders";
 import styles from "./owner.module.css";
+import Icon from "@/components/Icon";
 
 type Labels = Record<string, string>;
 
@@ -112,7 +113,7 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
               {view.usesDabbas && (
                 <div>
                   <strong>{view.boxesOut}</strong>
-                  <span>🥡 {t.dabbasOut}</span>
+                  <span><Icon name="box" /> {t.dabbasOut}</span>
                 </div>
               )}
             </div>
@@ -135,7 +136,7 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
 
             {areas.map((area) => (
               <section key={area}>
-                <h2 className={styles.ordersHeading}>📍 {area}</h2>
+                <h2 className={styles.ordersHeading}><Icon name="pin" /> {area}</h2>
                 <ul className={styles.orderList}>
                   {placed
                     .filter((o) => o.area === area)
@@ -147,15 +148,16 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                         </div>
                         {o.delivery !== "waiting" && (
                           <span className={o.delivery === "delivered" ? styles.deliveryDone : o.delivery === "preparing" ? styles.deliveryCooking : styles.deliveryGoing}>
-                            {{ preparing: `🍳 ${t.preparing}`, on_the_way: `🛵 ${t.onTheWay}`, delivered: `✓ ${t.delivered}` }[o.delivery]}
+                            <Icon name={({ preparing: "flame", on_the_way: "bike", delivered: "delivered" } as const)[o.delivery]} />{" "}
+                            {{ preparing: t.preparing, on_the_way: t.onTheWay, delivered: t.delivered }[o.delivery]}
                             {o.deliveredBy === "customer" && ` · ${t.byCustomer}`}
                           </span>
                         )}
-                        {o.notReceived && <strong className={styles.notReceived}>⚠️ {t.notReceived}</strong>}
+                        {o.notReceived && <strong className={styles.notReceived}><Icon name="alert" /> {t.notReceived}</strong>}
                         <div className={styles.orderItems}>{o.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</div>
                         {o.address && (
                           <div className={styles.orderAddress}>
-                            <span>🏠 {o.address}</span>
+                            <span><Icon name="home" /> {o.address}</span>
                             <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${o.address}, ${o.area}`)}`} target="_blank" rel="noopener noreferrer">
                               {t.openMap}
                             </a>
@@ -163,14 +165,14 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                         )}
                         {o.note && (
                           <div className={o.allergy ? styles.orderNoteAlert : styles.orderNote}>
-                            {o.allergy && <strong className={styles.alertLabel}>⚠️ {t.allergyAlert}</strong>}
+                            {o.allergy && <strong className={styles.alertLabel}><Icon name="alert" /> {t.allergyAlert}</strong>}
                             “{o.noteTranslated ?? o.note}”
                             {o.noteTranslated && <span className={styles.orderNoteOriginal}>{o.note}</span>}
                           </div>
                         )}
                         {view.usesDabbas && o.boxesOut > 0 && (
                           <div className={styles.dabbas}>
-                            <span>🥡 {t.dabbasWith.replace("{count}", String(o.boxesOut))}</span>
+                            <span><Icon name="box" /> {t.dabbasWith.replace("{count}", String(o.boxesOut))}</span>
                             <button type="button" onClick={() => boxesBack(o.phone)}>
                               {t.markReturned}
                             </button>
@@ -179,12 +181,12 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                         <div className={styles.delivery}>
                           {o.delivery === "waiting" && (
                             <button type="button" onClick={() => setDelivery(o.id, "preparing")}>
-                              🍳 {t.preparing}
+                              <Icon name="flame" /> {t.preparing}
                             </button>
                           )}
                           {(o.delivery === "waiting" || o.delivery === "preparing") && (
                             <button type="button" onClick={() => setDelivery(o.id, "on_the_way")}>
-                              🛵 {t.onTheWay}
+                              <Icon name="bike" /> {t.onTheWay}
                             </button>
                           )}
                           {(o.delivery === "preparing" || o.delivery === "on_the_way") && (
@@ -197,7 +199,7 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                           )}
                         </div>
                         <div className={styles.orderFoot}>
-                          <a href={`tel:+91${o.phone}`}>📞 {o.phone}</a>
+                          <a href={`tel:+91${o.phone}`}><Icon name="phone" /> {o.phone}</a>
                           <span>
                             #{o.id} · {o.placedAt}
                           </span>

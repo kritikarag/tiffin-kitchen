@@ -2,6 +2,7 @@ import type { AgentStep } from "@/lib/agent";
 import { fill, labelsFor, type Lang } from "@/lib/i18n";
 import styles from "./owner.module.css";
 import { STEP_LABELS, type StepWords } from "./stepLabels";
+import Icon from "@/components/Icon";
 
 // Shows what the agent actually did this turn, above its reply: each tool call, whether it ran or is waiting
 // for her Yes, and which system did the work. The facts come from the tool results, not from Claude's wording.
@@ -57,7 +58,7 @@ const SOURCE: Record<string, (i: Info) => string> = {
   update_kitchen_details: () => "Database",
 };
 
-const ICON = { done: "✓", waiting: "⏳", cancelled: "✕", failed: "!" };
+const ICON = { done: "check", waiting: "clock", cancelled: "x", failed: "alert" } as const;
 
 export default function AgentSteps({ steps, lang }: { steps: AgentStep[]; lang: Lang }) {
   const w = labelsFor<StepWords>(STEP_LABELS, "steps", lang);
@@ -70,7 +71,7 @@ export default function AgentSteps({ steps, lang }: { steps: AgentStep[]; lang: 
         {shown.map((s, i) => (
           <li key={i} className={styles[`step_${s.status}`]}>
             <span className={styles.stepIcon} aria-hidden="true">
-              {ICON[s.status]}
+              <Icon name={ICON[s.status]} />
             </span>
             <span className={styles.stepText}>
               {s.text}

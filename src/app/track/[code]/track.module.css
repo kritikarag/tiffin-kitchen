@@ -200,3 +200,8 @@
   font-size: 0.95rem !important;
   text-align: left !important;
 }
+
+/* Icons are drawn in the text colour: white on the filled current step. */
+.now .icon {
+  color: #fff;
+}
