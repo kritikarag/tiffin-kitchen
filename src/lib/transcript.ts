@@ -52,3 +52,36 @@ export async function cleanTranscript(text: string, token: string | null): Promi
   if (!cleaned || cleaned.length > text.length * 2 + 40) return text;
   return cleaned;
 }
+
+// ---- customer notes for the owner's Orders screen ----
+
+const LANGUAGE_NAMES = { kn: "Kannada", hi: "Hindi", en: "English" } as const;
+// Translations kept in memory by note text and language, so a 30-second refresh doesn't call Claude again.
+const noteCache = new Map<string, string>();
+
+// Translates customers' notes into the owner's language. Notes already in that language come back as they are.
+// On any failure the originals are returned, so the screen still shows something.
+export async function translateNotes(notes: string[], lang: keyof typeof LANGUAGE_NAMES): Promise<string[]> {
+  const missing = [...new Set(notes.filter((n) => !noteCache.has(`${lang}|${n}`)))];
+  if (missing.length > 0) {
+    try {
+      client ??= new Anthropic();
+      const response = await client.messages.create({
+        model: process.env.CLAUDE_FAST_MODEL ?? "claude-haiku-5-5",
+        max_tokens: 2000,
+        system:
+          `Translate each customer's note for a home tiffin kitchen into ${LANGUAGE_NAMES[lang]}. Keep it short and plain. ` +
+          "Keep dish names and people's names as they are. Reply with a JSON array of strings, one per note, in the same order, and nothing else.",
+        messages: [{ role: "user", content: JSON.stringify(missing) }],
+      });
+      const text = response.content.filter((b) => b.type === "text").map((b) => b.text).join("");
+      const parsed = JSON.parse(text.slice(text.indexOf("["), text.lastIndexOf("]") + 1)) as unknown;
+      if (Array.isArray(parsed) && parsed.length === missing.length) {
+        missing.forEach((note, i) => typeof parsed[i] === "string" && parsed[i].trim() && noteCache.set(`${lang}|${note}`, parsed[i].trim()));
+      }
+    } catch (error) {
+      console.error("Note translation failed", error);
+    }
+  }
+  return notes.map((n) => noteCache.get(`${lang}|${n}`) ?? n);
+}

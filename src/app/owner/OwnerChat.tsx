@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { canListen, canSpeak, listen, speak, stopSpeaking, type Listening, type OwnerLang } from "./voice";
 import CameraSheet from "./CameraSheet";
+import OrdersSheet from "./OrdersSheet";
 import { preparePhoto, type PhotoForUpload } from "./photo";
 import styles from "./owner.module.css";
 
@@ -22,6 +23,22 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     listening: "Listening… tap when you're done",
     discard: "Discard recording",
     photo: "Send a photo of your menu",
+    ordersButton: "Today's orders",
+    ordersTitle: "Today's orders",
+    refresh: "Refresh",
+    ordersCount: "orders",
+    ordersPlates: "plates",
+    ordersTotal: "to collect",
+    toCook: "To cook",
+    ordersNone: "No orders yet today. New orders appear here by themselves.",
+    ordersCancelled: "Cancelled",
+    ordersOpen: "Taking orders",
+    ordersOpenUntil: "Taking orders until",
+    ordersClosed: "Orders closed",
+    ordersHoliday: "Holiday",
+    ordersNoMenu: "Today's menu isn't set",
+    ordersNoKitchen: "Your kitchen isn't set up yet. Tell me about it first, and your orders will appear here.",
+    ordersError: "Orders could not be loaded. Check your internet and tap Refresh.",
     cameraTitle: "Photo of your menu",
     takePhoto: "Take photo",
     usePhoto: "Use photo",
@@ -52,6 +69,22 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     listening: "सुन रही हूँ… बोल लें तो दबाएँ",
     discard: "रिकॉर्डिंग हटाएँ",
     photo: "मेन्यू की फ़ोटो भेजें",
+    ordersButton: "आज के ऑर्डर",
+    ordersTitle: "आज के ऑर्डर",
+    refresh: "ताज़ा करें",
+    ordersCount: "ऑर्डर",
+    ordersPlates: "प्लेट",
+    ordersTotal: "मिलना है",
+    toCook: "क्या बनाना है",
+    ordersNone: "आज अभी कोई ऑर्डर नहीं। नए ऑर्डर यहाँ अपने आप दिखेंगे।",
+    ordersCancelled: "रद्द हुए",
+    ordersOpen: "ऑर्डर ले रहे हैं",
+    ordersOpenUntil: "ऑर्डर ले रहे हैं, समय",
+    ordersClosed: "ऑर्डर बंद",
+    ordersHoliday: "छुट्टी",
+    ordersNoMenu: "आज का मेन्यू तय नहीं",
+    ordersNoKitchen: "आपकी रसोई अभी बनी नहीं है। पहले उसके बारे में बताइए, फिर ऑर्डर यहाँ दिखेंगे।",
+    ordersError: "ऑर्डर नहीं खुले। इंटरनेट देखें और ताज़ा करें दबाएँ।",
     cameraTitle: "आपके मेन्यू की फ़ोटो",
     takePhoto: "फ़ोटो लें",
     usePhoto: "यह फ़ोटो भेजें",
@@ -82,6 +115,22 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     listening: "ಕೇಳುತ್ತಿದ್ದೇನೆ… ಮುಗಿದ ಮೇಲೆ ಒತ್ತಿ",
     discard: "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",
     photo: "ಮೆನು ಫೋಟೋ ಕಳುಹಿಸಿ",
+    ordersButton: "ಇಂದಿನ ಆರ್ಡರ್‌ಗಳು",
+    ordersTitle: "ಇಂದಿನ ಆರ್ಡರ್‌ಗಳು",
+    refresh: "ಮತ್ತೆ ನೋಡಿ",
+    ordersCount: "ಆರ್ಡರ್",
+    ordersPlates: "ಪ್ಲೇಟ್",
+    ordersTotal: "ಬರಬೇಕು",
+    toCook: "ಏನು ಮಾಡಬೇಕು",
+    ordersNone: "ಇಂದು ಇನ್ನೂ ಆರ್ಡರ್ ಬಂದಿಲ್ಲ. ಹೊಸ ಆರ್ಡರ್‌ಗಳು ಇಲ್ಲಿ ತಾನಾಗಿಯೇ ಕಾಣುತ್ತವೆ.",
+    ordersCancelled: "ರದ್ದಾದವು",
+    ordersOpen: "ಆರ್ಡರ್ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದೆ",
+    ordersOpenUntil: "ಆರ್ಡರ್ ಸಮಯ",
+    ordersClosed: "ಆರ್ಡರ್ ಮುಗಿದಿದೆ",
+    ordersHoliday: "ರಜೆ",
+    ordersNoMenu: "ಇಂದಿನ ಮೆನು ಇನ್ನೂ ಹಾಕಿಲ್ಲ",
+    ordersNoKitchen: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ ಇನ್ನೂ ಸಿದ್ಧವಾಗಿಲ್ಲ. ಮೊದಲು ಅದರ ಬಗ್ಗೆ ಹೇಳಿ, ನಂತರ ಆರ್ಡರ್‌ಗಳು ಇಲ್ಲಿ ಕಾಣುತ್ತವೆ.",
+    ordersError: "ಆರ್ಡರ್‌ಗಳು ತೆರೆಯಲಿಲ್ಲ. ಇಂಟರ್ನೆಟ್ ನೋಡಿ, ಮತ್ತೆ ನೋಡಿ ಒತ್ತಿ.",
     cameraTitle: "ನಿಮ್ಮ ಮೆನು ಫೋಟೋ",
     takePhoto: "ಫೋಟೋ ತೆಗೆಯಿರಿ",
     usePhoto: "ಈ ಫೋಟೋ ಕಳುಹಿಸಿ",
@@ -301,6 +350,8 @@ export default function OwnerChat() {
   // "this is my menu" or "today's menu".
   const photoInput = useRef<HTMLInputElement>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  // The conversation token when the Orders screen was opened (refs can't be read while rendering).
+  const [ordersToken, setOrdersToken] = useState<string | null | undefined>(undefined);
 
   function sendPhotoData(photo: PhotoForUpload) {
     const note = draft.trim();
@@ -337,6 +388,9 @@ export default function OwnerChat() {
           {t.startOver}
         </button>
       </header>
+      <button type="button" className={styles.ordersButton} onClick={() => setOrdersToken(token.current)}>
+        📋 {t.ordersButton}
+      </button>
 
       <nav className={styles.languages} aria-label="Language">
         {LANG_NAMES.map((l) => (
@@ -397,6 +451,8 @@ export default function OwnerChat() {
         )}
         <div ref={bottom} />
       </div>
+
+      {ordersToken !== undefined && <OrdersSheet token={ordersToken} lang={lang} t={t} onClose={() => setOrdersToken(undefined)} />}
 
       {cameraOpen && (
         <CameraSheet

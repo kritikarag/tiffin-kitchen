@@ -8,9 +8,9 @@ Her customers browse the kitchens near them, read the menu in their own language
 
 ![Home page in Kannada](docs/home-page.png)
 
-| The owner talks to it in Kannada | Customers choose a kitchen | And order in Hindi |
-| --- | --- | --- |
-| ![Owner chat in Kannada](docs/owner-voice-kannada.png) | ![Kitchen list in Hindi](docs/kitchen-list-hindi.png) | ![Customer menu in Hindi](docs/customer-page-hindi.png) |
+| The owner talks to it in Kannada | Customers choose a kitchen | And order in Hindi | She sees her orders |
+| --- | --- | --- | --- |
+| ![Owner chat in Kannada](docs/owner-voice-kannada.png) | ![Kitchen list in Hindi](docs/kitchen-list-hindi.png) | ![Customer menu in Hindi](docs/customer-page-hindi.png) | ![Orders screen in Kannada](docs/owner-orders-kannada.png) |
 
 ---
 
@@ -60,6 +60,7 @@ Existing tools help someone who already has a website. Nothing helps her go from
 - **Or photograph her menu.** She taps 📷 and a camera opens inside the page: she frames her handwritten menu, taps **Take photo**, then **Use photo** or **Retake**. (She can also pick a photo from her gallery.) Claude reads each dish and price exactly as written, reads them back, and asks about anything unclear instead of guessing. Nothing is saved until she taps Yes.
 - **Speak at her own pace.** She taps the mic, talks with as many pauses as she needs, and taps ✓ when done. The words land in the message box so she can fix a misheard word before tapping Send. ✕ throws a recording away.
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
+- **See today's orders at a glance.** A **Today's orders** button opens a screen with the number of orders, plates and money to collect, the totals to cook per dish, and every order grouped by delivery area: name, tap-to-call phone, dishes, amount and the customer's note translated into her language. It refreshes by itself every 30 seconds; cancelled orders are listed separately.
 - **Get a cooking list at cut-off.** Exact totals per dish, special requests translated into her language, and deliveries grouped by area.
 - **Stay in control.** Anything that changes her business waits for her to tap **Yes**.
 - **Write her announcements.** A ready WhatsApp message in her language announces the launch.
@@ -121,7 +122,7 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 | Part | What it does |
 | --- | --- |
 | Home page `/` | Explains the product in Kannada, Hindi or English, and links owners and customers onward |
-| Owner page `/owner` | Records speech into an editable box, sends menu photos, shows and speaks replies, shows Yes and No buttons |
+| Owner page `/owner` | Records speech into an editable box, sends menu photos, shows and speaks replies, shows Yes and No buttons, and lists today's orders |
 | Agent route `/api/agent` | Runs the Claude loop and enforces the confirmation gate |
 | Tools | The only code that can change data or call GoDaddy |
 | Kitchen list `/k` | Every live kitchen with today's dishes, lowest price and whether it's open |
@@ -220,7 +221,9 @@ The full schema is in [`schema.sql`](schema.sql). Prices are whole rupees.
 | Path | What it does |
 | --- | --- |
 | `src/app/page.tsx`, `Home.tsx` | The home page |
-| `src/app/owner/` | Owner page: chat, microphone, spoken replies, language picker. `voice.ts` holds the speech code; `CameraSheet.tsx` is the in-page camera; `photo.ts` shrinks photos |
+| `src/app/owner/` | Owner page: chat, microphone, spoken replies, language picker. `voice.ts` holds the speech code; `CameraSheet.tsx` is the in-page camera; `photo.ts` shrinks photos; `OrdersSheet.tsx` is the orders screen |
+| `src/app/api/owner/orders/route.ts`, `src/lib/ownerOrders.ts` | Today's orders for the owner, with totals from SQL |
+| `src/app/api/transcript/route.ts`, `src/lib/transcript.ts` | Fixing misheard dish names in dictation, and translating customer notes |
 | `src/app/k/page.tsx` | Customer list of kitchens |
 | `src/app/k/[slug]/` | Customer menu page, language switch and order form |
 | `src/app/api/agent/route.ts` | `POST /api/agent` |
@@ -299,7 +302,7 @@ The tables are created automatically on every start, and doing so again is harml
 **Known limitations:**
 
 - **Domains:** availability is simulated until GoDaddy test keys are added. Registration reserves the name in the app but does not buy it, and the assistant says "reserved", not "bought".
-- **No owner login yet.** Whoever holds a conversation's token can act for that kitchen. This is fine for a demo, not for real use.
+- **No owner login yet.** Whoever holds a conversation's token can act for that kitchen and see its orders. This is fine for a demo, not for real use.
 - **Voice quality depends on the phone and browser.** Speech recognition accuracy and the availability of Kannada and Hindi voices vary by device; Chrome on Android works best. A phone without a Kannada voice shows Kannada replies as text.
 - **Customers can't order by voice yet.** Only the owner side has voice and photos.
 - **Replies take 1 to 8 seconds,** because each turn may run several tool rounds. Streaming would make it feel faster.
