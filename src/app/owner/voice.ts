@@ -88,45 +88,52 @@ export function listen(lang: OwnerLang, handlers: ListenHandlers): () => void {
 
 // ---- speaking ----
 
-let voicesReady: Promise<SpeechSynthesisVoice[]> | null = null;
+// On many phones the voice list is empty when the page loads and fills in later, sometimes only after
+// the first speech. So the list is read fresh each time, and an empty list means "unknown", not "none".
+function currentVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return [];
+  return window.speechSynthesis.getVoices();
+}
 
-// The voice list loads asynchronously in Chrome, so wait for it once.
-function loadVoices(): Promise<SpeechSynthesisVoice[]> {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return Promise.resolve([]);
-  voicesReady ??= new Promise((resolve) => {
-    const now = window.speechSynthesis.getVoices();
-    if (now.length) return resolve(now);
-    const done = () => resolve(window.speechSynthesis.getVoices());
-    window.speechSynthesis.addEventListener("voiceschanged", done, { once: true });
-    setTimeout(done, 1500); // some browsers never fire the event
+// Waits briefly for the list the first time a page asks; later calls return at once.
+let waited = false;
+async function voices(): Promise<SpeechSynthesisVoice[]> {
+  const now = currentVoices();
+  if (now.length || waited || typeof window === "undefined" || !("speechSynthesis" in window)) return now;
+  waited = true;
+  await new Promise<void>((resolve) => {
+    window.speechSynthesis.addEventListener("voiceschanged", () => resolve(), { once: true });
+    setTimeout(resolve, 1500); // some browsers never fire the event
   });
-  return voicesReady;
+  return currentVoices();
 }
 
-async function voiceFor(lang: OwnerLang): Promise<SpeechSynthesisVoice | null> {
-  const voices = await loadVoices();
+function match(list: SpeechSynthesisVoice[], lang: OwnerLang): SpeechSynthesisVoice | null {
   const tag = SPEECH_TAG[lang].toLowerCase();
-  return (
-    voices.find((v) => v.lang.toLowerCase().replace("_", "-") === tag) ??
-    voices.find((v) => v.lang.toLowerCase().startsWith(lang)) ??
-    null
-  );
+  const norm = (v: SpeechSynthesisVoice) => v.lang.toLowerCase().replace(/_/g, "-");
+  return list.find((v) => norm(v) === tag) ?? list.find((v) => norm(v).startsWith(`${lang}-`) || norm(v) === lang) ?? null;
 }
 
+// False only when the phone lists its voices and none is for this language.
+// An empty list says nothing, so the page doesn't show a warning in that case.
 export async function canSpeak(lang: OwnerLang): Promise<boolean> {
-  return (await voiceFor(lang)) !== null;
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
+  const list = await voices();
+  return list.length === 0 || match(list, lang) !== null;
 }
 
-// Reads text aloud. Resolves false when the phone has no voice for this language,
-// so the page can say "reply shown as text" instead of staying silent without explanation.
+// Reads text aloud. With a matching voice it uses that voice; with an empty list it still speaks and
+// sets the language, so the phone's own text-to-speech picks a voice. Resolves false only when the
+// phone lists voices and none is for this language.
 export async function speak(text: string, lang: OwnerLang): Promise<boolean> {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return false;
-  const voice = await voiceFor(lang);
-  if (!voice) return false;
+  const list = await voices();
+  const voice = match(list, lang);
+  if (list.length > 0 && !voice) return false;
   window.speechSynthesis.cancel(); // stop anything still playing
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.voice = voice;
-  utterance.lang = voice.lang;
+  if (voice) utterance.voice = voice;
+  utterance.lang = voice?.lang ?? SPEECH_TAG[lang];
   utterance.rate = 0.95; // a little slower than default is easier to follow
   window.speechSynthesis.speak(utterance);
   return true;
