@@ -69,7 +69,11 @@ async function Tracking({ params }: Props) {
       )}
 
       {order.status !== "cancelled" && delivery !== "delivered" && (
-        <ReceivedButton code={order.code} label={t.receivedButton} hint={t.receivedHint} thanks={t.receivedThanks} />
+        <ReceivedButton
+          code={order.code}
+          notReceived={order.notReceived}
+          t={{ yes: t.receivedButton, no: t.notReceivedButton, hint: t.receivedHint, thanks: t.receivedThanks, noDone: t.notReceivedDone }}
+        />
       )}
       {order.receivedByCustomer && <p className={styles.thanks}>✓ {t.receivedThanks}</p>}
 

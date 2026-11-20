@@ -16,6 +16,7 @@ const added = [
   ["orders", "delivery", "VARCHAR(12) NOT NULL DEFAULT 'waiting' AFTER status"],
   ["orders", "track_code", "VARCHAR(24) NULL UNIQUE AFTER delivery"],
   ["orders", "delivered_by", "VARCHAR(10) NULL AFTER track_code"],
+  ["orders", "issue", "VARCHAR(20) NULL AFTER delivered_by"],
 ];
 for (const [table, column, definition] of added) {
   const [found] = await db.query(

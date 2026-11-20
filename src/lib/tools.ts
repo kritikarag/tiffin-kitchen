@@ -1,6 +1,6 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { checkMenuNotes } from "./noteCheck";
-import { isDelivery, setDelivery } from "./delivery";
+import { isOwnerStage, setDelivery } from "./delivery";
 import { boxesByPhone } from "./ownerOrders";
 import { db } from "./db";
 import { checkDomain, isValidDomain, registerDomain } from "./godaddy";
@@ -387,11 +387,11 @@ const markDelivery: Tool = {
   definition: {
     name: "mark_delivery",
     description:
-      "Mark today's orders as being prepared, on the way or delivered (or back to waiting). Customers see it on their tracking page at once. Choose the orders by order_ids (from get_orders), by area, or all of today's orders. After it, tell her she can tap \"Tell on WhatsApp\" in Today's orders to message each customer in their own language.",
+      "Mark today's orders as being prepared or on the way (or back to waiting). Only the customer can mark an order delivered, on their tracking page; never offer to. Customers see it on their tracking page at once. Choose the orders by order_ids (from get_orders), by area, or all of today's orders. After it, tell her she can tap \"Tell on WhatsApp\" in Today's orders to message each customer in their own language.",
     input_schema: {
       type: "object",
       properties: {
-        status: { type: "string", enum: ["preparing", "on_the_way", "delivered", "waiting"] },
+        status: { type: "string", enum: ["preparing", "on_the_way", "waiting"] },
         order_ids: { type: "array", items: { type: "integer" }, description: "Order ids from get_orders." },
         area: { type: "string", description: "Every order in this delivery area." },
         all: { type: "boolean", description: "True for all of today's orders." },
@@ -401,7 +401,7 @@ const markDelivery: Tool = {
   },
   async run(input, ctx) {
     const kitchen = await loadKitchen(kitchenOf(ctx));
-    if (!isDelivery(input.status)) throw new ToolError('"status" must be preparing, on_the_way, delivered or waiting.');
+    if (!isOwnerStage(input.status)) throw new ToolError('"status" must be preparing, on_the_way or waiting. Delivered is set only by the customer, on their tracking page.');
     const ids = Array.isArray(input.order_ids) ? input.order_ids.map(Number).filter((n) => Number.isInteger(n) && n > 0) : [];
     const area = typeof input.area === "string" ? input.area.trim() : "";
     if (ids.length === 0 && !area && input.all !== true) throw new ToolError("Say which orders: order_ids, an area, or all.");
@@ -452,13 +452,13 @@ const getOrders: Tool = {
       [menus[0].id],
     );
     const [lines] = await db().query<RowDataPacket[]>(
-      `SELECT o.id, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, o.delivery, o.delivered_by, mi.name_original AS dish, oi.quantity, oi.unit_price
+      `SELECT o.id, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, o.delivery, o.delivered_by, o.issue, mi.name_original AS dish, oi.quantity, oi.unit_price
          FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
         WHERE o.daily_menu_id = ? ORDER BY o.id, mi.id LIMIT 600`,
       [menus[0].id],
     );
     type Order = {
-      order_id: number; customer_name: string; phone: string; area: string; address: string | null; note: string | null; allergy_alert: boolean; delivery: string; confirmed_by_customer: boolean;
+      order_id: number; customer_name: string; phone: string; area: string; address: string | null; note: string | null; allergy_alert: boolean; delivery: string; confirmed_by_customer: boolean; customer_says_not_received: boolean;
       dabbas_with_customer: number; amount: number; items: { dish: string; quantity: number }[];
     };
     const placed = new Map<number, Order>();
@@ -470,7 +470,7 @@ const getOrders: Tool = {
       }
       const order: Order = placed.get(line.id) ?? {
         order_id: line.id, customer_name: line.customer_name, phone: line.phone, area: line.area, address: line.address ?? null, note: line.note_original,
-        allergy_alert: Boolean(line.allergy_alert), delivery: line.delivery ?? "waiting", confirmed_by_customer: line.delivered_by === "customer", dabbas_with_customer: boxes.get(line.phone) ?? 0, amount: 0, items: [],
+        allergy_alert: Boolean(line.allergy_alert), delivery: line.delivery ?? "waiting", confirmed_by_customer: line.delivered_by === "customer", customer_says_not_received: line.issue === "not_received", dabbas_with_customer: boxes.get(line.phone) ?? 0, amount: 0, items: [],
       };
       order.items.push({ dish: line.dish, quantity: line.quantity });
       order.amount += line.quantity * line.unit_price;

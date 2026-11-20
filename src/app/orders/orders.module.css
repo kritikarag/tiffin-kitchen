@@ -187,3 +187,54 @@
   color: var(--accent-dark, #9a3f12);
   font-weight: 600;
 }
+
+/* "Did your last tiffin arrive?" before ordering again. */
+.confirm {
+  margin: 0.75rem 0 1rem;
+  padding: 1rem;
+  border: 2px solid #1f7a3a;
+  border-radius: 14px;
+  background: #f3f8f3;
+}
+
+.confirm h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.15rem;
+}
+
+.confirm p {
+  margin: 0.15rem 0;
+}
+
+.confirmItems {
+  color: var(--muted, #666);
+}
+
+.confirmActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.confirmActions button {
+  min-height: 3rem;
+  border: none;
+  border-radius: 12px;
+  background: #1f7a3a;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.confirmActions .confirmNo {
+  border: 1.5px solid #b3261e;
+  background: #fff;
+  color: #8a1c1c;
+}
+
+.confirmActions button:focus-visible {
+  outline: 3px solid var(--accent, #c2521c);
+  outline-offset: 2px;
+}

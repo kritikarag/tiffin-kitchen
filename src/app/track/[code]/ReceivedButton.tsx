@@ -4,35 +4,45 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./track.module.css";
 
-// "I've received my tiffin": the customer, not the cook, says when the food arrived. The cook's screen
-// announces it within 20 seconds.
-export default function ReceivedButton({ code, label, hint, thanks }: { code: string; label: string; hint: string; thanks: string }) {
-  const router = useRouter();
-  const [state, setState] = useState<"idle" | "sending" | "done" | "failed">("idle");
+type Props = { code: string; notReceived: boolean; t: { yes: string; no: string; hint: string; thanks: string; noDone: string } };
 
-  async function confirm() {
+// Only the customer can say the food arrived. "It didn't arrive" tells the cook in red so she can call;
+// the order stays open, so they can still confirm if it comes later.
+export default function ReceivedButton({ code, notReceived, t }: Props) {
+  const router = useRouter();
+  const [state, setState] = useState<"idle" | "sending" | "yes" | "no" | "failed">(notReceived ? "no" : "idle");
+
+  async function answer(arrived: boolean) {
     setState("sending");
     try {
       const response = await fetch("/api/track/received", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, arrived }),
       });
       if (!response.ok) throw new Error();
-      setState("done");
+      setState(arrived ? "yes" : "no");
       router.refresh();
     } catch {
       setState("failed");
     }
   }
 
-  if (state === "done") return <p className={styles.thanks}>✓ {thanks}</p>;
+  if (state === "yes") return <p className={styles.thanks}>✓ {t.thanks}</p>;
   return (
     <div className={styles.received}>
-      <button type="button" onClick={confirm} disabled={state === "sending"}>
-        ✓ {label}
+      {state === "no" && <p className={styles.reported}>{t.noDone}</p>}
+      <button type="button" onClick={() => answer(true)} disabled={state === "sending"}>
+        ✓ {t.yes}
       </button>
-      <p>{hint}</p>
+      {state !== "no" && (
+        <>
+          <p>{t.hint}</p>
+          <button type="button" className={styles.notArrived} onClick={() => answer(false)} disabled={state === "sending"}>
+            {t.no}
+          </button>
+        </>
+      )}
     </div>
   );
 }

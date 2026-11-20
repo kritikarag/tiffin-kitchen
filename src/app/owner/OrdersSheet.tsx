@@ -49,7 +49,7 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
   }
 
   // On the way / Delivered: shown at once, saved, then the list reloads.
-  async function setDelivery(orderId: number, delivery: OwnerOrder["delivery"]) {
+  async function setDelivery(orderId: number, delivery: Exclude<OwnerOrder["delivery"], "delivered">) {
     if (!token) return;
     setView((v) => v && { ...v, orders: v.orders.map((o) => (o.id === orderId ? { ...o, delivery } : o)) });
     await fetch("/api/owner/delivery", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, orderId, status: delivery }) }).catch(() => {});
@@ -151,6 +151,7 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                             {o.deliveredBy === "customer" && ` · ${t.byCustomer}`}
                           </span>
                         )}
+                        {o.notReceived && <strong className={styles.notReceived}>⚠️ {t.notReceived}</strong>}
                         <div className={styles.orderItems}>{o.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</div>
                         {o.address && (
                           <div className={styles.orderAddress}>
@@ -186,13 +187,11 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                               🛵 {t.onTheWay}
                             </button>
                           )}
-                          {o.delivery !== "delivered" && (
-                            <button type="button" onClick={() => setDelivery(o.id, "delivered")}>
-                              ✓ {t.delivered}
-                            </button>
+                          {(o.delivery === "preparing" || o.delivery === "on_the_way") && (
+                            <span className={styles.awaiting}>{o.delivery === "on_the_way" ? t.awaitingConfirm : ""}</span>
                           )}
-                          {o.delivery !== "waiting" && o.deliveredBy !== "customer" && (
-                            <a className={styles.tell} href={o.tell[o.delivery]} target="_blank" rel="noopener noreferrer">
+                          {(o.delivery === "preparing" || o.delivery === "on_the_way") && (
+                            <a className={styles.tell} href={o.delivery === "preparing" ? o.tell.preparing : o.tell.on_the_way} target="_blank" rel="noopener noreferrer">
                               {t.tellCustomer.replace("{name}", o.customerName)}
                             </a>
                           )}

@@ -11,7 +11,7 @@ import { handleOwnerTurn } from "../src/lib/agent";
 import { db } from "../src/lib/db";
 import { kitchenForToken, ownerOrders } from "../src/lib/ownerOrders";
 import { trackOrders } from "../src/lib/track";
-import { confirmReceived } from "../src/lib/delivery";
+import { confirmReceived, reportNotReceived } from "../src/lib/delivery";
 import type { Message, ModelCall, ModelRequest, ModelResponse, ToolResultBlock } from "../src/lib/model";
 
 let seen: ModelRequest[] = [];
@@ -246,6 +246,9 @@ async function main() {
   // Delivery: marked by area at once, shown in get_orders, and the owner screen offers a WhatsApp message to the customer.
   script = [call("mark_delivery", { status: "preparing", all: true }), say("ಸರಿ.")];
   await turn(token, { type: "message", text: "ಅಡುಗೆ ಶುರು ಮಾಡಿದೆ" });
+  // Only the customer can mark delivered: the tool refuses it, and Claude gets a plain error back.
+  script = [call("mark_delivery", { status: "delivered", all: true }), (req) => { assert.match(JSON.stringify(lastResult(req)), /only by the customer/); return say("ಸರಿ.")(); }];
+  await turn(token, { type: "message", text: "ಎಲ್ಲಾ ತಲುಪಿತು" });
   script = [call("mark_delivery", { status: "on_the_way", area: "Domlur" }), say("ಸರಿ.")];
   r = await turn(token, { type: "message", text: "ಡೊಮ್ಲೂರ್ ಆರ್ಡರ್ ಹೊರಟಿವೆ" });
   assert.equal(r.pending, null);
@@ -260,10 +263,12 @@ async function main() {
   const [mine] = await trackOrders([code, "not-a-real-code!"], "en");
   assert.equal(mine.delivery, "on_the_way");
   assert.equal(mine.current, true);
+  assert.equal(mine.needsConfirmation, true); // on the way: she must answer before ordering again
   assert.equal((await trackOrders(["AAAAAAAAAAAAAAAA"], "en")).length, 0); // an unknown code shows nothing
   // The customer, not the cook, confirms the tiffin arrived; the cook's screen shows who confirmed it.
   assert.equal(await confirmReceived(code), true);
   assert.equal(await confirmReceived(code), false); // a second tap changes nothing
+  assert.equal(await reportNotReceived(code), false); // too late to say it didn't come
   const [arrived] = await trackOrders([code], "en");
   assert.ok(arrived.delivery === "delivered" && arrived.receivedByCustomer && !arrived.current);
   const after = await ownerOrders((await kitchenForToken(token))!, undefined, "kn");

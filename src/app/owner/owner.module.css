@@ -947,3 +947,73 @@
 .receivedBanner strong {
   flex: 1;
 }
+
+/* The customer says the tiffin didn't arrive: she should call them. */
+.missingBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  background: #fdecec;
+  color: #8a1c1c;
+}
+
+.missingBanner strong {
+  flex: 1;
+}
+
+.notReceived {
+  justify-self: start;
+  padding: 0.15rem 0.6rem;
+  border-radius: 8px;
+  background: #fdecec;
+  color: #8a1c1c;
+  font-size: 0.9rem;
+}
+
+.awaiting {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.awaiting:empty {
+  display: none;
+}
+
+/* The customer says the tiffin didn't arrive: she should call them. */
+.missingBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  background: #fdecec;
+  color: #8a1c1c;
+}
+
+.missingBanner strong {
+  flex: 1;
+}
+
+.notReceived {
+  justify-self: start;
+  padding: 0.15rem 0.6rem;
+  border-radius: 8px;
+  background: #fdecec;
+  color: #8a1c1c;
+  font-size: 0.9rem;
+}
+
+.awaiting {
+  align-self: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.awaiting:empty {
+  display: none;
+}

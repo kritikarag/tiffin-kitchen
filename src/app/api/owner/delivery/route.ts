@@ -1,4 +1,4 @@
-import { isDelivery, setDelivery } from "@/lib/delivery";
+import { isOwnerStage, setDelivery } from "@/lib/delivery";
 import { kitchenForToken } from "@/lib/ownerOrders";
 
 // POST /api/owner/delivery { token, orderId, status } -> the cook tapped On the way or Delivered on an order.
@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { token?: unknown; orderId?: unknown; status?: unknown } | null;
   const token = typeof body?.token === "string" ? body.token : "";
   const orderId = Number(body?.orderId);
-  if (!/^[0-9a-f-]{36}$/.test(token) || !Number.isInteger(orderId) || !isDelivery(body?.status)) {
+  if (!/^[0-9a-f-]{36}$/.test(token) || !Number.isInteger(orderId) || !isOwnerStage(body?.status)) {
     return Response.json({ error: "invalid" }, { status: 400 });
   }
   try {

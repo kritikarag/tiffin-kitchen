@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS orders (
   delivery          VARCHAR(12)  NOT NULL DEFAULT 'waiting', -- waiting, preparing, on_the_way, delivered (see delivery.ts)
   track_code        VARCHAR(24)  NULL UNIQUE,                 -- random code in the customer's tracking link
   delivered_by      VARCHAR(10)  NULL,                        -- who marked it delivered: customer or owner
+  issue             VARCHAR(20)  NULL,                        -- not_received: the customer says it didn't arrive
   allergy_alert     BOOLEAN      NULL,              -- NULL: note not checked yet; set by Claude when the owner reads orders
   idempotency_key   VARCHAR(64)  NOT NULL,
   created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

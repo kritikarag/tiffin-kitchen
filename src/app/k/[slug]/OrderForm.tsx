@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { fill, type Dictionary, type Lang } from "@/lib/i18n";
 import type { MenuDish } from "@/lib/menu";
 import styles from "./menu.module.css";
+import PendingConfirm, { usePendingConfirmations } from "../../orders/PendingConfirm";
 import { forget, parse, readLast, readMe, remember, rememberOrder, subscribe, type LastOrder, type Me } from "./remember";
 
 type Props = { slug: string; lang: Lang; t: Dictionary; dishes: MenuDish[] };
@@ -43,6 +44,8 @@ function UpiQr({ uri, label }: { uri: string; label: string }) {
 }
 
 export default function OrderForm({ slug, lang, t, dishes }: Props) {
+  // The last order must be answered (arrived or not) before a new one can be placed.
+  const { pending, reload: reloadPending } = usePendingConfirmations(lang);
   const router = useRouter();
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [sending, setSending] = useState(false);
@@ -71,6 +74,11 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (sending) return;
+    if (pending.length) {
+      setError(t.confirmFirst);
+      document.getElementById("pending-confirm")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     if (total === 0) {
       setError(t.err_empty);
       return;
@@ -213,6 +221,19 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
 
   return (
     <form onSubmit={submit} noValidate>
+      {pending[0] && (
+        <div id="pending-confirm">
+          <PendingConfirm
+            order={pending[0]}
+            lang={lang}
+            t={t}
+            onAnswered={() => {
+              setError(null);
+              reloadPending();
+            }}
+          />
+        </div>
+      )}
       {me && (
         <div className={styles.welcome}>
           <p>{fill(t.welcomeBack, { name: me.name })}</p>

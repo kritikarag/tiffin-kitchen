@@ -12,15 +12,21 @@ export const DELIVERY = ["waiting", "preparing", "on_the_way", "delivered"] as c
 export type Delivery = (typeof DELIVERY)[number];
 export const isDelivery = (v: unknown): v is Delivery => DELIVERY.includes(v as Delivery);
 
+// What the cook can set. Delivered is the customer's to say ("I've received my tiffin"), so the cook can't
+// close an order on their behalf.
+export const OWNER_STAGES = ["waiting", "preparing", "on_the_way"] as const;
+export type OwnerStage = (typeof OWNER_STAGES)[number];
+export const isOwnerStage = (v: unknown): v is OwnerStage => OWNER_STAGES.includes(v as OwnerStage);
+
 // Sets the status of some of today's placed orders for one kitchen. Only orders of that kitchen change.
-export async function setDelivery(kitchenId: number, orderIds: number[], status: Delivery): Promise<number> {
+export async function setDelivery(kitchenId: number, orderIds: number[], status: OwnerStage): Promise<number> {
   if (orderIds.length === 0) return 0;
+  // An order the customer has already confirmed stays delivered.
   const [result] = await db().query<ResultSetHeader>(
     `UPDATE orders o JOIN daily_menus dm ON dm.id = o.daily_menu_id
-        SET o.delivery = ?, o.delivered_by = IF(? = 'delivered', 'owner', NULL)
-      WHERE dm.kitchen_id = ? AND o.id IN (?) AND o.status = 'placed'
-        AND NOT (o.delivery = 'delivered' AND o.delivered_by = 'customer' AND ? = 'delivered')`,
-    [status, status, kitchenId, orderIds, status],
+        SET o.delivery = ?
+      WHERE dm.kitchen_id = ? AND o.id IN (?) AND o.status = 'placed' AND o.delivery <> 'delivered'`,
+    [status, kitchenId, orderIds],
   );
   return result.affectedRows;
 }
@@ -30,8 +36,18 @@ export async function setDelivery(kitchenId: number, orderIds: number[], status:
 // key, as for viewing. The cook's screen announces it (NewOrderAlert) and shows it was confirmed by the customer.
 export async function confirmReceived(trackCode: string): Promise<boolean> {
   const [result] = await db().query<ResultSetHeader>(
-    `UPDATE orders SET delivery = 'delivered', delivered_by = 'customer'
+    `UPDATE orders SET delivery = 'delivered', delivered_by = 'customer', issue = NULL
       WHERE track_code = ? AND status = 'placed' AND delivery <> 'delivered'`,
+    [trackCode],
+  );
+  return result.affectedRows > 0;
+}
+
+// "It didn't arrive": the order stays open, and the cook's screen shows it in red so she can call them.
+export async function reportNotReceived(trackCode: string): Promise<boolean> {
+  const [result] = await db().query<ResultSetHeader>(
+    `UPDATE orders SET issue = 'not_received'
+      WHERE track_code = ? AND status = 'placed' AND delivery <> 'delivered' AND issue IS NULL`,
     [trackCode],
   );
   return result.affectedRows > 0;

@@ -46,10 +46,12 @@ export default function NewOrderAlert({
 }: Props) {
   const [fresh, setFresh] = useState<OwnerOrder[]>([]);
   const [received, setReceived] = useState<OwnerOrder[]>([]);
+  const [missing, setMissing] = useState<OwnerOrder[]>([]);
   const seen = useRef<{
     token: string;
     lastId: number;
     received: Set<number>;
+    missing: Set<number>;
   } | null>(null);
 
   useEffect(() => {
@@ -77,8 +79,16 @@ export default function NewOrderAlert({
             token,
             lastId,
             received: new Set(confirmed.map((o) => o.id)),
+            missing: new Set(placed.filter((o) => o.notReceived).map((o) => o.id)),
           };
           return;
+        }
+        // Customers who just said their tiffin didn't arrive.
+        const justMissing = placed.filter((o) => o.notReceived && !seen.current!.missing.has(o.id));
+        if (justMissing.length) {
+          justMissing.forEach((o) => seen.current!.missing.add(o.id));
+          setMissing((m) => [...m, ...justMissing]);
+          chime();
         }
         // Customers who just tapped "I've received my tiffin".
         const justReceived = confirmed.filter(
@@ -128,10 +138,23 @@ export default function NewOrderAlert({
       </button>
     </div>
   );
-  if (fresh.length === 0) return receivedBanner || null;
+  const lastMissing = missing[missing.length - 1];
+  const missingBanner = lastMissing && (
+    <div className={styles.missingBanner} role="alert">
+      <span aria-hidden="true">⚠️</span>
+      <strong>
+        {t.missingAlert.replace("{name}", lastMissing.customerName)} · <a href={`tel:+91${lastMissing.phone}`}>📞 {lastMissing.phone}</a>
+      </strong>
+      <button type="button" className={styles.newOrderClose} onClick={() => setMissing([])} aria-label={t.dismiss}>
+        ✕
+      </button>
+    </div>
+  );
+  if (fresh.length === 0) return missingBanner || receivedBanner ? <>{missingBanner}{receivedBanner}</> : null;
   const latest = fresh[fresh.length - 1];
   return (
     <>
+      {missingBanner}
       {receivedBanner}
       <div className={styles.newOrder} role="status">
         <span className={styles.newOrderIcon} aria-hidden="true">

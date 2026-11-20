@@ -18,6 +18,7 @@ export type OwnerOrder = {
   status: "placed" | "cancelled";
   delivery: Delivery;
   deliveredBy: "customer" | "owner" | null;
+  notReceived: boolean;
   tell: { preparing: string; on_the_way: string; delivered: string }; // WhatsApp links to tell the customer, in their language
   amount: number;
   items: { dish: string; quantity: number }[];
@@ -120,7 +121,7 @@ export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang, 
 
   // created_at is stored in UTC by the database session; the time shown is converted to her time zone.
   const [lines] = await db().query<RowDataPacket[]>(
-    `SELECT o.id, UNIX_TIMESTAMP(o.created_at) AS placed_unix, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, o.delivery, o.delivered_by, o.customer_language, o.track_code,
+    `SELECT o.id, UNIX_TIMESTAMP(o.created_at) AS placed_unix, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, o.delivery, o.delivered_by, o.issue, o.customer_language, o.track_code,
             mi.name_original AS dish, mi.translations, oi.quantity, oi.unit_price
        FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
       WHERE o.daily_menu_id = ? ORDER BY o.id, mi.id LIMIT 2000`,
@@ -143,6 +144,7 @@ export async function ownerOrders(kitchen: Kitchen, date?: string, lang?: Lang, 
         boxesOut: boxes.get(line.phone) ?? 0,
         status: line.status,
         delivery: isDelivery(line.delivery) ? line.delivery : "waiting",
+        notReceived: line.issue === "not_received",
         deliveredBy: line.delivered_by === "customer" || line.delivered_by === "owner" ? line.delivered_by : null,
         tell: {
           preparing: customerMessage(line as never, kitchen, "preparing"),
