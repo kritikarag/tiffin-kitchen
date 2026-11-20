@@ -458,7 +458,7 @@ function Languages({ t, lang, choose }: { t: HomeCopy; lang: Lang; choose: (l: L
 }
 
 function Trust({ t }: { t: HomeCopy }) {
-  const icons = ["hand", "eye", "hash", "shield", "alert", "rupee"] as const;
+  const icons = ["hand", "eye", "hash", "shield", "alert", "mic"] as const;
   return (
     <section id="trust" className={styles.trust}>
       <div className={styles.inner}>

@@ -111,7 +111,7 @@ async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderI
   return { url: link(text), paidUrl: link(`${text}\n✅ ${fill(label.paid, { amount: String(total) })}`) };
 }
 
-// ---- UPI: the customer pays the owner directly, with no payment gateway and no fee ----
+// ---- UPI link (kept for a future pay-ahead option; not shown to customers today) ----
 // A standard UPI payment link with her UPI ID, the exact amount and the order number. Any UPI app opens it,
 // and the page also shows it as a QR code to scan from another phone. Nothing here confirms a payment.
 function upiLink(kitchen: RowDataPacket, orderId: number, total: number): string | null {

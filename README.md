@@ -2,7 +2,7 @@
 
 **Built for the GoDaddy Inclusive Innovation Hackathon 2026 with Claude and GoDaddy.** Live at [tiffin.kitchen](https://tiffin.kitchen) · Contact: [hello@tiffin.kitchen](mailto:hello@tiffin.kitchen)
 
-Home-cooked food without platform fees, and a food business without the English. Tiffin connects home cooks with the people nearby who want their food: the cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs.
+Home-cooked food from the cook next door, and a food business without the English. Tiffin connects home cooks with the people nearby who want their food: the cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs.
 
 Most tools that help a small business get online stop once the website is live. A home tiffin kitchen's real work starts after that, and it repeats every day: a new menu each day, orders that close at a cut-off, dishes that run out, and before cooking, an exact count of what to make and where it goes.
 
@@ -49,7 +49,7 @@ Two groups of people want the same thing and struggle to find each other.
 
 **Home cooks who could feed them.** Many women cook well enough to run a tiffin service from home, and many already do, informally. What holds them back is not the cooking, it is everything around it:
 
-- **Delivery platforms are built for restaurants.** Signing up as a partner, managing a menu and reading payouts happen in English, through forms and dashboards, and the commission eats into a meal that sells for a few dozen rupees.
+- **Delivery platforms are built for restaurants.** Signing up as a partner, managing a menu and reading payouts happen in English, through forms and dashboards, built for people already at home with apps and English.
 - **Website builders, including the new AI ones, also assume English and typing,** and they stop once the page is live.
 - **The daily work happens on WhatsApp.** The menu is posted as a status half the customers miss. Orders arrive as scattered messages and are counted by hand before cooking. Payments are hard to track, and the steel boxes the food goes out in don't always come back.
 
@@ -57,7 +57,7 @@ Two groups of people want the same thing and struggle to find each other.
 
 **A tiffin kitchen is not a shop.** Its menu changes every day, orders close at a cut-off, dishes run out, boxes have to come back, and before every meal someone has to know exactly what to cook and where it goes. Store builders treat that as a product catalogue and an order inbox, which leaves her counting on paper again.
 
-Tiffin works for both ends. The cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs, with no app, no account and no English needed. Tiffin takes no commission and adds no platform fee: customers pay the cook directly, and her price is the price.
+Tiffin works for both ends. The cook launches and runs her kitchen by speaking her own language, and each customer orders in theirs, with no app, no account and no English needed. It is built for people who are new to technology: voice in and out, their own language on every screen, and nothing to install or sign up for.
 
 ## 2. Who it is for
 
@@ -85,7 +85,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - **Move each order along and tell the customer.** Every order goes **🍳 Preparing → 🛵 On the way**, with a button for each step. Only the customer can mark it **✓ Delivered** (below); the cook has no Delivered button, and the assistant refuses to mark it. She can say it too: "I've started cooking", "Ravi's tiffin has left", "all Domlur orders are delivered". **Tell Ravi on WhatsApp** opens WhatsApp to that customer with the message already written in the customer's own language, with their tracking link ("Hi Ravi, your tiffin from Lakshmi Tiffins is on the way. Track it here: …"). She taps Send. The orders screen counts how many are delivered so far.
 - **Hear when food arrives, or doesn't.** When a customer taps **I've received my tiffin**, her screen chimes with "✅ Priya received their tiffin", and the order shows **Delivered · confirmed by customer**, at once if Today's orders is open. If they tap **It didn't arrive**, a red alert with their tap-to-call number appears, and the order is marked "Customer says it didn't arrive" so she can call them.
 - **Keep track of dabbas.** One box goes out with each order. Her orders screen shows how many each customer still has, with a **Mark returned** button, and she can say "Ravi brought back two dabbas" or ask "who still has my boxes?".
-- **Paid at the door, with no fees.** Customers pay her in cash or by UPI when the tiffin arrives, the way tiffin services already work. Nothing is paid through the app, so there is no gateway, no fee and no commission.
+- **Paid at the door.** Customers pay her in cash or by UPI when the tiffin arrives, the way tiffin services already work. Nothing is paid through the app.
 
 <img src="docs/allergy-and-dabbas.png" alt="An order card with a red peanut allergy note and the dabba count" width="300">
 - **See what the assistant did.** Above each reply, a short list shows every action it took that turn: "✓ Read today's orders: 6 orders, 16 plates", "✓ Checked lakshmitiffins.in: available", "⏳ Marked Sunday as a holiday, not done yet, waiting for your Yes". Each line names the system that did the work (GoDaddy, Database, Hosting). The list is built from what the tools returned, not from Claude's wording, so it can't claim something that didn't happen.
