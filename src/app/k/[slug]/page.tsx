@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { Suspense } from "react";
 import Link from "next/link";
 import { cookies, headers } from "next/headers";
@@ -22,6 +23,9 @@ export default function KitchenPage({ params }: Props) {
 }
 
 async function Menu({ params }: Props) {
+  // Render only at request time. Without this, Next.js tries to pre-render the page ahead of time (it can
+  // even read cookies then), and the database driver's internal Date.now() stops it with an error.
+  await connection();
   const { slug } = await params;
   const lang = pickLanguage((await cookies()).get(LANG_COOKIE)?.value, (await headers()).get("accept-language"));
   const t = getDictionary(lang);
