@@ -244,18 +244,18 @@ function CustomerScreen({ t, which }: { t: HomeCopy; which: number }) {
       );
     case 2:
       return (
-        <div className={styles.payCard}>
-          <span>{t.c3Pay}</span>
-          <svg className={styles.qr} viewBox="0 0 21 21" aria-hidden="true">
-            {QR_CELLS.map(([x, y]) => (
-              <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" />
-            ))}
-          </svg>
-          <strong>{PRIYA.amount}</strong>
+        <>
+          <div className={styles.payCard} lang="hi">
+            <strong className={styles.placedTitle}>
+              <Icon name="delivered" /> {PRIYA.placed}
+            </strong>
+            <strong>{PRIYA.amount}</strong>
+            <span>{PRIYA.pay}</span>
+          </div>
           <span className={styles.paid}>
             <Icon name="rupee" /> {t.c3Direct}
           </span>
-        </div>
+        </>
       );
     case 3:
       return (
@@ -296,26 +296,6 @@ function CustomerScreen({ t, which }: { t: HomeCopy; which: number }) {
   }
 }
 
-// A QR-like drawing for the payment moment (not a real code): finder squares in three corners, cells between.
-const QR_CELLS: [number, number][] = (() => {
-  const cells: [number, number][] = [];
-  const finder = (ox: number, oy: number) => {
-    for (let x = 0; x < 7; x++)
-      for (let y = 0; y < 7; y++) if (x === 0 || y === 0 || x === 6 || y === 6 || (x > 1 && x < 5 && y > 1 && y < 5)) cells.push([ox + x, oy + y]);
-  };
-  finder(0, 0);
-  finder(14, 0);
-  finder(0, 14);
-  // About half the remaining cells filled, from a fixed seed, so it looks like a real code on every render.
-  let seed = 7;
-  for (let x = 0; x < 21; x++)
-    for (let y = 0; y < 21; y++) {
-      seed = (seed * 1103515245 + 12345) % 2147483648;
-      const inFinder = (x < 8 && y < 8) || (x > 12 && y < 8) || (x < 8 && y > 12);
-      if (!inFinder && seed % 100 < 48) cells.push([x, y]);
-    }
-  return cells;
-})();
 
 // What her phone (or her customer's) shows at each moment, drawn with the real app's pieces.
 function Screen({ t, which }: { t: HomeCopy; which: number }) {

@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
-import QRCode from "qrcode";
+import { useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { fill, type Dictionary, type Lang } from "@/lib/i18n";
 import type { MenuDish } from "@/lib/menu";
@@ -25,25 +24,9 @@ type Placed = {
   name: string;
   total: number;
   whatsapp: { url: string; paidUrl: string } | null;
-  upiUri: string | null;
   trackPath: string | null;
 };
 
-// The UPI payment link drawn as a QR code, for paying from another phone. Made in the browser.
-function UpiQr({ uri, label }: { uri: string; label: string }) {
-  const [src, setSrc] = useState<string | null>(null);
-  useEffect(() => {
-    let live = true;
-    QRCode.toDataURL(uri, { width: 480, margin: 1, errorCorrectionLevel: "M" })
-      .then((url) => live && setSrc(url))
-      .catch(() => live && setSrc(null));
-    return () => {
-      live = false;
-    };
-  }, [uri]);
-  // eslint-disable-next-line @next/next/no-img-element -- a data URL made on this page; nothing to optimise
-  return src ? <img className={styles.qr} src={src} alt={label} width={240} height={240} /> : <div className={styles.qr} aria-hidden="true" />;
-}
 
 export default function OrderForm({ slug, lang, t, dishes }: Props) {
   // The last order must be answered (arrived or not) before a new one can be placed.
@@ -54,7 +37,6 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [placed, setPlaced] = useState<Placed | null>(null);
-  const [paid, setPaid] = useState(false);
 
   // A returning customer: details and last order remembered on this phone (null on the server).
   const meRaw = useSyncExternalStore(subscribe, readMe, () => null);
@@ -137,8 +119,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
           ordered,
         );
         if (result.trackPath) rememberOrder(String(result.trackPath).split("/").pop()!);
-        setPaid(false);
-        setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsapp: result.whatsapp ?? null, upiUri: result.upiUri ?? null, trackPath: result.trackPath ?? null });
+        setPlaced({ id: result.orderId, name: customerName, total: result.total, whatsapp: result.whatsapp ?? null, trackPath: result.trackPath ?? null });
         return;
       }
       const messages: Record<string, string> = {
@@ -167,7 +148,6 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
   }
 
   if (placed) {
-    const amount = { amount: placed.total };
     return (
       <section className={styles.placed} role="status">
         <h2><Icon name="delivered" /> {t.orderPlaced}</h2>
@@ -185,31 +165,10 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
             {t.myOrdersHint} <a href="/orders">{t.myOrders}</a>
           </p>
         )}
-        {placed.upiUri ? (
-          <div className={styles.upi}>
-            <h3>{fill(t.payUpiTitle, amount)}</h3>
-            <UpiQr uri={placed.upiUri} label={fill(t.payUpiTitle, amount)} />
-            <p className={styles.whatsappHint}>{t.payUpiHint}</p>
-            <a className={styles.upiOpen} href={placed.upiUri}>
-              {t.openUpi}
-            </a>
-            {placed.whatsapp && (
-              <label className={styles.paidCheck}>
-                <input type="checkbox" checked={paid} onChange={(e) => setPaid(e.target.checked)} />
-                <span>
-                  {fill(t.iPaid, amount)}
-                  <small>{t.iPaidHint}</small>
-                </span>
-              </label>
-            )}
-            <p>{t.orCash}</p>
-          </div>
-        ) : (
-          <p>{t.payOnDelivery}</p>
-        )}
+        <p>{t.payOnDelivery}</p>
         {placed.whatsapp && (
           <>
-            <a className={styles.whatsapp} href={paid ? placed.whatsapp.paidUrl : placed.whatsapp.url} target="_blank" rel="noopener noreferrer">
+            <a className={styles.whatsapp} href={placed.whatsapp.url} target="_blank" rel="noopener noreferrer">
               {t.sendWhatsapp}
             </a>
             <p className={styles.whatsappHint}>{t.sendWhatsappHint}</p>

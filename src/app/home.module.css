@@ -1308,3 +1308,8 @@
   background: #fff;
   color: #9a3f12;
 }
+
+.placedTitle {
+  color: #1b8a63;
+  font-size: 1.15rem !important;
+}

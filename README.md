@@ -66,7 +66,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 | Who | A home cook starting or running a tiffin service | Daily-wage and blue-collar workers, students, office workers, older people living alone, and families nearby |
 | Language | Speaks any of nine Indian languages or English, often mixed | Reads any of the nine; ordering is a few taps, with no account, and "Same as last time" makes a daily order two taps |
 | Device | An Android phone with Chrome | Any phone with a browser |
-| What they need | Set up once, then update by voice in seconds, with no English and no forms | Find home food nearby, read the menu in their language, order quickly, pay her directly by UPI or cash |
+| What they need | Set up once, then update by voice in seconds, with no English and no forms | Find home food nearby, read the menu in their language, order quickly, pay her at the door, in cash or by UPI |
 
 ## 3. What it does
 
@@ -85,7 +85,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - **Move each order along and tell the customer.** Every order goes **🍳 Preparing → 🛵 On the way**, with a button for each step. Only the customer can mark it **✓ Delivered** (below); the cook has no Delivered button, and the assistant refuses to mark it. She can say it too: "I've started cooking", "Ravi's tiffin has left", "all Domlur orders are delivered". **Tell Ravi on WhatsApp** opens WhatsApp to that customer with the message already written in the customer's own language, with their tracking link ("Hi Ravi, your tiffin from Lakshmi Tiffins is on the way. Track it here: …"). She taps Send. The orders screen counts how many are delivered so far.
 - **Hear when food arrives, or doesn't.** When a customer taps **I've received my tiffin**, her screen chimes with "✅ Priya received their tiffin", and the order shows **Delivered · confirmed by customer**, at once if Today's orders is open. If they tap **It didn't arrive**, a red alert with their tap-to-call number appears, and the order is marked "Customer says it didn't arrive" so she can call them.
 - **Keep track of dabbas.** One box goes out with each order. Her orders screen shows how many each customer still has, with a **Mark returned** button, and she can say "Ravi brought back two dabbas" or ask "who still has my boxes?".
-- **Get paid by UPI with no fees.** If she gives her UPI ID, customers see a QR code for the exact amount after ordering. The money goes straight to her UPI ID, with no payment gateway in between.
+- **Paid at the door, with no fees.** Customers pay her in cash or by UPI when the tiffin arrives, the way tiffin services already work. Nothing is paid through the app, so there is no gateway, no fee and no commission.
 
 <img src="docs/allergy-and-dabbas.png" alt="An order card with a red peanut allergy note and the dabba count" width="300">
 - **See what the assistant did.** Above each reply, a short list shows every action it took that turn: "✓ Read today's orders: 6 orders, 16 plates", "✓ Checked lakshmitiffins.in: available", "⏳ Marked Sunday as a holiday, not done yet, waiting for your Yes". Each line names the system that did the work (GoDaddy, Database, Hosting). The list is built from what the tools returned, not from Claude's wording, so it can't claim something that didn't happen.
@@ -104,10 +104,9 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - **Track the order.** After ordering, **Track my order** opens a page that shows where it is: order received, being prepared, on the way, delivered. It updates by itself, in the customer's language, and needs no account. When the food arrives the customer taps **✓ I've received my tiffin**, which marks the order delivered and tells the cook; **It didn't arrive** alerts her instead. Answering is required: before ordering again, the menu page asks "Did your last tiffin arrive?" with Yes and No, and Place order waits until they answer. The link holds a random code: the link holds a random code, so only someone who has the link can see it.
 - **See current and past orders.** **🧾 My orders** (on the kitchen list and every menu page, once the phone has ordered) lists orders still on their way at the top, with their live stage, and earlier ones below, each with **Track** and **Place another order**. The list lives on the phone, like the saved details: no account, no sign-in, and "Not you?" clears it on a shared phone. Opening a tracking link from the cook's WhatsApp message adds that order to the list too.
 - Get a WhatsApp message from the cook as the tiffin is prepared, sent out and delivered, in their own language. Sending her a copy of the order on WhatsApp is optional.
-- Pay by scanning a UPI QR code for the exact amount, or open a UPI app on the same phone, if she gave her UPI ID. Ticking "I have paid" adds a line saying so to the WhatsApp message; she checks it in her own UPI app.
 - Order again in two taps. The phone remembers the customer's details and last order (only in that browser, never in a link), so next time it says "Welcome back" and offers **Same as last time**. "Not you?" clears them on a shared phone. If the saved details have no address yet (saved before the address field existed), the page asks for it once, and the form always names the one field to fix rather than a general error.
 
-<img src="docs/upi-payment.png" alt="Order confirmation with a UPI QR code" width="260"> <img src="docs/same-as-last-time.png" alt="A returning customer's Same as last time button" width="260">
+<img src="docs/same-as-last-time.png" alt="A returning customer's Same as last time button" width="260">
 
 <img src="docs/whatsapp-order.png" alt="Order confirmation with the Send my order on WhatsApp button" width="260"> <img src="docs/new-order-alert.png" alt="The owner's new-order banner" width="260">
 
@@ -194,7 +193,7 @@ On every round, the app also gives Claude the current state from the database: t
 | `mark_delivery` | Marks orders preparing or on the way (delivered is the customer's to say), by order, by area or all at once | No |
 | `cancel_order` | Cancels one order, and takes its dabba off the customer's count | Yes |
 | `update_customer_boxes` | Checks or lists dabbas still with customers, or marks some returned | No |
-| `update_kitchen_details` | Changes her WhatsApp number or UPI ID, or turns dabba counting on or off | Yes |
+| `update_kitchen_details` | Changes her WhatsApp number, or turns dabba counting on or off | Yes |
 
 Each tool has three parts: a description Claude reads to decide when to use it, a flag saying whether it needs the owner's Yes, and a plain TypeScript function. The function checks every input again, because model output is never trusted. If an input is wrong, the error goes back to Claude in plain words, and Claude corrects itself or asks her.
 
@@ -267,7 +266,7 @@ Adding a language means one line in `LANGUAGES` (`src/lib/i18n.ts`) and one run 
 
 | Table | Holds |
 | --- | --- |
-| `kitchens` | Name, web address slug, owner's language, delivery area, their translations, an optional daily plate limit, time zone, domain, WhatsApp number, UPI ID, whether dabbas are counted, `draft` or `live` |
+| `kitchens` | Name, web address slug, owner's language, delivery area, their translations, an optional daily plate limit, time zone, domain, WhatsApp number, UPI ID (stored, not shown for now), whether dabbas are counted, `draft` or `live` |
 | `menu_items` | Each dish as the owner said it, its usual price, and translations as JSON |
 | `daily_menus` | One row per kitchen per day: cut-off time and `open`, `closed` or `holiday` |
 | `daily_menu_items` | Which dishes are on a day's menu, that day's price, and whether sold out |
@@ -335,7 +334,6 @@ npm run dev
 | `GODADDY_API_KEY`, `GODADDY_API_SECRET` | No | GoDaddy test environment keys. Without them, or if GoDaddy can't be reached, domain checks are simulated and labelled as such |
 | `DEMO_OWNER_WHATSAPP` | No | A 10-digit number given to the demo kitchen when it is seeded, so the "Send my order on WhatsApp" button appears. Use your own for a demo |
 | `SITE_URL` | No | The site's address, used in tracking links sent on WhatsApp. Defaults to `https://tiffin.kitchen` |
-| `DEMO_OWNER_UPI` | No | A UPI ID (name@bank) given to the demo kitchen when it is seeded, so the payment QR code appears. Use your own: a made-up one could belong to a real person |
 
 Then open:
 
@@ -351,7 +349,7 @@ Voice input works best in Chrome, and the microphone only works on `localhost` o
 npm run test:agent
 ```
 
-This runs the whole launch flow against the database with a scripted stand-in for Claude, so it needs no API key and costs nothing. It checks 14 behaviours: the interview, bad tool input being corrected, the confirmation gate holding writes, Yes and No, speaking instead of answering, publishing, the daily menu, a real customer order counting one dabba, exact totals, cancelling (which returns the dabba), changing the UPI ID only after Yes and the exact amount in the UPI link, allergy notes being flagged and plain ones not, marking dabbas returned, delivery stages and what the customer sees in My orders and on WhatsApp, sold out, and the eight-round limit. On every request it also checks the two rules Claude's API enforces: roles alternate, and every tool result answers the request right before it.
+This runs the whole launch flow against the database with a scripted stand-in for Claude, so it needs no API key and costs nothing. It checks 14 behaviours: the interview, bad tool input being corrected, the confirmation gate holding writes, Yes and No, speaking instead of answering, publishing, the daily menu, a real customer order counting one dabba, exact totals, cancelling (which returns the dabba), changing kitchen details only after Yes, allergy notes being flagged and plain ones not, marking dabbas returned, delivery stages and what the customer sees in My orders and on WhatsApp, sold out, and the eight-round limit. On every request it also checks the two rules Claude's API enforces: roles alternate, and every tool result answers the request right before it.
 
 The full flow has also been run with the real Claude in Kannada and English, including a photographed menu, which found and fixed real bugs: the confirmation step, translations, and empty replies when Claude's thinking used up its reply budget. Voice behaviour (pauses, editing, discard, and phones whose voice list loads late) is checked in a browser with a simulated microphone.
 
@@ -413,7 +411,7 @@ The tables are created automatically on every start, and doing so again is harml
 **For customers**
 
 - **Order by voice.** The customer speaks ("two chapati and one payasa, less spicy"); Claude fills in the form; the customer checks it and taps Place order, so ordering itself stays AI-free.
-- **UPI payment links** generated per order, alongside cash on delivery.
+- **Paying ahead online.** A UPI QR code for the exact amount on the order screen, and payment confirmed automatically through a payment gateway, so the cook sees paid or unpaid on each order. Built once and taken out for now: without a gateway, the app could not confirm a payment, and a cook's UPI ID often shows her phone number.
 - **Kitchens near me, by distance.** With the customer's permission, the kitchen list uses their current location to show each kitchen's distance ("1.2 km away"), sorts the nearest first, and hides kitchens that don't deliver to them. Kitchens would store a location and a delivery radius when the owner sets up, picked on a map or taken from her phone, and the order form would fill in the delivery area from the customer's location.
 - **Ratings and repeat orders** in one tap.
 
