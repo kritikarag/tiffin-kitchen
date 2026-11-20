@@ -21,7 +21,8 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     discard: "Discard recording",
     yes: "Yes",
     no: "No",
-    typeHere: "Or type here…",
+    typeHere: "Type, or tap the mic…",
+    checkAndSend: "Check the words, fix anything wrong, then tap Send.",
     send: "Send",
     replay: "Play again",
     noMic: "Voice input does not work in this browser. Please type, or open this page in Chrome.",
@@ -39,7 +40,8 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     discard: "रिकॉर्डिंग हटाएँ",
     yes: "हाँ",
     no: "नहीं",
-    typeHere: "या यहाँ लिखें…",
+    typeHere: "लिखें, या माइक दबाएँ…",
+    checkAndSend: "शब्द जाँच लें, कुछ गलत हो तो ठीक करें, फिर भेजें दबाएँ।",
     send: "भेजें",
     replay: "फिर से सुनें",
     noMic: "इस ब्राउज़र में आवाज़ से लिखना काम नहीं करता। कृपया लिखें, या यह पेज Chrome में खोलें।",
@@ -57,7 +59,8 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     discard: "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",
     yes: "ಹೌದು",
     no: "ಬೇಡ",
-    typeHere: "ಅಥವಾ ಇಲ್ಲಿ ಬರೆಯಿರಿ…",
+    typeHere: "ಬರೆಯಿರಿ, ಅಥವಾ ಮೈಕ್ ಒತ್ತಿ…",
+    checkAndSend: "ಪದಗಳನ್ನು ನೋಡಿ, ತಪ್ಪಿದ್ದರೆ ಸರಿಪಡಿಸಿ, ನಂತರ ಕಳುಹಿಸಿ ಒತ್ತಿ.",
     send: "ಕಳುಹಿಸಿ",
     replay: "ಮತ್ತೆ ಕೇಳಿ",
     noMic: "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಬರೆಯಿರಿ ಅಥವಾ Chrome ನಲ್ಲಿ ತೆರೆಯಿರಿ.",
@@ -115,6 +118,9 @@ export default function OwnerChat() {
   const lang = useSyncExternalStore(subscribeLang, savedLang, () => "kn" as OwnerLang);
   const micAvailable = useSyncExternalStore(noSubscribe, canListen, () => true);
   const [lines, setLines] = useState<Line[]>([]);
+  // The message box. Speech lands here too, so she can correct misheard words before sending.
+  const [draft, setDraft] = useState("");
+  const draftBox = useRef<HTMLTextAreaElement>(null);
   const [pending, setPending] = useState<Pending>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -202,8 +208,13 @@ export default function OwnerChat() {
         setListening(false);
         setPartial("");
         session.current = null;
-        if (text) send({ type: "message", text }, text);
-        else setError(t.noSpeech);
+        if (text) {
+          // Not sent yet: it goes into the box to check and edit, then she taps Send.
+          // No automatic focus: on a phone it would pop up the keyboard even when nothing needs fixing.
+          setDraft((d) => (d.trim() ? `${d.trim()} ${text}` : text));
+        } else {
+          setError(t.noSpeech);
+        }
       },
       onError: (reason) => {
         setListening(false);
@@ -221,12 +232,11 @@ export default function OwnerChat() {
     setPartial("");
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const input = event.currentTarget.elements.namedItem("text") as HTMLInputElement;
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = "";
+  function submit(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
+    const text = draft.trim();
+    if (!text || busy) return;
+    setDraft("");
     send({ type: "message", text }, text);
   }
 
@@ -328,9 +338,27 @@ export default function OwnerChat() {
         ) : (
           <p className={styles.notice}>{t.noMic}</p>
         )}
+        {draft && !listening && <p className={styles.draftHint}>{t.checkAndSend}</p>}
         <form className={styles.inputBar} onSubmit={submit}>
-          <input name="text" autoComplete="off" placeholder={t.typeHere} disabled={busy || listening} maxLength={2000} />
-          <button type="submit" disabled={busy || listening}>
+          <textarea
+            ref={draftBox}
+            name="text"
+            rows={draft ? Math.min(5, Math.max(2, Math.ceil(draft.length / 26))) : 1} // grows with the text so all of it is visible
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              // Enter sends, Shift+Enter adds a line, as in most chat apps.
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                submit();
+              }
+            }}
+            autoComplete="off"
+            placeholder={draft ? undefined : t.typeHere}
+            disabled={busy || listening}
+            maxLength={2000}
+          />
+          <button type="submit" disabled={busy || listening || !draft.trim()}>
             {t.send}
           </button>
         </form>
