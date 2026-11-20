@@ -31,6 +31,7 @@ export type ModelRequest = {
   tools: ToolDefinition[];
   forceTool?: string; // make Claude answer by calling this one tool (used to get structured JSON back)
   maxTokens?: number;
+  fast?: boolean; // use the fast model (CLAUDE_FAST_MODEL): for short, simple jobs like translation
 };
 export type ModelResponse = { content: (TextBlock | ToolUseBlock)[] };
 
@@ -43,7 +44,7 @@ let client: Anthropic | undefined;
 export const callClaude: ModelCall = async (request) => {
   client ??= new Anthropic(); // reads ANTHROPIC_API_KEY from the environment
   const response = await client.messages.create({
-    model: process.env.CLAUDE_MODEL ?? "claude-sonnet-5-5",
+    model: request.fast ? (process.env.CLAUDE_FAST_MODEL ?? "claude-haiku-5-5") : (process.env.CLAUDE_MODEL ?? "claude-sonnet-5-5"),
     // The budget covers Claude's thinking as well as its reply. 1024 was too small: a long cooking list
     // in Kannada ran out after the thinking, and the reply came back empty.
     max_tokens: request.maxTokens ?? 8000,

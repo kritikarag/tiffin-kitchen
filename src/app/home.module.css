@@ -31,31 +31,42 @@
   letter-spacing: -0.02em;
 }
 
-.langs {
-  display: flex;
-  gap: 0.35rem;
+/* Language: a dropdown, since nine languages don't fit as buttons on a phone. */
+.langPick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.1rem;
 }
 
-.lang,
-.langOn {
-  min-height: 2.5rem;
-  padding: 0 0.95rem;
+.langPick select {
+  min-height: 2.6rem;
+  padding: 0 2.2rem 0 0.9rem;
   border: 1.5px solid var(--leaf);
   border-radius: 999px;
-  background: transparent;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231f5d38' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 0.85rem center;
   color: var(--leaf);
   font: inherit;
+  font-size: 1rem;
   font-weight: 600;
+  appearance: none;
   cursor: pointer;
 }
 
-.langOn {
-  background: var(--leaf);
-  color: #fff;
+.langPick select:focus-visible {
+  outline: 3px solid var(--turmeric);
+  outline-offset: 2px;
 }
 
-.lang:focus-visible,
-.langOn:focus-visible,
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .primary:focus-visible,
 .secondary:focus-visible {
   outline: 3px solid var(--turmeric);
@@ -215,7 +226,7 @@
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   padding-top: 2rem;
   padding-bottom: 3.5rem;
@@ -250,28 +261,217 @@
   line-height: 1.6;
 }
 
-/* ---- two short promises ---- */
+/* ---- the assistant at work: a phone drawn with the owner page's own colours ---- */
 
-.pair {
+.talk {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2.5rem;
+  grid-template-columns: 1fr 1.05fr;
+  align-items: center;
+  gap: 3rem;
   max-width: 68rem;
   margin: 0 auto;
-  padding: 3.5rem 1rem;
+  padding: 1rem 1rem 4.5rem;
 }
 
-.pair h2 {
+.talk h2 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.talkText p {
+  max-width: 30rem;
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.phone {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: min(100%, 25rem);
+  justify-self: center;
+  padding: 1.25rem 1rem;
+  border: 10px solid var(--steel);
+  border-radius: 32px;
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--steel-dark), 0 18px 40px rgba(24, 32, 27, 0.12);
+  font-size: 0.95rem;
+}
+
+.said,
+.reply {
+  max-width: 85%;
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: 14px;
+  line-height: 1.45;
+}
+
+.said {
+  align-self: flex-end;
+  background: #c2521c;
+  color: #fff;
+}
+
+.reply {
+  align-self: flex-start;
+  background: #fff1e6;
+}
+
+.did {
+  align-self: flex-start;
+  max-width: 92%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #e6e0da;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.didHeading {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #645c56;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.did p {
+  display: grid;
+  grid-template-columns: 1.1rem 1fr auto;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.did em {
+  color: #a66a00;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.tick {
+  color: #1b8a63;
+  font-weight: 800;
+}
+
+.tag {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: #f1f3f5;
+  color: #555;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.yesNo {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.yes,
+.no {
+  flex: 1;
+  padding: 0.6rem 0;
+  border-radius: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.yes {
+  background: #1b8a63;
+  color: #fff;
+}
+
+.no {
+  border: 2px solid #b9b9b9;
+}
+
+/* ---- one dish, nine scripts ---- */
+
+.languages {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 4rem 1rem 1rem;
+}
+
+.languages h2,
+.trust h2 {
   margin: 0;
   color: var(--leaf);
-  font-size: 1.4rem;
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
 }
 
-.pair p {
-  max-width: 30rem;
-  margin: 0.6rem 0 0;
+.languagesText {
+  max-width: 40rem;
+  margin: 0.8rem 0 0;
   color: var(--muted);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+.scripts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.scripts li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.95rem;
+  border: 1.5px solid #dfe3dc;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.scripts .scriptOn {
+  border-color: var(--turmeric);
+  background: #fff6dc;
+}
+
+.scriptDish {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.scriptName {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ---- four promises ---- */
+
+.trust {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 3.5rem 1rem 4rem;
+}
+
+.trust dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem 3rem;
+  margin: 1.75rem 0 0;
+}
+
+.trust dt {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.trust dd {
+  max-width: 30rem;
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
   line-height: 1.6;
 }
 
@@ -282,6 +482,12 @@
   border-top: 1px solid #e3e6e0;
   color: var(--muted);
   font-size: 0.95rem;
+}
+
+@media (max-width: 1000px) and (min-width: 761px) {
+  .steps {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 760px) {
@@ -298,9 +504,14 @@
     height: 4.4rem;
   }
 
+  .talk,
   .steps,
-  .pair {
+  .trust dl {
     grid-template-columns: 1fr;
+  }
+
+  .talk {
+    gap: 2rem;
   }
 }
 

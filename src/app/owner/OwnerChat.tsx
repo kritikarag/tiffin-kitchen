@@ -9,6 +9,8 @@ import NewOrderAlert from "./NewOrderAlert";
 import OrdersSheet from "./OrdersSheet";
 import { preparePhoto, type PhotoForUpload } from "./photo";
 import styles from "./owner.module.css";
+import { ownerLabels } from "./labels";
+import { isLang, LANGUAGES } from "@/lib/i18n";
 
 type Line = { from: "owner" | "agent"; text: string; photo?: string; steps?: AgentStep[] };
 type Pending = { name: string; summary: Record<string, unknown> } | null;
@@ -16,162 +18,6 @@ type Pending = { name: string; summary: Record<string, unknown> } | null;
 const TOKEN_KEY = "tiffin-owner-token";
 const LANG_KEY = "tiffin-owner-lang";
 
-// The owner's screen labels. Kept short and paired with icons, since she may not read comfortably.
-const LABELS: Record<OwnerLang, Record<string, string>> = {
-  en: {
-    title: "Your kitchen assistant",
-    startOver: "Start over",
-    hint: "Tap the microphone and tell me about the tiffin service you want to start. You can also send a photo of your menu with 📷.",
-    tapToSpeak: "Tap to speak",
-    listening: "Listening… tap when you're done",
-    discard: "Discard recording",
-    photo: "Send a photo of your menu",
-    ordersButton: "Today's orders",
-    newOrder: "New order",
-    seeOrders: "See orders",
-    dismiss: "Close",
-    ordersTitle: "Today's orders",
-    refresh: "Refresh",
-    ordersCount: "orders",
-    ordersPlates: "plates",
-    ordersTotal: "to collect",
-    toCook: "To cook",
-    ordersNone: "No orders yet today. New orders appear here by themselves.",
-    ordersCancelled: "Cancelled",
-    ordersOpen: "Taking orders",
-    ordersOpenUntil: "Taking orders until",
-    ordersClosed: "Orders closed",
-    ordersHoliday: "Holiday",
-    ordersNoMenu: "Today's menu isn't set",
-    ordersNoKitchen: "Your kitchen isn't set up yet. Tell me about it first, and your orders will appear here.",
-    ordersError: "Orders could not be loaded. Check your internet and tap Refresh.",
-    cameraTitle: "Photo of your menu",
-    takePhoto: "Take photo",
-    usePhoto: "Use photo",
-    retake: "Retake",
-    fromGallery: "Choose from gallery instead",
-    close: "Close",
-    cameraBlocked: "The camera isn't available here. Allow camera access for this page, or choose a photo from your gallery.",
-    photoSent: "Photo of my menu",
-    photoError: "That photo could not be opened. Please try another photo.",
-    yes: "Yes",
-    no: "No",
-    typeHere: "Type, or tap the mic…",
-    checkAndSend: "Check the words, fix anything wrong, then tap Send.",
-    tidying: "Fixing dish names…",
-    send: "Send",
-    replay: "Play again",
-    noMic: "Voice input does not work in this browser. Please type, or open this page in Chrome.",
-    noPermission: "Please allow the microphone for this page, then tap again.",
-    noSpeech: "I didn't hear anything. Tap and try again.",
-    network: "Voice needs an internet connection. Please try again.",
-    noVoice: "This phone has no voice for this language, so replies are shown as text.",
-  },
-  hi: {
-    title: "आपकी रसोई सहायक",
-    startOver: "फिर से शुरू करें",
-    hint: "माइक दबाइए और बताइए आप कैसी टिफ़िन सेवा शुरू करना चाहती हैं। 📷 से अपने मेन्यू की फ़ोटो भी भेज सकती हैं।",
-    tapToSpeak: "बोलने के लिए दबाएँ",
-    listening: "सुन रही हूँ… बोल लें तो दबाएँ",
-    discard: "रिकॉर्डिंग हटाएँ",
-    photo: "मेन्यू की फ़ोटो भेजें",
-    ordersButton: "आज के ऑर्डर",
-    newOrder: "नया ऑर्डर",
-    seeOrders: "ऑर्डर देखें",
-    dismiss: "बंद करें",
-    ordersTitle: "आज के ऑर्डर",
-    refresh: "ताज़ा करें",
-    ordersCount: "ऑर्डर",
-    ordersPlates: "प्लेट",
-    ordersTotal: "मिलना है",
-    toCook: "क्या बनाना है",
-    ordersNone: "आज अभी कोई ऑर्डर नहीं। नए ऑर्डर यहाँ अपने आप दिखेंगे।",
-    ordersCancelled: "रद्द हुए",
-    ordersOpen: "ऑर्डर ले रहे हैं",
-    ordersOpenUntil: "ऑर्डर ले रहे हैं, समय",
-    ordersClosed: "ऑर्डर बंद",
-    ordersHoliday: "छुट्टी",
-    ordersNoMenu: "आज का मेन्यू तय नहीं",
-    ordersNoKitchen: "आपकी रसोई अभी बनी नहीं है। पहले उसके बारे में बताइए, फिर ऑर्डर यहाँ दिखेंगे।",
-    ordersError: "ऑर्डर नहीं खुले। इंटरनेट देखें और ताज़ा करें दबाएँ।",
-    cameraTitle: "आपके मेन्यू की फ़ोटो",
-    takePhoto: "फ़ोटो लें",
-    usePhoto: "यह फ़ोटो भेजें",
-    retake: "फिर से लें",
-    fromGallery: "गैलरी से चुनें",
-    close: "बंद करें",
-    cameraBlocked: "यहाँ कैमरा नहीं खुला। इस पेज को कैमरे की अनुमति दें, या गैलरी से फ़ोटो चुनें।",
-    photoSent: "मेरे मेन्यू की फ़ोटो",
-    photoError: "यह फ़ोटो नहीं खुली। कृपया दूसरी फ़ोटो चुनें।",
-    yes: "हाँ",
-    no: "नहीं",
-    typeHere: "लिखें, या माइक दबाएँ…",
-    checkAndSend: "शब्द जाँच लें, कुछ गलत हो तो ठीक करें, फिर भेजें दबाएँ।",
-    tidying: "व्यंजनों के नाम ठीक कर रहे हैं…",
-    send: "भेजें",
-    replay: "फिर से सुनें",
-    noMic: "इस ब्राउज़र में आवाज़ से लिखना काम नहीं करता। कृपया लिखें, या यह पेज Chrome में खोलें।",
-    noPermission: "कृपया इस पेज को माइक की अनुमति दें, फिर दोबारा दबाएँ।",
-    noSpeech: "मुझे कुछ सुनाई नहीं दिया। दबाकर फिर से बोलें।",
-    network: "आवाज़ के लिए इंटरनेट चाहिए। कृपया फिर से कोशिश करें।",
-    noVoice: "इस फ़ोन में इस भाषा की आवाज़ नहीं है, इसलिए जवाब लिखकर दिखाए जाएँगे।",
-  },
-  kn: {
-    title: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ ಸಹಾಯಕ",
-    startOver: "ಮತ್ತೆ ಶುರು ಮಾಡಿ",
-    hint: "ಮೈಕ್ ಒತ್ತಿ, ನೀವು ಶುರು ಮಾಡಬೇಕಾದ ಟಿಫಿನ್ ಸೇವೆಯ ಬಗ್ಗೆ ಹೇಳಿ. 📷 ಮೂಲಕ ನಿಮ್ಮ ಮೆನು ಫೋಟೋ ಕೂಡ ಕಳುಹಿಸಬಹುದು.",
-    tapToSpeak: "ಮಾತನಾಡಲು ಒತ್ತಿ",
-    listening: "ಕೇಳುತ್ತಿದ್ದೇನೆ… ಮುಗಿದ ಮೇಲೆ ಒತ್ತಿ",
-    discard: "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",
-    photo: "ಮೆನು ಫೋಟೋ ಕಳುಹಿಸಿ",
-    ordersButton: "ಇಂದಿನ ಆರ್ಡರ್‌ಗಳು",
-    newOrder: "ಹೊಸ ಆರ್ಡರ್",
-    seeOrders: "ಆರ್ಡರ್ ನೋಡಿ",
-    dismiss: "ಮುಚ್ಚಿ",
-    ordersTitle: "ಇಂದಿನ ಆರ್ಡರ್‌ಗಳು",
-    refresh: "ಮತ್ತೆ ನೋಡಿ",
-    ordersCount: "ಆರ್ಡರ್",
-    ordersPlates: "ಪ್ಲೇಟ್",
-    ordersTotal: "ಬರಬೇಕು",
-    toCook: "ಏನು ಮಾಡಬೇಕು",
-    ordersNone: "ಇಂದು ಇನ್ನೂ ಆರ್ಡರ್ ಬಂದಿಲ್ಲ. ಹೊಸ ಆರ್ಡರ್‌ಗಳು ಇಲ್ಲಿ ತಾನಾಗಿಯೇ ಕಾಣುತ್ತವೆ.",
-    ordersCancelled: "ರದ್ದಾದವು",
-    ordersOpen: "ಆರ್ಡರ್ ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದೆ",
-    ordersOpenUntil: "ಆರ್ಡರ್ ಸಮಯ",
-    ordersClosed: "ಆರ್ಡರ್ ಮುಗಿದಿದೆ",
-    ordersHoliday: "ರಜೆ",
-    ordersNoMenu: "ಇಂದಿನ ಮೆನು ಇನ್ನೂ ಹಾಕಿಲ್ಲ",
-    ordersNoKitchen: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ ಇನ್ನೂ ಸಿದ್ಧವಾಗಿಲ್ಲ. ಮೊದಲು ಅದರ ಬಗ್ಗೆ ಹೇಳಿ, ನಂತರ ಆರ್ಡರ್‌ಗಳು ಇಲ್ಲಿ ಕಾಣುತ್ತವೆ.",
-    ordersError: "ಆರ್ಡರ್‌ಗಳು ತೆರೆಯಲಿಲ್ಲ. ಇಂಟರ್ನೆಟ್ ನೋಡಿ, ಮತ್ತೆ ನೋಡಿ ಒತ್ತಿ.",
-    cameraTitle: "ನಿಮ್ಮ ಮೆನು ಫೋಟೋ",
-    takePhoto: "ಫೋಟೋ ತೆಗೆಯಿರಿ",
-    usePhoto: "ಈ ಫೋಟೋ ಕಳುಹಿಸಿ",
-    retake: "ಮತ್ತೆ ತೆಗೆಯಿರಿ",
-    fromGallery: "ಗ್ಯಾಲರಿಯಿಂದ ಆಯ್ಕೆ ಮಾಡಿ",
-    close: "ಮುಚ್ಚಿ",
-    cameraBlocked: "ಇಲ್ಲಿ ಕ್ಯಾಮೆರಾ ತೆರೆಯಲಿಲ್ಲ. ಈ ಪುಟಕ್ಕೆ ಕ್ಯಾಮೆರಾ ಅನುಮತಿ ನೀಡಿ, ಅಥವಾ ಗ್ಯಾಲರಿಯಿಂದ ಫೋಟೋ ಆಯ್ಕೆ ಮಾಡಿ.",
-    photoSent: "ನನ್ನ ಮೆನು ಫೋಟೋ",
-    photoError: "ಈ ಫೋಟೋ ತೆರೆಯಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಬೇರೆ ಫೋಟೋ ಆಯ್ಕೆ ಮಾಡಿ.",
-    yes: "ಹೌದು",
-    no: "ಬೇಡ",
-    typeHere: "ಬರೆಯಿರಿ, ಅಥವಾ ಮೈಕ್ ಒತ್ತಿ…",
-    checkAndSend: "ಪದಗಳನ್ನು ನೋಡಿ, ತಪ್ಪಿದ್ದರೆ ಸರಿಪಡಿಸಿ, ನಂತರ ಕಳುಹಿಸಿ ಒತ್ತಿ.",
-    tidying: "ತಿನಿಸುಗಳ ಹೆಸರು ಸರಿಪಡಿಸುತ್ತಿದ್ದೇನೆ…",
-    send: "ಕಳುಹಿಸಿ",
-    replay: "ಮತ್ತೆ ಕೇಳಿ",
-    noMic: "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಬರೆಯಿರಿ ಅಥವಾ Chrome ನಲ್ಲಿ ತೆರೆಯಿರಿ.",
-    noPermission: "ದಯವಿಟ್ಟು ಈ ಪುಟಕ್ಕೆ ಮೈಕ್ ಅನುಮತಿ ನೀಡಿ, ನಂತರ ಮತ್ತೆ ಒತ್ತಿ.",
-    noSpeech: "ನನಗೆ ಏನೂ ಕೇಳಿಸಲಿಲ್ಲ. ಒತ್ತಿ ಮತ್ತೆ ಹೇಳಿ.",
-    network: "ಧ್ವನಿಗೆ ಇಂಟರ್ನೆಟ್ ಬೇಕು. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
-    noVoice: "ಈ ಫೋನ್‌ನಲ್ಲಿ ಈ ಭಾಷೆಯ ಧ್ವನಿ ಇಲ್ಲ, ಆದ್ದರಿಂದ ಉತ್ತರಗಳನ್ನು ಬರಹದಲ್ಲಿ ತೋರಿಸಲಾಗುತ್ತದೆ.",
-  },
-};
-
-const LANG_NAMES: { code: OwnerLang; label: string }[] = [
-  { code: "en", label: "English" },
-  { code: "kn", label: "ಕನ್ನಡ" },
-  { code: "hi", label: "हिन्दी" },
-];
 
 // Browser storage can throw (private windows, blocked storage), so every access is guarded.
 function read(key: string): string | null {
@@ -202,7 +48,7 @@ let chosenLang: OwnerLang | null = null; // kept in memory too, in case storage 
 function savedLang(): OwnerLang {
   if (chosenLang) return chosenLang;
   const saved = read(LANG_KEY);
-  return saved === "kn" || saved === "hi" || saved === "en" ? saved : "en";
+  return isLang(saved) ? saved : "en";
 }
 function saveLang(code: OwnerLang) {
   chosenLang = code;
@@ -226,7 +72,7 @@ export default function OwnerChat() {
   const token = useRef<string | null>(null);
   const session = useRef<Listening | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
-  const t = LABELS[lang];
+  const t = ownerLabels(lang);
   // Stable, so the new-order alert keeps one timer across renders.
   const getToken = useCallback(() => token.current, []);
 
@@ -407,21 +253,18 @@ export default function OwnerChat() {
       </button>
       <NewOrderAlert getToken={getToken} lang={lang} t={t} onOpenOrders={() => setOrdersToken(token.current)} />
 
-      <nav className={styles.languages} aria-label="Language">
-        {LANG_NAMES.map((l) => (
-          <button
-            key={l.code}
-            type="button"
-            lang={l.code}
-            aria-pressed={l.code === lang}
-            className={l.code === lang ? styles.languageActive : styles.language}
-            onClick={() => chooseLanguage(l.code)}
-            disabled={listening}
-          >
-            {l.label}
-          </button>
-        ))}
-      </nav>
+      <label className={styles.languagePick}>
+        <span aria-hidden="true">🌐</span>
+        <span className={styles.visuallyHidden}>Language</span>
+        <select value={lang} onChange={(e) => chooseLanguage(e.target.value as OwnerLang)} disabled={listening}>
+          {LANGUAGES.map((l) => (
+            <option key={l.code} value={l.code} lang={l.code}>
+              {l.label}
+              {l.code === "en" ? "" : ` · ${l.name}`}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {!voiceAvailable && <p className={styles.notice}>{t.noVoice}</p>}
 

@@ -1,3 +1,4 @@
+import { languageName, type Lang } from "./i18n";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
 import { db, parseJson } from "./db";
@@ -34,7 +35,7 @@ export type OwnerTurn = (
   | { type: "message"; text: string; image?: ImageBlock["source"] }
   | { type: "confirm" }
   | { type: "cancel" }
-) & { screenLanguage?: "kn" | "hi" | "en" }; // the language she picked on the owner page
+) & { screenLanguage?: Lang }; // the language she picked on the owner page
 
 const SYSTEM_PROMPT = `You are the assistant for a woman starting or running a home tiffin service in India.
 She speaks to you by voice and hears your replies read aloud. She may not read comfortably.
@@ -155,9 +156,8 @@ async function saveConversation(c: Conversation): Promise<void> {
 }
 
 // Without words (a photo alone, or a Yes tap), Claude can't tell her language and may copy the menu's.
-const LANGUAGE_NAMES = { kn: "Kannada", hi: "Hindi", en: "English" } as const;
 function screenLanguageNote(lang: OwnerTurn["screenLanguage"]): string {
-  return lang ? `\nShe has chosen ${LANGUAGE_NAMES[lang]} on her screen. Reply in ${LANGUAGE_NAMES[lang]} unless she speaks to you in another language.` : "";
+  return lang ? `\nShe has chosen ${languageName(lang)} on her screen. Reply in ${languageName(lang)} unless she speaks to you in another language.` : "";
 }
 
 // The facts worth showing for a tool step. Values come from the tool's own input and result, not from Claude's words.

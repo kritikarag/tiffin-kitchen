@@ -1,3 +1,4 @@
+import { isLang } from "@/lib/i18n";
 import { handleOwnerTurn, type OwnerTurn } from "@/lib/agent";
 import { callClaude, type ImageBlock } from "@/lib/model";
 
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid" }, { status: 400 });
   }
 
-  if (body.language === "kn" || body.language === "hi" || body.language === "en") turn.screenLanguage = body.language;
+  if (isLang(body.language)) turn.screenLanguage = body.language;
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ error: "ANTHROPIC_API_KEY is not set on the server." }, { status: 503 });

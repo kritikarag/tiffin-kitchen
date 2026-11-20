@@ -1,7 +1,7 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import type { PoolConnection } from "mysql2/promise";
 import { db } from "./db";
-import { DEFAULT_LANG, isLang, type Lang } from "./i18n";
+import { DEFAULT_LANG, isLang, labelsFor, type Lang } from "./i18n";
 import { isPastCutoff, nowInZone } from "./time";
 
 export type OrderErrorCode = "invalid" | "empty" | "not_found" | "closed" | "sold_out" | "capacity";
@@ -71,7 +71,7 @@ export function parseOrder(body: unknown): { input: OrderInput } | { error: Orde
 // confirmation screen offers a wa.me link with the order written out, so one tap sends it from the
 // customer's own WhatsApp to the owner's. The number is only shown to someone who has just ordered.
 
-const WHATSAPP_LABELS: Record<string, { newOrder: string; note: string }> = {
+export const WHATSAPP_LABELS = {
   en: { newOrder: "New order", note: "Note" },
   hi: { newOrder: "नया ऑर्डर", note: "नोट" },
   kn: { newOrder: "ಹೊಸ ಆರ್ಡರ್", note: "ಸೂಚನೆ" },
@@ -87,7 +87,7 @@ async function whatsappLink(conn: PoolConnection, kitchen: RowDataPacket, orderI
   );
   if (lines.length === 0) return null;
   // Labels in the owner's language; dish names as she says them.
-  const label = WHATSAPP_LABELS[kitchen.owner_language] ?? WHATSAPP_LABELS.en;
+  const label = labelsFor<{ newOrder: string; note: string }>(WHATSAPP_LABELS, "whatsapp", isLang(kitchen.owner_language) ? kitchen.owner_language : "en");
   const first = lines[0];
   const total = lines.reduce((sum, l) => sum + l.quantity * l.unit_price, 0);
   const text = [

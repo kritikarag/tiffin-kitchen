@@ -16,14 +16,15 @@ let script: ((req: ModelRequest) => ModelResponse)[] = [];
 
 const fakeModel: ModelCall = async (req) => {
   seen.push(structuredClone(req));
+  // Translations: one call per language, which the message names on its first line ("Language: kn").
+  const language = String(req.messages[0]?.content ?? "").match(/^Language: (\w+)/)?.[1];
   if (req.tools.length === 1 && req.tools[0].name === "save_translations") {
-    const names = String(req.messages[0].content).split("\n").slice(1).map((l) => l.replace(/^\d+\. /, ""));
+    const names = String(req.messages[0].content).split("\n").slice(2).map((l) => l.replace(/^\d+\. /, ""));
     return { content: [{ type: "tool_use", id: "tr", name: "save_translations",
-      input: { dishes: names.map((n) => ({ en: { name: n, description: "test" }, hi: { name: `${n} (hi)`, description: "t" }, kn: { name: `${n} (kn)`, description: "t" } })) } }] };
+      input: { dishes: names.map((n) => ({ name: language === "en" ? n : `${n} (${language})`, description: "test" })) } }] };
   }
   if (req.tools.length === 1 && req.tools[0].name === "save_kitchen_text") {
-    const text = { name: "kitchen", delivery_area: "area" };
-    return { content: [{ type: "tool_use", id: "kt", name: "save_kitchen_text", input: { en: text, hi: { ...text, name: "किचन" }, kn: text } }] };
+    return { content: [{ type: "tool_use", id: "kt", name: "save_kitchen_text", input: { name: language === "hi" ? "किचन" : "kitchen", delivery_area: "area" } }] };
   }
   const next = script.shift();
   assert.ok(next, "the agent called the model more times than the test expected");

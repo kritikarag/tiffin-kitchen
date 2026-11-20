@@ -31,7 +31,8 @@ export type OwnerOrdersView = {
 
 // The kitchen this owner conversation belongs to, or null before she has created one.
 type Kitchen = { id: number; name: string; timezone: string; translations: unknown };
-type Lang = "kn" | "hi" | "en";
+import type { Lang } from "./i18n";
+import { inLanguage } from "./menu";
 
 export async function kitchenForToken(token: string): Promise<Kitchen | null> {
   const [rows] = await db().query<RowDataPacket[]>(
@@ -44,7 +45,7 @@ export async function kitchenForToken(token: string): Promise<Kitchen | null> {
 // A name in the chosen language, falling back to what the owner typed.
 function named(original: string, translations: unknown, lang: Lang | undefined): string {
   if (!lang) return original;
-  return parseJson<Partial<Record<Lang, { name?: string }>>>(translations, {})[lang]?.name || original;
+  return inLanguage(parseJson<Partial<Record<Lang, { name?: string }>>>(translations, {}), lang)?.name || original;
 }
 
 // Dish and kitchen names are shown in the language she chose on the owner page (when a translation exists).

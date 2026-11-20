@@ -8,7 +8,7 @@ function saveLanguage(code: Lang) {
   document.cookie = `${LANG_COOKIE}=${code}; path=/; max-age=31536000; samesite=lax`;
 }
 
-// Saves the choice in a cookie and asks the server for the page again in that language.
+// A dropdown of every language. Saves the choice in a cookie and asks the server for the page again in it.
 export default function LanguageSwitch({ current }: { current: Lang }) {
   const router = useRouter();
 
@@ -18,19 +18,17 @@ export default function LanguageSwitch({ current }: { current: Lang }) {
   }
 
   return (
-    <nav className={styles.languages} aria-label="Language">
-      {LANGUAGES.map((language) => (
-        <button
-          key={language.code}
-          type="button"
-          lang={language.code}
-          aria-pressed={language.code === current}
-          className={language.code === current ? styles.languageActive : styles.language}
-          onClick={() => choose(language.code)}
-        >
-          {language.label}
-        </button>
-      ))}
-    </nav>
+    <label className={styles.languagePick}>
+      <span aria-hidden="true">🌐</span>
+      <span className={styles.visuallyHidden}>Language</span>
+      <select value={current} onChange={(e) => choose(e.target.value as Lang)}>
+        {LANGUAGES.map((language) => (
+          <option key={language.code} value={language.code} lang={language.code}>
+            {language.label}
+            {language.code === "en" ? "" : ` · ${language.name}`}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

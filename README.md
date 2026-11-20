@@ -12,7 +12,7 @@ Her customers browse the kitchens near them, read the menu in their own language
 
 ![A tour of the app: the owner talks to the assistant, customers choose a kitchen, order in a few taps, and the owner sees her orders](docs/app-tour-en.png)
 
-Every page also works in Kannada and Hindi. The same menu, as three customers would see it:
+Every page works in nine languages: English, Hindi, Kannada, Tamil, Telugu, Malayalam, Marathi, Bengali and Gujarati, picked from a dropdown. The same menu, as three customers would see it:
 
 ![The same menu in English, Hindi and Kannada](docs/same-menu-three-languages.png)
 
@@ -52,7 +52,7 @@ Website builders, including the new AI ones, solve the first day: they produce a
 | | The owner | The customer |
 | --- | --- | --- |
 | Who | A home cook starting or running a tiffin service | Office workers, students and families nearby |
-| Language | Speaks Kannada, Hindi or English, often mixed | Reads any of the three |
+| Language | Speaks any of nine Indian languages or English, often mixed | Reads any of the nine |
 | Device | An Android phone with Chrome | Any phone with a browser |
 | What they need | Set up once, then update by voice in seconds | See today's menu, order quickly, pay on delivery |
 
@@ -130,7 +130,7 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 
 | Part | What it does |
 | --- | --- |
-| Home page `/` | Explains the product in Kannada, Hindi or English, and links owners and customers onward |
+| Home page `/` | Explains the product in any of the nine languages, and links owners and customers onward |
 | Owner page `/owner` | Records speech into an editable box, sends menu photos, shows and speaks replies, shows Yes and No buttons, and lists today's orders |
 | Agent route `/api/agent` | Runs the Claude loop and enforces the confirmation gate |
 | Tools | The only code that can change data or call GoDaddy |
@@ -212,18 +212,21 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 
 ## 7. Languages
 
-The owner and each customer use their own language, and neither needs to know the other's. The launch set is Kannada, Hindi and English.
+The owner and each customer use their own language, and neither needs to know the other's. Nine are supported: English, Hindi, Kannada, Tamil, Telugu, Malayalam, Marathi, Bengali and Gujarati. Every page has a dropdown, and the choice is remembered.
+
+Translation runs both ways. A Kannada-speaking cook writes her menu in Kannada; one customer reads it in Tamil and another in English; a note the Tamil customer writes reaches her in Kannada, in the orders screen, the cooking list and the WhatsApp message.
 
 | Where | How |
 | --- | --- |
-| Owner speech to text | The browser's speech recognition, set to `kn-IN`, `hi-IN` or `en-IN` |
+| Owner speech to text | The browser's speech recognition, set to that language's Indian variant (`kn-IN`, `ta-IN`, ...) |
 | Understanding her | Claude, including mixed-language speech |
 | Replies | Claude replies in her language; the browser reads it aloud with a voice installed on her phone |
-| Dishes, kitchen name, delivery area | Translated by Claude when saved, stored per language; names and places are transliterated |
-| Menu page labels | A small dictionary per language in `src/lib/i18n.ts`. Pages open in English; each person's language choice is remembered |
-| Customer notes | Stored as written, translated into her language in the cooking list |
+| Dishes, kitchen name, delivery area | Translated by Claude when saved, one small call per language in parallel on the fast model, so nine languages take about as long as one. Names and places are transliterated, never translated |
+| Customer notes | Stored as written, translated into her language on the orders screen and in the cooking list |
+| Screen labels | English, Hindi and Kannada are written by hand in the code. `npm run labels` translates every label set into the other languages with Claude, using Hindi and Kannada as examples of tone, checks that no key or `{placeholder}` was lost, and saves them to `src/lib/labels.generated.json` |
+| Missing text | Falls back to English, then to what the owner said. Kitchens saved before a language was added still show in it, in English |
 
-Adding a language means one entry in the language list and one dictionary of labels. Pages open in English; anyone can switch with one tap.
+Adding a language means one line in `LANGUAGES` (`src/lib/i18n.ts`) and one run of `npm run labels`.
 
 ## 8. Data model
 
@@ -278,7 +281,8 @@ npm install
 cp .env.example .env      # then fill in the values below
 npm run db:migrate        # creates the tables
 npm run db:seed           # optional: a simple demo kitchen with today's menu
-npm run db:seed-demo      # optional: four demo kitchens; Lakshmi Tiffins has orders in three languages
+npm run db:seed-demo      # optional: four demo kitchens; Lakshmi Tiffins has orders and notes in several languages
+npm run labels            # only after adding a language or a label: translates them with Claude
 npm run dev
 ```
 
@@ -323,7 +327,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 ## 13. Status and limitations
 
-**Working:** launch by conversation or menu photo, a visible list of the agent's steps on each reply, the Today's orders screen, new-order alerts and WhatsApp order messages, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, the kitchen list, customer orders, the cooking list, three languages, and voice in and out with editing before sending.
+**Working:** launch by conversation or menu photo, a visible list of the agent's steps on each reply, the Today's orders screen, new-order alerts and WhatsApp order messages, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, the kitchen list, customer orders, the cooking list, nine languages, and voice in and out with editing before sending.
 
 **Known limitations:**
 
@@ -332,7 +336,8 @@ The tables are created automatically on every start, and doing so again is harml
 - **Her WhatsApp number is asked for at launch only.** There is no voice command to change it yet.
 - **No rate limits yet** on the agent or order endpoints. Real use needs per-kitchen and per-address limits to cap Claude costs and spam.
 - **No owner login yet.** Whoever holds a conversation's token can act for that kitchen and see its orders. This is fine for a demo, not for real use.
-- **Voice quality depends on the phone and browser.** Speech recognition accuracy and the availability of Kannada and Hindi voices vary by device; Chrome on Android works best. A phone without a Kannada voice shows Kannada replies as text.
+- **Voice quality depends on the phone and browser.** Speech recognition accuracy and the availability of voices for each language vary by device; Chrome on Android works best. A phone without a voice for her language shows replies as text.
+- **Labels in six languages are machine-translated.** English, Hindi and Kannada were written by hand; Tamil, Telugu, Malayalam, Marathi, Bengali and Gujarati were translated by Claude and checked by script for missing keys and placeholders, not yet by native speakers.
 - **Customers can't order by voice yet.** Only the owner side has voice and photos.
 - **Replies take 1 to 8 seconds,** because each turn may run several tool rounds. Streaming would make it feel faster.
 

@@ -4,10 +4,12 @@
 // Both vary by browser and phone, so every function here reports whether it worked and the page
 // falls back to typing and reading.
 
-export type OwnerLang = "kn" | "hi" | "en";
+import { LANGUAGES, type Lang } from "@/lib/i18n";
+
+export type OwnerLang = Lang;
 
 // BCP-47 tags the speech APIs expect. "-IN" picks Indian English and the Indian variants.
-export const SPEECH_TAG: Record<OwnerLang, string> = { kn: "kn-IN", hi: "hi-IN", en: "en-IN" };
+export const SPEECH_TAG = Object.fromEntries(LANGUAGES.map((l) => [l.code, l.speech])) as Record<OwnerLang, string>;
 
 // Minimal types: TypeScript's DOM library does not include the speech recognition API yet.
 type RecognitionResult = { isFinal: boolean; 0: { transcript: string } };

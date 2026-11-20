@@ -3,6 +3,12 @@ import { db, parseJson } from "./db";
 import type { Lang } from "./i18n";
 import { isPastCutoff, nowInZone } from "./time";
 
+// The text for this language, or English when there is none: kitchens saved before a language was added
+// have no entry for it, and English is readable by more customers than the owner's own script.
+export function inLanguage<T>(byLanguage: Partial<Record<Lang, T>>, lang: Lang): T | undefined {
+  return byLanguage[lang] ?? byLanguage.en;
+}
+
 type Translations = Partial<Record<Lang, { name?: string; description?: string }>>;
 
 export type MenuDish = {
@@ -32,7 +38,7 @@ export async function getTodayMenu(slug: string, lang: Lang): Promise<MenuView |
   const kitchen = kitchens[0];
   if (!kitchen) return null;
 
-  const kitchenText = parseJson<Partial<Record<Lang, { name?: string; delivery_area?: string }>>>(kitchen.translations, {})[lang];
+  const kitchenText = inLanguage(parseJson<Partial<Record<Lang, { name?: string; delivery_area?: string }>>>(kitchen.translations, {}), lang);
   const view: MenuView = {
     kitchen: {
       name: kitchenText?.name || kitchen.name, // fall back to what the owner said
@@ -67,7 +73,7 @@ export async function getTodayMenu(slug: string, lang: Lang): Promise<MenuView |
     [menu.id],
   );
   view.dishes = rows.map((row) => {
-    const translation = parseJson<Translations>(row.translations, {})[lang];
+    const translation = inLanguage(parseJson<Translations>(row.translations, {}), lang);
     return {
       id: row.id,
       name: translation?.name || row.name_original, // fall back to what the owner said
@@ -96,7 +102,7 @@ export async function listKitchens(lang: Lang): Promise<KitchenCard[]> {
   );
   const cards: KitchenCard[] = [];
   for (const k of kitchens) {
-    const text = parseJson<Partial<Record<Lang, { name?: string; delivery_area?: string }>>>(k.translations, {})[lang];
+    const text = inLanguage(parseJson<Partial<Record<Lang, { name?: string; delivery_area?: string }>>>(k.translations, {}), lang);
     const now = nowInZone(k.timezone);
     const [menus] = await db().query<RowDataPacket[]>(
       "SELECT id, cutoff_time, status FROM daily_menus WHERE kitchen_id = ? AND menu_date = ?",
@@ -120,7 +126,7 @@ export async function listKitchens(lang: Lang): Promise<KitchenCard[]> {
            JOIN menu_items mi ON mi.id = dmi.menu_item_id WHERE dmi.daily_menu_id = ? ORDER BY mi.id`,
         [menu.id],
       );
-      card.dishes = rows.map((r) => parseJson<Translations>(r.translations, {})[lang]?.name || r.name_original);
+      card.dishes = rows.map((r) => inLanguage(parseJson<Translations>(r.translations, {}), lang)?.name || r.name_original);
       card.lowestPrice = rows.length ? Math.min(...rows.map((r) => r.price as number)) : null;
     }
     cards.push(card);

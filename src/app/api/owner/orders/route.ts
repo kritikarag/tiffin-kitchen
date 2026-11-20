@@ -1,5 +1,6 @@
 import { kitchenForToken, ownerOrders } from "@/lib/ownerOrders";
 import { translateNotes } from "@/lib/transcript";
+import { isLang } from "@/lib/i18n";
 
 // GET /api/owner/orders?token=<conversation token>&date=YYYY-MM-DD (date optional, default today)
 // &notes=0 leaves customer notes untranslated (used by the new-order alert).
@@ -12,12 +13,13 @@ export async function GET(request: Request) {
   try {
     const kitchen = await kitchenForToken(token);
     if (!kitchen) return Response.json({ kitchen: null });
-    const lang = url.searchParams.get("lang");
-    const view = await ownerOrders(kitchen, url.searchParams.get("date") ?? undefined, lang === "kn" || lang === "hi" || lang === "en" ? lang : undefined);
+    const asked = url.searchParams.get("lang");
+    const lang = isLang(asked) ? asked : undefined;
+    const view = await ownerOrders(kitchen, url.searchParams.get("date") ?? undefined, lang);
     // Customers write notes in their own language; show each one in the language the owner chose.
     const withNotes = view.orders.filter((o) => o.note);
     // notes=0 skips translation: the new-order alert polls often and only needs names and totals.
-    if (url.searchParams.get("notes") !== "0" && (lang === "kn" || lang === "hi" || lang === "en") && withNotes.length && process.env.ANTHROPIC_API_KEY) {
+    if (url.searchParams.get("notes") !== "0" && lang && withNotes.length && process.env.ANTHROPIC_API_KEY) {
       const translated = await translateNotes(withNotes.map((o) => o.note!), lang);
       withNotes.forEach((o, i) => (o.noteTranslated = translated[i] !== o.note ? translated[i] : null));
     }
