@@ -6,11 +6,9 @@ A woman who cooks well can start a home tiffin service by talking to an assistan
 
 Her customers browse the kitchens near them, read the menu in their own language and order in a few taps, with no app and no account.
 
-![Home page in Kannada](docs/home-page.png)
+![Tiffin home page](docs/home-page-en.png)
 
-| The owner talks to the assistant | Customers choose a kitchen | And order in a few taps | She sees her orders |
-| --- | --- | --- | --- |
-| ![Owner asks for the cooking list and cancels an order](docs/owner-chat-en.png) | ![Kitchen list](docs/kitchen-list-en.png) | ![Lakshmi Tiffins menu](docs/customer-menu-en.png) | ![Today's orders screen](docs/owner-orders-en.png) |
+![A tour of the app: the owner talks to the assistant, customers choose a kitchen, order in a few taps, and the owner sees her orders](docs/app-tour-en.png)
 
 Every page also works in Kannada and Hindi. The same menu, as three customers would see it:
 
