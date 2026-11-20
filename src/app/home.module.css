@@ -1,0 +1,312 @@
+/* Palette from the subject: banana leaf, turmeric, steel, rice. */
+.page {
+  --leaf: #1f5d38;
+  --leaf-deep: #154428;
+  --turmeric: #f0a90a;
+  --steel: #c9cfd4;
+  --steel-dark: #8f979e;
+  --rice: #fdfdf8;
+  --ink: #18201b;
+  --muted: #56615a;
+  min-height: 100dvh;
+  background: var(--rice);
+  color: var(--ink);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.brand {
+  color: var(--leaf);
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.langs {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.lang,
+.langOn {
+  min-height: 2.5rem;
+  padding: 0 0.95rem;
+  border: 1.5px solid var(--leaf);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--leaf);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.langOn {
+  background: var(--leaf);
+  color: #fff;
+}
+
+.lang:focus-visible,
+.langOn:focus-visible,
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 3px solid var(--turmeric);
+  outline-offset: 2px;
+}
+
+/* ---- hero ---- */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  align-items: center;
+  gap: 2.5rem;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 4rem;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.4rem, 6vw, 4.4rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  animation: rise 420ms ease-out both;
+}
+
+.lead {
+  max-width: 34rem;
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.4rem;
+  padding: 0 1.5rem;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primary {
+  background: var(--leaf);
+  color: #fff;
+}
+
+.primary:hover {
+  background: var(--leaf-deep);
+}
+
+.secondary {
+  border: 2px solid var(--ink);
+  color: var(--ink);
+}
+
+.secondary:hover {
+  background: #f1f3ef;
+}
+
+/* The tiffin carrier, drawn in CSS. Its tiers restack when the language changes. */
+.carrier {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-self: center;
+  width: min(100%, 20rem);
+}
+
+.handle {
+  width: 46%;
+  height: 3.2rem;
+  border: 7px solid var(--steel-dark);
+  border-bottom: none;
+  border-radius: 999px 999px 0 0;
+}
+
+.lid {
+  width: 92%;
+  height: 1.6rem;
+  border-radius: 50% 50% 6px 6px / 100% 100% 6px 6px;
+  background: linear-gradient(180deg, #e3e7ea, var(--steel));
+  box-shadow: inset 0 -3px 0 var(--steel-dark);
+}
+
+.tier {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 5.2rem;
+  margin-top: 4px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #aeb6bc, #eef1f3 35%, #d5dadd 65%, #9ea7ae);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.6), inset 0 -4px 0 var(--steel-dark);
+  animation: stack 380ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.tier span {
+  padding: 0.35rem 0.9rem;
+  border-radius: 8px;
+  background: var(--turmeric);
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+@keyframes stack {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---- a day, in order ---- */
+
+.day {
+  background: var(--leaf);
+  color: #fff;
+}
+
+.day h2,
+.steps {
+  max-width: 68rem;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
+.day h2 {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 3rem;
+  font-size: 1.8rem;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  padding-top: 2rem;
+  padding-bottom: 3.5rem;
+  list-style: none;
+  counter-reset: step;
+}
+
+.steps li {
+  counter-increment: step;
+  padding-top: 1rem;
+  border-top: 3px solid var(--turmeric);
+}
+
+.steps li::before {
+  content: counter(step);
+  display: block;
+  color: var(--turmeric);
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.steps strong {
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 1.2rem;
+}
+
+.steps p {
+  margin: 0.4rem 0 0;
+  color: #dceee2;
+  line-height: 1.6;
+}
+
+/* ---- two short promises ---- */
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 3.5rem 1rem;
+}
+
+.pair h2 {
+  margin: 0;
+  color: var(--leaf);
+  font-size: 1.4rem;
+}
+
+.pair p {
+  max-width: 30rem;
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.footer {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+  border-top: 1px solid #e3e6e0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 1.5rem;
+  }
+
+  .carrier {
+    width: min(100%, 16rem);
+  }
+
+  .tier {
+    height: 4.4rem;
+  }
+
+  .steps,
+  .pair {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title,
+  .tier {
+    animation: none;
+  }
+}
