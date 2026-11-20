@@ -17,14 +17,26 @@ export async function setDelivery(kitchenId: number, orderIds: number[], status:
   if (orderIds.length === 0) return 0;
   const [result] = await db().query<ResultSetHeader>(
     `UPDATE orders o JOIN daily_menus dm ON dm.id = o.daily_menu_id
-        SET o.delivery = ?
-      WHERE dm.kitchen_id = ? AND o.id IN (?) AND o.status = 'placed'`,
-    [status, kitchenId, orderIds],
+        SET o.delivery = ?, o.delivered_by = IF(? = 'delivered', 'owner', NULL)
+      WHERE dm.kitchen_id = ? AND o.id IN (?) AND o.status = 'placed'
+        AND NOT (o.delivery = 'delivered' AND o.delivered_by = 'customer' AND ? = 'delivered')`,
+    [status, status, kitchenId, orderIds, status],
   );
   return result.affectedRows;
 }
 
 // The WhatsApp message to the customer, in the language they ordered in, with the kitchen's name in it.
+// The customer taps "I've received my tiffin" on their tracking page. The random code in the link is the only
+// key, as for viewing. The cook's screen announces it (NewOrderAlert) and shows it was confirmed by the customer.
+export async function confirmReceived(trackCode: string): Promise<boolean> {
+  const [result] = await db().query<ResultSetHeader>(
+    `UPDATE orders SET delivery = 'delivered', delivered_by = 'customer'
+      WHERE track_code = ? AND status = 'placed' AND delivery <> 'delivered'`,
+    [trackCode],
+  );
+  return result.affectedRows > 0;
+}
+
 // The site's own address, for links that leave the app (WhatsApp messages).
 export const SITE_URL = (process.env.SITE_URL ?? "https://tiffin.kitchen").replace(/\/$/, "");
 

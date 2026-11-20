@@ -148,6 +148,7 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                         {o.delivery !== "waiting" && (
                           <span className={o.delivery === "delivered" ? styles.deliveryDone : o.delivery === "preparing" ? styles.deliveryCooking : styles.deliveryGoing}>
                             {{ preparing: `🍳 ${t.preparing}`, on_the_way: `🛵 ${t.onTheWay}`, delivered: `✓ ${t.delivered}` }[o.delivery]}
+                            {o.deliveredBy === "customer" && ` · ${t.byCustomer}`}
                           </span>
                         )}
                         <div className={styles.orderItems}>{o.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")}</div>
@@ -190,7 +191,7 @@ export default function OrdersSheet({ token, lang, t, onClose }: { token: string
                               ✓ {t.delivered}
                             </button>
                           )}
-                          {o.delivery !== "waiting" && (
+                          {o.delivery !== "waiting" && o.deliveredBy !== "customer" && (
                             <a className={styles.tell} href={o.tell[o.delivery]} target="_blank" rel="noopener noreferrer">
                               {t.tellCustomer.replace("{name}", o.customerName)}
                             </a>

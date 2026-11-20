@@ -11,6 +11,7 @@ import { handleOwnerTurn } from "../src/lib/agent";
 import { db } from "../src/lib/db";
 import { kitchenForToken, ownerOrders } from "../src/lib/ownerOrders";
 import { trackOrders } from "../src/lib/track";
+import { confirmReceived } from "../src/lib/delivery";
 import type { Message, ModelCall, ModelRequest, ModelResponse, ToolResultBlock } from "../src/lib/model";
 
 let seen: ModelRequest[] = [];
@@ -260,7 +261,14 @@ async function main() {
   assert.equal(mine.delivery, "on_the_way");
   assert.equal(mine.current, true);
   assert.equal((await trackOrders(["AAAAAAAAAAAAAAAA"], "en")).length, 0); // an unknown code shows nothing
-  ok("mark_delivery marks orders preparing, then on the way by area; the customer sees it in My orders and her WhatsApp message has her tracking link");
+  // The customer, not the cook, confirms the tiffin arrived; the cook's screen shows who confirmed it.
+  assert.equal(await confirmReceived(code), true);
+  assert.equal(await confirmReceived(code), false); // a second tap changes nothing
+  const [arrived] = await trackOrders([code], "en");
+  assert.ok(arrived.delivery === "delivered" && arrived.receivedByCustomer && !arrived.current);
+  const after = await ownerOrders((await kitchenForToken(token))!, undefined, "kn");
+  assert.equal(after.orders.find((o) => o.customerName === "Priya")!.deliveredBy, "customer");
+  ok("mark_delivery marks orders preparing, then on the way by area; the customer sees it in My orders, confirms it arrived, and her WhatsApp message has her tracking link");
 
   // 7. mark_sold_out runs at once, no confirmation.
   script = [call("mark_sold_out", { menu_item_id: chapati }), say("ಸರಿ.")];

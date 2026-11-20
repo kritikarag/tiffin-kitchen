@@ -38,9 +38,19 @@ type Props = {
   onOpenOrders: () => void;
 };
 
-export default function NewOrderAlert({ getToken, lang, t, onOpenOrders }: Props) {
+export default function NewOrderAlert({
+  getToken,
+  lang,
+  t,
+  onOpenOrders,
+}: Props) {
   const [fresh, setFresh] = useState<OwnerOrder[]>([]);
-  const seen = useRef<{ token: string; lastId: number } | null>(null);
+  const [received, setReceived] = useState<OwnerOrder[]>([]);
+  const seen = useRef<{
+    token: string;
+    lastId: number;
+    received: Set<number>;
+  } | null>(null);
 
   useEffect(() => {
     let stopped = false;
@@ -48,15 +58,36 @@ export default function NewOrderAlert({ getToken, lang, t, onOpenOrders }: Props
       const token = getToken();
       if (!token || document.hidden) return;
       try {
-        const response = await fetch(`/api/owner/orders?token=${encodeURIComponent(token)}&lang=${lang}&notes=0`, { cache: "no-store" });
+        const response = await fetch(
+          `/api/owner/orders?token=${encodeURIComponent(token)}&lang=${lang}&notes=0`,
+          { cache: "no-store" },
+        );
         const { kitchen } = await response.json();
         if (stopped || !kitchen) return;
-        const placed: OwnerOrder[] = kitchen.orders.filter((o: OwnerOrder) => o.status === "placed");
+        const placed: OwnerOrder[] = kitchen.orders.filter(
+          (o: OwnerOrder) => o.status === "placed",
+        );
         const lastId = Math.max(0, ...placed.map((o) => o.id));
         // A different conversation (Start over, or another kitchen): start counting again.
+        const confirmed = placed.filter(
+          (o) => o.delivery === "delivered" && o.deliveredBy === "customer",
+        );
         if (!seen.current || seen.current.token !== token) {
-          seen.current = { token, lastId };
+          seen.current = {
+            token,
+            lastId,
+            received: new Set(confirmed.map((o) => o.id)),
+          };
           return;
+        }
+        // Customers who just tapped "I've received my tiffin".
+        const justReceived = confirmed.filter(
+          (o) => !seen.current!.received.has(o.id),
+        );
+        if (justReceived.length) {
+          justReceived.forEach((o) => seen.current!.received.add(o.id));
+          setReceived((r) => [...r, ...justReceived]);
+          chime();
         }
         const newer = placed.filter((o) => o.id > seen.current!.lastId);
         if (newer.length) {
@@ -79,36 +110,64 @@ export default function NewOrderAlert({ getToken, lang, t, onOpenOrders }: Props
     };
   }, [getToken, lang]);
 
-  if (fresh.length === 0) return null;
+  const lastReceived = received[received.length - 1];
+  const receivedBanner = lastReceived && (
+    <div className={styles.receivedBanner} role="status">
+      <span aria-hidden="true">✅</span>
+      <strong>
+        {t.receivedAlert.replace("{name}", lastReceived.customerName)}
+        {received.length > 1 ? ` (+${received.length - 1})` : ""}
+      </strong>
+      <button
+        type="button"
+        className={styles.newOrderClose}
+        onClick={() => setReceived([])}
+        aria-label={t.dismiss}
+      >
+        ✕
+      </button>
+    </div>
+  );
+  if (fresh.length === 0) return receivedBanner || null;
   const latest = fresh[fresh.length - 1];
   return (
-    <div className={styles.newOrder} role="status">
-      <span className={styles.newOrderIcon} aria-hidden="true">
-        🔔
-      </span>
-      <div className={styles.newOrderText}>
-        <strong>
-          {t.newOrder}
-          {fresh.length > 1 ? ` (${fresh.length})` : ""}: {latest.customerName} · ₹{latest.amount}
-        </strong>
-        <span>
-          {latest.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")} · {latest.area}
+    <>
+      {receivedBanner}
+      <div className={styles.newOrder} role="status">
+        <span className={styles.newOrderIcon} aria-hidden="true">
+          🔔
         </span>
+        <div className={styles.newOrderText}>
+          <strong>
+            {t.newOrder}
+            {fresh.length > 1 ? ` (${fresh.length})` : ""}:{" "}
+            {latest.customerName} · ₹{latest.amount}
+          </strong>
+          <span>
+            {latest.items.map((i) => `${i.quantity} × ${i.dish}`).join(", ")} ·{" "}
+            {latest.area}
+          </span>
+        </div>
+        <div className={styles.newOrderActions}>
+          <button
+            type="button"
+            onClick={() => {
+              setFresh([]);
+              onOpenOrders();
+            }}
+          >
+            {t.seeOrders}
+          </button>
+          <button
+            type="button"
+            className={styles.newOrderClose}
+            onClick={() => setFresh([])}
+            aria-label={t.dismiss}
+          >
+            ✕
+          </button>
+        </div>
       </div>
-      <div className={styles.newOrderActions}>
-        <button
-          type="button"
-          onClick={() => {
-            setFresh([]);
-            onOpenOrders();
-          }}
-        >
-          {t.seeOrders}
-        </button>
-        <button type="button" className={styles.newOrderClose} onClick={() => setFresh([])} aria-label={t.dismiss}>
-          ✕
-        </button>
-      </div>
-    </div>
+    </>
   );
 }

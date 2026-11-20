@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { fill, getDictionary, isLang, LANG_COOKIE, type Lang } from "@/lib/i18n";
 import { trackOrders } from "@/lib/track";
 import RememberOrder from "./RememberOrder";
+import ReceivedButton from "./ReceivedButton";
 import Refresh from "./Refresh";
 import styles from "./track.module.css";
 
@@ -66,6 +67,11 @@ async function Tracking({ params }: Props) {
           ))}
         </ol>
       )}
+
+      {order.status !== "cancelled" && delivery !== "delivered" && (
+        <ReceivedButton code={order.code} label={t.receivedButton} hint={t.receivedHint} thanks={t.receivedThanks} />
+      )}
+      {order.receivedByCustomer && <p className={styles.thanks}>✓ {t.receivedThanks}</p>}
 
       <section className={styles.card}>
         <ul>

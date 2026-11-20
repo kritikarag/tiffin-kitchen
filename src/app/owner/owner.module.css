@@ -931,3 +931,19 @@
   font-weight: 700;
   pointer-events: none;
 }
+
+/* A customer confirmed their tiffin arrived. */
+.receivedBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  background: #e3f1e3;
+  color: #24622a;
+}
+
+.receivedBanner strong {
+  flex: 1;
+}

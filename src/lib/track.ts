@@ -19,6 +19,7 @@ export type TrackedOrder = {
   date: string; // the menu day, YYYY-MM-DD
   status: "placed" | "cancelled";
   delivery: Delivery;
+  receivedByCustomer: boolean;
   current: boolean; // today's or later, and not delivered or cancelled yet
   items: { dish: string; quantity: number }[];
   total: number;
@@ -32,7 +33,7 @@ export async function trackOrders(codes: string[], lang: Lang): Promise<TrackedO
   const valid = [...new Set(codes.filter(isTrackCode))].slice(0, 50);
   if (valid.length === 0) return [];
   const [rows] = await db().query<RowDataPacket[]>(
-    `SELECT o.id, o.track_code, o.area, o.address, o.status, o.delivery, dm.menu_date,
+    `SELECT o.id, o.track_code, o.area, o.address, o.status, o.delivery, o.delivered_by, dm.menu_date,
             k.name, k.slug, k.timezone, k.translations, k.owner_whatsapp,
             mi.name_original AS dish, mi.translations AS dish_tr, oi.quantity, oi.unit_price
        FROM orders o JOIN daily_menus dm ON dm.id = o.daily_menu_id JOIN kitchens k ON k.id = dm.kitchen_id
@@ -54,6 +55,7 @@ export async function trackOrders(codes: string[], lang: Lang): Promise<TrackedO
         date: String(r.menu_date),
         status: r.status,
         delivery,
+        receivedByCustomer: r.delivered_by === "customer",
         current: r.status === "placed" && delivery !== "delivered" && String(r.menu_date) >= nowInZone(r.timezone).date,
         items: [],
         total: 0,

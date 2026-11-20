@@ -452,13 +452,13 @@ const getOrders: Tool = {
       [menus[0].id],
     );
     const [lines] = await db().query<RowDataPacket[]>(
-      `SELECT o.id, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, o.delivery, mi.name_original AS dish, oi.quantity, oi.unit_price
+      `SELECT o.id, o.customer_name, o.phone, o.area, o.address, o.note_original, o.allergy_alert, o.status, o.delivery, o.delivered_by, mi.name_original AS dish, oi.quantity, oi.unit_price
          FROM orders o JOIN order_items oi ON oi.order_id = o.id JOIN menu_items mi ON mi.id = oi.menu_item_id
         WHERE o.daily_menu_id = ? ORDER BY o.id, mi.id LIMIT 600`,
       [menus[0].id],
     );
     type Order = {
-      order_id: number; customer_name: string; phone: string; area: string; address: string | null; note: string | null; allergy_alert: boolean; delivery: string;
+      order_id: number; customer_name: string; phone: string; area: string; address: string | null; note: string | null; allergy_alert: boolean; delivery: string; confirmed_by_customer: boolean;
       dabbas_with_customer: number; amount: number; items: { dish: string; quantity: number }[];
     };
     const placed = new Map<number, Order>();
@@ -470,7 +470,7 @@ const getOrders: Tool = {
       }
       const order: Order = placed.get(line.id) ?? {
         order_id: line.id, customer_name: line.customer_name, phone: line.phone, area: line.area, address: line.address ?? null, note: line.note_original,
-        allergy_alert: Boolean(line.allergy_alert), delivery: line.delivery ?? "waiting", dabbas_with_customer: boxes.get(line.phone) ?? 0, amount: 0, items: [],
+        allergy_alert: Boolean(line.allergy_alert), delivery: line.delivery ?? "waiting", confirmed_by_customer: line.delivered_by === "customer", dabbas_with_customer: boxes.get(line.phone) ?? 0, amount: 0, items: [],
       };
       order.items.push({ dish: line.dish, quantity: line.quantity });
       order.amount += line.quantity * line.unit_price;
