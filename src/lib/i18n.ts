@@ -2,9 +2,9 @@
 // Dish names and descriptions are not here; they come from menu_items.translations.
 
 export const LANGUAGES = [
+  { code: "en", label: "English" },
   { code: "kn", label: "ಕನ್ನಡ" },
   { code: "hi", label: "हिन्दी" },
-  { code: "en", label: "English" },
 ] as const;
 
 export type Lang = (typeof LANGUAGES)[number]["code"];
@@ -15,12 +15,18 @@ export function isLang(value: unknown): value is Lang {
   return LANGUAGES.some((l) => l.code === value);
 }
 
-// Cookie first (the customer chose it), then the browser's Accept-Language header, then English.
+// The customer's own choice (saved in a cookie) wins; otherwise English.
+// To follow the phone's language again, set FOLLOW_BROWSER_LANGUAGE to true: then the browser's
+// Accept-Language header is used before falling back to English.
+const FOLLOW_BROWSER_LANGUAGE = false;
+
 export function pickLanguage(cookieValue: string | undefined, acceptLanguage: string | null): Lang {
   if (isLang(cookieValue)) return cookieValue;
-  for (const part of (acceptLanguage ?? "").split(",")) {
-    const code = part.split(";")[0].trim().toLowerCase().split("-")[0];
-    if (isLang(code)) return code;
+  if (FOLLOW_BROWSER_LANGUAGE) {
+    for (const part of (acceptLanguage ?? "").split(",")) {
+      const code = part.split(";")[0].trim().toLowerCase().split("-")[0];
+      if (isLang(code)) return code;
+    }
   }
   return DEFAULT_LANG;
 }

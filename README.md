@@ -68,7 +68,7 @@ Existing tools help someone who already has a website. Nothing helps her go from
 **For the customer (`/k` lists kitchens, `/k/<kitchen>` shows one)**
 
 - Browse the home kitchens taking orders today, with their areas, dishes, lowest price and cut-off time. Open kitchens come first.
-- Today's menu in Kannada, Hindi or English, picked from the phone's language or a switch.
+- Today's menu in English by default, switchable to Kannada or Hindi (the choice is remembered).
 - Order with name, phone, area and an optional note in any language. No account, no app.
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
 - Pay by cash or UPI on delivery.
@@ -195,7 +195,7 @@ The owner and each customer use their own language, and neither needs to know th
 | Understanding her | Claude, including mixed-language speech |
 | Replies | Claude replies in her language; the browser reads it aloud with a voice installed on her phone |
 | Dishes, kitchen name, delivery area | Translated by Claude when saved, stored per language; names and places are transliterated |
-| Menu page labels | A small dictionary per language in `src/lib/i18n.ts` |
+| Menu page labels | A small dictionary per language in `src/lib/i18n.ts`. Pages open in English; each person's language choice is remembered |
 | Customer notes | Stored as written, translated into her language in the cooking list |
 
 Adding a language means one entry in the language list and one dictionary of labels.
@@ -323,7 +323,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 - **Order by voice.** The customer speaks ("two chapati and one payasa, less spicy"); Claude fills in the form; the customer checks it and taps Place order, so ordering itself stays AI-free.
 - **UPI payment links** generated per order, alongside cash on delivery.
-- **Find kitchens by location,** sorted by distance and by who delivers to their area.
+- **Kitchens near me, by distance.** With the customer's permission, the kitchen list uses their current location to show each kitchen's distance ("1.2 km away"), sorts the nearest first, and hides kitchens that don't deliver to them. Kitchens would store a location and a delivery radius when the owner sets up, picked on a map or taken from her phone, and the order form would fill in the delivery area from the customer's location.
 - **Ratings and repeat orders** in one tap.
 
 **For the platform**

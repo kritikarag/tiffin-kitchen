@@ -156,9 +156,9 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
 };
 
 const LANG_NAMES: { code: OwnerLang; label: string }[] = [
+  { code: "en", label: "English" },
   { code: "kn", label: "ಕನ್ನಡ" },
   { code: "hi", label: "हिन्दी" },
-  { code: "en", label: "English" },
 ];
 
 // Browser storage can throw (private windows, blocked storage), so every access is guarded.
@@ -190,7 +190,7 @@ let chosenLang: OwnerLang | null = null; // kept in memory too, in case storage 
 function savedLang(): OwnerLang {
   if (chosenLang) return chosenLang;
   const saved = read(LANG_KEY);
-  return saved === "kn" || saved === "hi" || saved === "en" ? saved : "kn";
+  return saved === "kn" || saved === "hi" || saved === "en" ? saved : "en";
 }
 function saveLang(code: OwnerLang) {
   chosenLang = code;
@@ -199,7 +199,7 @@ function saveLang(code: OwnerLang) {
 }
 
 export default function OwnerChat() {
-  const lang = useSyncExternalStore(subscribeLang, savedLang, () => "kn" as OwnerLang);
+  const lang = useSyncExternalStore(subscribeLang, savedLang, () => "en" as OwnerLang);
   const micAvailable = useSyncExternalStore(noSubscribe, canListen, () => true);
   const [lines, setLines] = useState<Line[]>([]);
   // The message box. Speech lands here too, so she can correct misheard words before sending.

@@ -74,13 +74,13 @@ const COPY: Record<Lang, {
 };
 
 const LANGS: { code: Lang; label: string }[] = [
+  { code: "en", label: "English" },
   { code: "kn", label: "ಕನ್ನಡ" },
   { code: "hi", label: "हिन्दी" },
-  { code: "en", label: "English" },
 ];
 
 export default function Home() {
-  const [lang, setLang] = useState<Lang>("kn");
+  const [lang, setLang] = useState<Lang>("en");
   const t = COPY[lang];
 
   return (
