@@ -106,6 +106,11 @@ async function contextBlock(kitchenId: number | null): Promise<string> {
     : "not set yet";
   return [
     `Kitchen: ${k.name} (status ${k.status}, page /k/${k.slug}${k.domain ? `, domain ${k.domain}` : ""}).`,
+    `This chat belongs to ${k.name}. If she says she wants to start a new or different kitchen, or gives a different ` +
+      `name as hers, do not offer to change ${k.name}: tell her this page is open on ${k.name}, and to start a new kitchen ` +
+      `she taps the Start over button at the top of the page (save her kitchen link first if she wants to come back). ` +
+      `Write the kitchen's name in her language's script, and call the button by the name on her screen: "Start over" in English, ` +
+      `"फिर से शुरू करें" in Hindi, "ಮತ್ತೆ ಶುರು ಮಾಡಿ" in Kannada, or its plain translation in another language.`,
     `Delivers to: ${k.delivery_area}. Capacity: ${k.capacity_per_day ?? "no limit"} portions a day.`,
     `Today is ${now.date}, time ${now.time.slice(0, 5)} (${k.timezone}).`,
     `Saved dishes: ${dishes.map((d) => `[${d.id}] ${d.name_original} ₹${d.price}`).join(", ") || "none"}.`,

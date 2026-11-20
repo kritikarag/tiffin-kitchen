@@ -79,7 +79,7 @@ export default function KitchenLink({ getToken, t, refreshKey }: { getToken: () 
   return (
     <>
       <button type="button" className={styles.keyButton} onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <Icon name="key" /> {t.myLink}
+        <Icon name="key" /> {t.myLink}: {kitchen.name}
       </button>
       {open && (
         <div ref={card} className={isNew ? styles.keyCardNew : styles.keyCard}>

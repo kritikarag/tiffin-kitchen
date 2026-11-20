@@ -1,3 +1,3 @@
 // Shown in the home page footer and at /api/version, so anyone can tell which build is live.
 // Update it with every change that is pushed.
-export const VERSION = "21 Nov 2026, 00:50 · inclusion first";
+export const VERSION = "21 Nov 2026, 01:00 · new kitchen from a linked page";
