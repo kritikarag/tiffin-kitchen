@@ -500,3 +500,10 @@
   color: var(--accent-dark);
   font-weight: 600;
 }
+
+/* A returning customer whose saved details have no address yet. */
+.addressNeeded {
+  margin: 0.4rem 0 0;
+  color: #8a4b00;
+  font-size: 0.95rem;
+}

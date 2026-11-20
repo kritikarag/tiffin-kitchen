@@ -77,6 +77,24 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
     }
     const form = new FormData(event.currentTarget);
     const customerName = String(form.get("name") ?? "").trim();
+    // Check each field here, the same way the server does, so the customer is told exactly which one to fix
+    // (details saved before the address field existed have no address, for example).
+    const value = (name: string) => String(form.get(name) ?? "").trim();
+    const digits = value("phone").replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+    const problem = !customerName
+      ? ["name", t.err_name]
+      : !/^[6-9]\d{9}$/.test(digits)
+        ? ["phone", t.err_phone]
+        : !value("area")
+          ? ["area", t.err_area]
+          : value("address").length < 5
+            ? ["address", t.err_address]
+            : null;
+    if (problem) {
+      setError(problem[1]);
+      (event.currentTarget.elements.namedItem(problem[0]) as HTMLElement | null)?.focus();
+      return;
+    }
     idempotencyKey.current ??= newKey();
     setSending(true);
     setError(null);
@@ -198,6 +216,7 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
       {me && (
         <div className={styles.welcome}>
           <p>{fill(t.welcomeBack, { name: me.name })}</p>
+          {!me.address && <p className={styles.addressNeeded}>{t.addAddressOnce}</p>}
           {last.length > 0 && (
             <button
               type="button"
