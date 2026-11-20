@@ -98,6 +98,7 @@ Tiffin works for both ends. The cook launches and runs her kitchen by speaking h
 - Today's menu in English by default, switchable to Kannada or Hindi (the choice is remembered).
 - Order with name, phone, area and an optional note in any language. No account, no app.
 - Clear messages when orders are closed, a dish is sold out or the kitchen is full for the day.
+- **Speak instead of typing.** The address and note boxes each have a 🎤 that listens in the language the customer picked, so someone who reads Hindi but can't type it can say "मूंगफली से एलर्जी है" (peanut allergy). The words land in the box to check before ordering.
 - Give a full delivery address (house, street, landmark) as well as the area. The cook sees it on each order with a **Map** button that opens it in Google Maps, and it's in the WhatsApp message and the delivery list. The area groups deliveries into routes.
 - Pay by cash or UPI on delivery.
 - **Track the order.** After ordering, **Track my order** opens a page that shows where it is: order received, being prepared, on the way, delivered. It updates by itself, in the customer's language, and needs no account. When the food arrives the customer taps **✓ I've received my tiffin**, which marks the order delivered and tells the cook; **It didn't arrive** alerts her instead. Answering is required: before ordering again, the menu page asks "Did your last tiffin arrive?" with Yes and No, and Place order waits until they answer. The link holds a random code: the link holds a random code, so only someone who has the link can see it.

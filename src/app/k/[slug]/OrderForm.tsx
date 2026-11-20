@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { fill, type Dictionary, type Lang } from "@/lib/i18n";
 import type { MenuDish } from "@/lib/menu";
 import styles from "./menu.module.css";
+import MicButton from "./MicButton";
 import PendingConfirm, { usePendingConfirmations } from "../../orders/PendingConfirm";
 import { forget, parse, readLast, readMe, remember, rememberOrder, subscribe, type LastOrder, type Me } from "./remember";
 
@@ -46,6 +47,7 @@ function UpiQr({ uri, label }: { uri: string; label: string }) {
 export default function OrderForm({ slug, lang, t, dishes }: Props) {
   // The last order must be answered (arrived or not) before a new one can be placed.
   const { pending, reload: reloadPending } = usePendingConfirmations(lang);
+  const mic = { speak: t.micSpeak, stop: t.micStop, blocked: t.micBlocked };
   const router = useRouter();
   const [quantities, setQuantities] = useState<Record<number, number>>({});
   const [sending, setSending] = useState(false);
@@ -292,7 +294,10 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
         </label>
         <label>
           {t.address}
-          <textarea name="address" rows={2} autoComplete="street-address" required minLength={5} maxLength={300} defaultValue={me?.address} />
+          <span className={styles.withMic}>
+            <textarea name="address" rows={2} autoComplete="street-address" required minLength={5} maxLength={300} defaultValue={me?.address} />
+            <MicButton lang={lang} t={mic} />
+          </span>
         </label>
         {me && (
           <button type="button" className={styles.forget} onClick={forget}>
@@ -301,7 +306,11 @@ export default function OrderForm({ slug, lang, t, dishes }: Props) {
         )}
         <label>
           {t.note}
-          <textarea name="note" rows={2} maxLength={500} />
+          <span className={styles.withMic}>
+            <textarea name="note" rows={2} maxLength={500} />
+            <MicButton lang={lang} t={mic} />
+          </span>
+          <small className={styles.micHint}>{t.micHint}</small>
         </label>
       </div>
 
