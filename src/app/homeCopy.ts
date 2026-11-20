@@ -11,9 +11,6 @@ const en = {
   start: "Start my kitchen",
   demo: "Browse kitchens",
   newOrder: "New order",
-  myKitchen: "Your kitchen",
-  myKitchenOrders: "{count} orders today, {delivered} delivered",
-  myKitchenOpen: "Open my kitchen",
   stats: [
     ["9", "Indian languages, both ways"],
     ["₹0", "commission on her food"],

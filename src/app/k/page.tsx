@@ -7,7 +7,6 @@ import { listKitchens } from "@/lib/menu";
 import { formatTime } from "@/lib/time";
 import LanguageSwitch from "./[slug]/LanguageSwitch";
 import MyOrdersLink from "../orders/MyOrdersLink";
-import CurrentOrders from "../orders/CurrentOrders";
 import styles from "./kitchens.module.css";
 
 // The customer's list of kitchens. Read from the database on every request, like the menu page.
@@ -39,8 +38,6 @@ async function Kitchens() {
         <h1>{t.kitchensTitle}</h1>
         <p>{t.kitchensLead}</p>
       </header>
-
-      <CurrentOrders lang={lang} t={t} />
 
       {kitchens.length === 0 && <p className={styles.empty}>{t.noKitchens}</p>}
 
