@@ -15,14 +15,17 @@ import { HOME_COPY } from "../src/app/homeCopy";
 import { dishes, kitchen, others } from "./demo-data.mjs";
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
-type Source = { en: Json; hi: Json; kn: Json };
+// English is the source. Hindi and Kannada, when written by hand, are used as examples of tone and are not
+// translated again; a section with only English (the home page) is translated into all eight others.
+type Source = { en: Json; hi?: Json; kn?: Json };
+type Language = (typeof LANGUAGES)[number];
 
 const SECTIONS: Record<string, Source> = {
   customer: CUSTOMER_LABELS,
   owner: OWNER_LABELS,
   steps: STEP_LABELS,
   whatsapp: WHATSAPP_LABELS,
-  home: HOME_COPY as unknown as Source,
+  home: HOME_COPY as Source,
 };
 
 const LABELS_FILE = path.join(process.cwd(), "src/lib/labels.generated.json");
@@ -46,7 +49,8 @@ async function ask(system: string, prompt: string): Promise<unknown> {
     messages: [{ role: "user", content: prompt }],
   });
   const text = response.content.map((b) => (b.type === "text" ? b.text : "")).join("");
-  return JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
+  // Trailing commas are the most common slip in long replies; drop them before parsing.
+  return JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1).replace(/,(\s*[\]}])/g, "$1"));
 }
 
 // The same keys all the way down, and the same {placeholders} in every string.
@@ -90,11 +94,11 @@ async function pool<T>(jobs: (() => Promise<T>)[], size = 6): Promise<T[]> {
   return results;
 }
 
-async function translateSection(section: string, source: Source, lang: (typeof TARGETS)[number]): Promise<Json | null> {
+async function translateSection(section: string, source: Source, lang: Language): Promise<Json | null> {
   const prompt =
     `English:\n${JSON.stringify(source.en, null, 2)}\n\n` +
-    `The same in Hindi, for tone:\n${JSON.stringify(source.hi, null, 2)}\n\n` +
-    `The same in Kannada, for tone:\n${JSON.stringify(source.kn, null, 2)}\n\n` +
+    (source.hi ? `The same in Hindi, for tone:\n${JSON.stringify(source.hi, null, 2)}\n\n` : "") +
+    (source.kn ? `The same in Kannada, for tone:\n${JSON.stringify(source.kn, null, 2)}\n\n` : "") +
     `Write the ${lang.name} version. Reply with only the JSON object, with the same keys.`;
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
@@ -125,7 +129,7 @@ function demoItems(): DemoItem[] {
   return items;
 }
 
-async function translateDemo(items: DemoItem[], lang: (typeof TARGETS)[number]): Promise<Record<string, Json> | null> {
+async function translateDemo(items: DemoItem[], lang: Language): Promise<Record<string, Json> | null> {
   const source = Object.fromEntries(items.map((i) => [i.key, i.en]));
   const prompt =
     `Kitchen names, delivery areas and dishes for a demo. Transliterate names, places and dish names into ${lang.name} ` +
@@ -151,7 +155,8 @@ async function main() {
   const jobs: (() => Promise<void>)[] = [];
   for (const [section, source] of Object.entries(SECTIONS)) {
     labels[section] ??= {};
-    for (const lang of TARGETS) {
+    const handWritten = Object.keys(source);
+    for (const lang of LANGUAGES.filter((l) => !handWritten.includes(l.code))) {
       const existing = labels[section][lang.code];
       if (!FORCE && existing && !sameShape(source.en, existing)) continue;
       jobs.push(async () => {

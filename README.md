@@ -149,7 +149,7 @@ Everything runs as one Next.js app, so there is one thing to deploy.
 
 | Part | What it does |
 | --- | --- |
-| Home page `/` | Explains the product in any of the nine languages, and links owners and customers onward |
+| Home page `/` | One line on what it is, then a day in a kitchen to tap through (each moment shows the real screen), how the agent and its ten tools work, the guardrails, and a before and after. In any of the nine languages, with a button to the demo kitchen always in reach |
 | Owner page `/owner` | Records speech into an editable box, sends menu photos, shows and speaks replies, shows Yes and No buttons, and lists today's orders |
 | Agent route `/api/agent` | Runs the Claude loop and enforces the confirmation gate |
 | Tools | The only code that can change data or call GoDaddy |

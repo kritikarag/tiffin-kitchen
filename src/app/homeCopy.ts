@@ -1,125 +1,109 @@
 import { labelsFor, type Lang } from "@/lib/i18n";
 
-// The home page's words. English, Hindi and Kannada are written here; other languages come from
-// labels.generated.json (npm run labels). Lists keep their length in every language.
+// The home page's words, written in English. `npm run labels` translates them into the other eight languages
+// (labels.generated.json); lists keep their length in every language. Tool names stay in code font, untranslated.
 
 const en = {
   langLabel: "Language",
+  nav: { day: "A day", agent: "The agent", languages: "Languages", trust: "Safety", demo: "Try the demo" },
   title: "Your kitchen, in your language.",
   lead: "Home food from the cook next door. She runs her kitchen by speaking her own language, and you order in yours. No app, no commission, no English needed.",
   start: "Start my kitchen",
   demo: "Browse kitchens",
+  newOrder: "New order",
+  stats: [
+    ["9", "Indian languages, both ways"],
+    ["₹0", "commission on her food"],
+    ["0", "apps to install"],
+  ],
   tiers: ["Dal tadka", "Paneer butter masala", "Jeera rice"],
-  chatTitle: "Talk to it the way you'd talk to a helper",
-  chatLead: "It does the work, shows you every step, and waits for your Yes before anything changes.",
+
+  dayTitle: "One day in Lakshmi's kitchen",
+  dayLead: "Tap a moment to see what happens on her screen.",
+  moments: [
+    ["7:30 am", "She speaks the menu", "No typing. The assistant reads it back and waits for her Yes before customers see it."],
+    ["9:10 am", "Orders come in", "Customers order in their own language and pay her by UPI. Each order rings on her screen."],
+    ["10:40 am", "The paneer runs out", "She says so once. Customers see it as sold out at once."],
+    ["11:00 am", "Cut-off: what to cook", "Allergy notes come first, then exact totals and deliveries by area."],
+    ["2:00 pm", "The dabbas come back", "Every steel box is counted, so none goes missing."],
+  ],
   stepsHeading: "What I did",
-  chatOwner1: "The paneer is finished.",
-  chatStep1: "Marked a dish sold out",
-  chatReply1: "Done. Customers now see paneer butter masala as sold out.",
-  chatOwner2: "Tomorrow, rajma chawal and aloo paratha. Orders until eleven.",
-  chatStep2: "Set tomorrow's menu: 2 dishes, orders until 11:00",
-  chatWaiting: "waiting for your Yes",
-  chatReply2: "Shall I put tomorrow's menu up?",
+  waiting: "waiting for your Yes",
   yes: "Yes",
   no: "No",
-  dayTitle: "How a day goes",
-  day: [
-    ["Morning", "Say today's menu, or send a photo of the one you wrote by hand. The page changes when you tap Yes."],
-    ["Through the morning", "Customers order in their own language. Each new order rings on your screen, and can reach your WhatsApp too."],
-    ["A dish runs out", "Just say so. Customers see it as sold out straight away."],
-    ["Cut-off", "Hear the cooking list: how much of each dish, every note in your language, deliveries grouped by area."],
+  m1Said: "Today, rajma chawal and aloo paratha. Orders until eleven.",
+  m1Step: "Set today's menu: 2 dishes, orders until 11:00",
+  m1Reply: "Shall I put today's menu up?",
+  m2Who: "Priya, Domlur",
+  m2Items: "2 × Rajma chawal, 1 × Aloo paratha",
+  m2Paid: "Paid ₹210 by UPI",
+  m3Said: "The paneer is finished.",
+  m3Step: "Marked a dish sold out",
+  m3Dish: "Paneer butter masala",
+  m3SoldOut: "Sold out",
+  m4Alert: "Allergy or health note",
+  m4AlertText: "Farhan, 2 × Rajma chawal: peanut allergy, add no peanuts at all.",
+  m4Cook: "To cook",
+  m4Totals: [
+    ["14", "Rajma chawal"],
+    ["9", "Aloo paratha"],
+    ["6", "Paneer butter masala"],
   ],
+  m5Said: "Ravi brought back two dabbas.",
+  m5Step: "Ravi returned 2 dabbas, 1 still out",
+  m5Out: "dabbas still with customers",
+
+  agentTitle: "Claude decides. Code checks. She says Yes.",
+  agentLead: "The assistant is an agent: it picks a tool, the app checks the call, and the result goes back to Claude, until the job is done.",
+  flow: ["She speaks, or sends a photo", "Claude picks the next tool", "The app checks every input", "Anything that changes her business waits for her Yes"],
+  flowNote: "At most 8 steps a turn. Every step shows on her screen, with the system that did it.",
+  groups: ["Launch", "Every day", "Around the kitchen"],
+  outcomes: [
+    ["Does it at once", "Small things that are easy to undo, like a dish selling out"],
+    ["Waits for her Yes", "Anything that changes her menu, her page or an order"],
+    ["Never invents numbers", "Counts and totals come from the database"],
+  ],
+
   langTitle: "Nine languages, both ways",
-  langText: "She writes the menu in her language. Each customer reads it in theirs. What customers write comes back to her in hers.",
-  trustTitle: "Built so she can trust it",
+  langText: "She writes the menu in her language. Each customer reads it in theirs. What customers write comes back to her in hers. Tap a language to switch this page.",
+  noteFrom: "A customer writes, in Tamil",
+  noteTo: "She reads, in Kannada",
+
+  trustTitle: "The guardrails are code, not a prompt.",
   trust: [
-    ["Nothing changes without your Yes", "Menus, publishing and cancellations wait for a button tap, never a word that could be misheard."],
-    ["Every step is shown", "Each reply lists what the assistant did, and which system did it."],
-    ["Numbers come from the database", "Orders and totals are counted by the database, never guessed."],
+    ["Nothing changes without her Yes", "Menus, publishing and cancellations wait for a button tap, never a word that could be misheard."],
+    ["Every step is shown", "Each reply lists what the assistant did and which system did it."],
+    ["Numbers come from the database", "Orders, totals and dabbas are counted by the database, never guessed."],
     ["Ordering never depends on AI", "If the assistant is down, customers can still order."],
+    ["Allergies stand out", "A note about an allergy or health shows in red, translated, with the original below it."],
+    ["Nothing added to her price", "Customers pay her directly by UPI or cash. No gateway, no commission."],
   ],
+
+  withoutTitle: "Without Tiffin",
+  without: [
+    "The menu is a WhatsApp status half the customers miss",
+    "Orders counted by hand from scattered messages",
+    "English forms and dashboards on every platform",
+    "Boxes and payments tracked in a notebook",
+  ],
+  withTitle: "With Tiffin",
+  with: [
+    "She speaks the menu; it's live when she taps Yes",
+    "Exact totals and a cooking list at cut-off",
+    "Her language on her side, theirs on theirs",
+    "UPI straight to her, and every dabba counted",
+  ],
+
+  ctaTitle: "See it work in a minute.",
+  ctaText: "The demo kitchen has a morning of orders in several languages.",
+  ctaCook: "Try it as the cook",
+  ctaCustomer: "Order as a customer",
   footer: "Built with Claude and GoDaddy for the Inclusive Innovation Hackathon 2026.",
 };
 
 export type HomeCopy = typeof en;
 
-export const HOME_COPY: { en: HomeCopy; hi: HomeCopy; kn: HomeCopy } = {
-  en,
-  hi: {
-    langLabel: "भाषा",
-    title: "आपकी रसोई, आपकी भाषा में।",
-    lead: "पड़ोस की रसोई का घर जैसा खाना। वह अपनी भाषा में बोलकर रसोई चलाती है, और आप अपनी भाषा में ऑर्डर करते हैं। न ऐप, न कमीशन, न अंग्रेज़ी की ज़रूरत।",
-    start: "मेरी रसोई शुरू करें",
-    demo: "रसोइयाँ देखें",
-    tiers: ["दाल तड़का", "पनीर बटर मसाला", "जीरा राइस"],
-    chatTitle: "जैसे किसी सहायक से बात करती हैं, वैसे ही बोलिए",
-    chatLead: "यह काम करता है, हर कदम दिखाता है, और कुछ भी बदलने से पहले आपकी हाँ का इंतज़ार करता है।",
-    stepsHeading: "मैंने क्या किया",
-    chatOwner1: "पनीर खत्म हो गया।",
-    chatStep1: "एक व्यंजन खत्म दिखाया",
-    chatReply1: "हो गया। ग्राहकों को अब पनीर बटर मसाला खत्म दिख रहा है।",
-    chatOwner2: "कल राजमा चावल और आलू पराठा। ऑर्डर ग्यारह बजे तक।",
-    chatStep2: "कल का मेन्यू तय किया: 2 व्यंजन, ऑर्डर 11:00 तक",
-    chatWaiting: "आपकी हाँ का इंतज़ार",
-    chatReply2: "कल का मेन्यू लगा दूँ?",
-    yes: "हाँ",
-    no: "नहीं",
-    dayTitle: "एक दिन ऐसे चलता है",
-    day: [
-      ["सुबह", "आज का मेन्यू बोलिए, या हाथ से लिखे मेन्यू की फ़ोटो भेजिए। हाँ दबाते ही पेज बदल जाता है।"],
-      ["दिन चढ़ते", "ग्राहक अपनी भाषा में ऑर्डर करते हैं। हर नए ऑर्डर पर आपकी स्क्रीन पर घंटी बजती है, और वह WhatsApp पर भी आ सकता है।"],
-      ["कुछ खत्म हो जाए", "बस बोल दीजिए। ग्राहकों को वह तुरंत खत्म दिखने लगता है।"],
-      ["आख़िरी समय", "पकाने की सूची सुनिए: हर व्यंजन कितना, हर नोट आपकी भाषा में, डिलीवरी इलाके के हिसाब से।"],
-    ],
-    langTitle: "नौ भाषाएँ, दोनों तरफ़",
-    langText: "वह मेन्यू अपनी भाषा में लिखती है। हर ग्राहक उसे अपनी भाषा में पढ़ता है। ग्राहक जो लिखते हैं, वह उस तक उसकी भाषा में पहुँचता है।",
-    trustTitle: "भरोसे के लायक बनाया गया",
-    trust: [
-      ["आपकी हाँ के बिना कुछ नहीं बदलता", "मेन्यू, पेज प्रकाशित करना और ऑर्डर रद्द करना बटन दबाने पर ही होता है, गलत सुने गए शब्द से नहीं।"],
-      ["हर कदम दिखता है", "हर जवाब के ऊपर लिखा होता है कि सहायक ने क्या किया और किस सिस्टम ने किया।"],
-      ["गिनती डेटाबेस से", "ऑर्डर और कुल रकम डेटाबेस गिनता है, अंदाज़ा नहीं लगाया जाता।"],
-      ["ऑर्डर AI पर निर्भर नहीं", "सहायक बंद हो, तब भी ग्राहक ऑर्डर कर सकते हैं।"],
-    ],
-    footer: "Claude और GoDaddy के साथ, Inclusive Innovation Hackathon 2026 के लिए बनाया गया।",
-  },
-  kn: {
-    langLabel: "ಭಾಷೆ",
-    title: "ನಿಮ್ಮ ಅಡುಗೆಮನೆ, ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ.",
-    lead: "ಪಕ್ಕದ ಮನೆಯ ಅಡುಗೆಮನೆಯ ಊಟ. ಅವರು ತಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಮಾತನಾಡಿ ಅಡುಗೆಮನೆ ನಡೆಸುತ್ತಾರೆ, ನೀವು ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡುತ್ತೀರಿ. ಆ್ಯಪ್ ಇಲ್ಲ, ಕಮಿಷನ್ ಇಲ್ಲ, ಇಂಗ್ಲಿಷ್ ಬೇಕಿಲ್ಲ.",
-    start: "ನನ್ನ ಅಡುಗೆಮನೆ ಶುರು ಮಾಡಿ",
-    demo: "ಅಡುಗೆಮನೆಗಳನ್ನು ನೋಡಿ",
-    tiers: ["ದಾಲ್ ತಡ್ಕಾ", "ಪನೀರ್ ಬಟರ್ ಮಸಾಲಾ", "ಜೀರಾ ರೈಸ್"],
-    chatTitle: "ಸಹಾಯಕರ ಜೊತೆ ಮಾತನಾಡುವಂತೆಯೇ ಮಾತನಾಡಿ",
-    chatLead: "ಇದು ಕೆಲಸ ಮಾಡುತ್ತದೆ, ಪ್ರತಿ ಹೆಜ್ಜೆ ತೋರಿಸುತ್ತದೆ, ಏನನ್ನಾದರೂ ಬದಲಾಯಿಸುವ ಮೊದಲು ನಿಮ್ಮ ಹೌದುಗಾಗಿ ಕಾಯುತ್ತದೆ.",
-    stepsHeading: "ನಾನು ಮಾಡಿದ್ದು",
-    chatOwner1: "ಪನೀರ್ ಮುಗಿದಿದೆ.",
-    chatStep1: "ಒಂದು ತಿನಿಸು ಖಾಲಿ ಎಂದು ಗುರುತಿಸಿದೆ",
-    chatReply1: "ಆಯಿತು. ಗ್ರಾಹಕರಿಗೆ ಈಗ ಪನೀರ್ ಬಟರ್ ಮಸಾಲಾ ಖಾಲಿ ಎಂದು ಕಾಣುತ್ತದೆ.",
-    chatOwner2: "ನಾಳೆ ರಾಜ್ಮಾ ಚಾವಲ್ ಮತ್ತು ಆಲೂ ಪರಾಠಾ. ಹನ್ನೊಂದು ಗಂಟೆವರೆಗೆ ಆರ್ಡರ್.",
-    chatStep2: "ನಾಳೆಯ ಮೆನು ಹಾಕಿದೆ: 2 ತಿನಿಸುಗಳು, 11:00 ವರೆಗೆ ಆರ್ಡರ್",
-    chatWaiting: "ನಿಮ್ಮ ಹೌದುಗಾಗಿ ಕಾಯುತ್ತಿದೆ",
-    chatReply2: "ನಾಳೆಯ ಮೆನು ಹಾಕಲೇ?",
-    yes: "ಹೌದು",
-    no: "ಬೇಡ",
-    dayTitle: "ಒಂದು ದಿನ ಹೀಗೆ ನಡೆಯುತ್ತದೆ",
-    day: [
-      ["ಬೆಳಿಗ್ಗೆ", "ಇಂದಿನ ಮೆನು ಹೇಳಿ, ಅಥವಾ ನೀವೇ ಬರೆದ ಮೆನುವಿನ ಫೋಟೋ ಕಳುಹಿಸಿ. ಹೌದು ಒತ್ತಿದ ತಕ್ಷಣ ಪುಟ ಬದಲಾಗುತ್ತದೆ."],
-      ["ಬೆಳಗಿನ ಹೊತ್ತು", "ಗ್ರಾಹಕರು ತಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡುತ್ತಾರೆ. ಪ್ರತಿ ಹೊಸ ಆರ್ಡರ್‌ಗೆ ನಿಮ್ಮ ಪರದೆಯಲ್ಲಿ ಗಂಟೆ ಬಾರಿಸುತ್ತದೆ, WhatsApp ನಲ್ಲೂ ಬರಬಹುದು."],
-      ["ಏನಾದರೂ ಮುಗಿದರೆ", "ಹೇಳಿದರೆ ಸಾಕು. ಗ್ರಾಹಕರಿಗೆ ತಕ್ಷಣ ಖಾಲಿ ಎಂದು ಕಾಣುತ್ತದೆ."],
-      ["ಕೊನೆಯ ಸಮಯ", "ಅಡುಗೆ ಪಟ್ಟಿ ಕೇಳಿ: ಪ್ರತಿ ತಿನಿಸು ಎಷ್ಟು, ಪ್ರತಿ ಸೂಚನೆ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ, ಡೆಲಿವರಿ ಪ್ರದೇಶವಾರು."],
-    ],
-    langTitle: "ಒಂಬತ್ತು ಭಾಷೆಗಳು, ಎರಡೂ ಕಡೆ",
-    langText: "ಅವರು ಮೆನುವನ್ನು ತಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಬರೆಯುತ್ತಾರೆ. ಪ್ರತಿ ಗ್ರಾಹಕರು ತಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಓದುತ್ತಾರೆ. ಗ್ರಾಹಕರು ಬರೆದದ್ದು ಅವರಿಗೆ ಅವರ ಭಾಷೆಯಲ್ಲೇ ತಲುಪುತ್ತದೆ.",
-    trustTitle: "ನಂಬಿಕೆಗೆ ತಕ್ಕಂತೆ ಮಾಡಲಾಗಿದೆ",
-    trust: [
-      ["ನಿಮ್ಮ ಹೌದು ಇಲ್ಲದೆ ಏನೂ ಬದಲಾಗುವುದಿಲ್ಲ", "ಮೆನು, ಪ್ರಕಟಣೆ, ಆರ್ಡರ್ ರದ್ದು ಎಲ್ಲವೂ ಬಟನ್ ಒತ್ತಿದಾಗ ಮಾತ್ರ, ತಪ್ಪಾಗಿ ಕೇಳಿದ ಪದದಿಂದ ಅಲ್ಲ."],
-      ["ಪ್ರತಿ ಹೆಜ್ಜೆ ಕಾಣುತ್ತದೆ", "ಪ್ರತಿ ಉತ್ತರದ ಮೇಲೆ ಸಹಾಯಕ ಏನು ಮಾಡಿತು, ಯಾವ ವ್ಯವಸ್ಥೆ ಮಾಡಿತು ಎಂದು ಬರೆದಿರುತ್ತದೆ."],
-      ["ಲೆಕ್ಕ ಡೇಟಾಬೇಸ್‌ನಿಂದ", "ಆರ್ಡರ್ ಮತ್ತು ಒಟ್ಟು ಮೊತ್ತವನ್ನು ಡೇಟಾಬೇಸ್ ಎಣಿಸುತ್ತದೆ, ಊಹಿಸುವುದಿಲ್ಲ."],
-      ["ಆರ್ಡರ್ AI ಮೇಲೆ ಅವಲಂಬಿತವಲ್ಲ", "ಸಹಾಯಕ ಕೆಲಸ ಮಾಡದಿದ್ದರೂ ಗ್ರಾಹಕರು ಆರ್ಡರ್ ಮಾಡಬಹುದು."],
-    ],
-    footer: "Claude ಮತ್ತು GoDaddy ಜೊತೆ, Inclusive Innovation Hackathon 2026 ಗಾಗಿ ಮಾಡಲಾಗಿದೆ.",
-  },
-};
+export const HOME_COPY: { en: HomeCopy } = { en };
 
 export function homeCopy(lang: Lang): HomeCopy {
   return labelsFor<HomeCopy>(HOME_COPY, "home", lang);
@@ -137,3 +121,20 @@ export const ONE_DISH: Record<Lang, string> = {
   bn: "পনির বাটার মসলা",
   gu: "પનીર બટર મસાલા",
 };
+
+// The ten tools, by what they are for. Code names, so they are never translated.
+export const TOOL_GROUPS: string[][] = [
+  ["create_kitchen", "check_domain", "register_domain", "publish_site"],
+  ["update_menu", "mark_sold_out", "get_orders", "cancel_order"],
+  ["update_customer_boxes", "update_kitchen_details"],
+];
+
+// Orders as customers really write them, each in their own script, popping up around the tiffin carrier.
+export const TICKETS = [
+  { who: "Priya", text: "राजमा चावल × 2 · कम तीखा" },
+  { who: "Arun", text: "Paneer butter masala × 1" },
+  { who: "Kavya", text: "ஆலூ பராத்தா × 3" },
+];
+
+// The note example in the languages section: written in Tamil, read in Kannada.
+export const NOTE_EXAMPLE = { written: "காரம் குறைவாக, வேர்க்கடலை வேண்டாம்", read: "ಖಾರ ಕಡಿಮೆ, ಕಡಲೆಕಾಯಿ ಬೇಡ" };
