@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { canListen, canSpeak, listen, speak, stopSpeaking, type Listening, type OwnerLang } from "./voice";
-import { preparePhoto } from "./photo";
+import CameraSheet from "./CameraSheet";
+import { preparePhoto, type PhotoForUpload } from "./photo";
 import styles from "./owner.module.css";
 
 type Line = { from: "owner" | "agent"; text: string; photo?: string };
@@ -21,6 +22,13 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     listening: "Listening… tap when you're done",
     discard: "Discard recording",
     photo: "Send a photo of your menu",
+    cameraTitle: "Photo of your menu",
+    takePhoto: "Take photo",
+    usePhoto: "Use photo",
+    retake: "Retake",
+    fromGallery: "Choose from gallery instead",
+    close: "Close",
+    cameraBlocked: "The camera isn't available here. Allow camera access for this page, or choose a photo from your gallery.",
     photoSent: "Photo of my menu",
     photoError: "That photo could not be opened. Please try another photo.",
     yes: "Yes",
@@ -43,6 +51,13 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     listening: "सुन रही हूँ… बोल लें तो दबाएँ",
     discard: "रिकॉर्डिंग हटाएँ",
     photo: "मेन्यू की फ़ोटो भेजें",
+    cameraTitle: "आपके मेन्यू की फ़ोटो",
+    takePhoto: "फ़ोटो लें",
+    usePhoto: "यह फ़ोटो भेजें",
+    retake: "फिर से लें",
+    fromGallery: "गैलरी से चुनें",
+    close: "बंद करें",
+    cameraBlocked: "यहाँ कैमरा नहीं खुला। इस पेज को कैमरे की अनुमति दें, या गैलरी से फ़ोटो चुनें।",
     photoSent: "मेरे मेन्यू की फ़ोटो",
     photoError: "यह फ़ोटो नहीं खुली। कृपया दूसरी फ़ोटो चुनें।",
     yes: "हाँ",
@@ -65,6 +80,13 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     listening: "ಕೇಳುತ್ತಿದ್ದೇನೆ… ಮುಗಿದ ಮೇಲೆ ಒತ್ತಿ",
     discard: "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",
     photo: "ಮೆನು ಫೋಟೋ ಕಳುಹಿಸಿ",
+    cameraTitle: "ನಿಮ್ಮ ಮೆನು ಫೋಟೋ",
+    takePhoto: "ಫೋಟೋ ತೆಗೆಯಿರಿ",
+    usePhoto: "ಈ ಫೋಟೋ ಕಳುಹಿಸಿ",
+    retake: "ಮತ್ತೆ ತೆಗೆಯಿರಿ",
+    fromGallery: "ಗ್ಯಾಲರಿಯಿಂದ ಆಯ್ಕೆ ಮಾಡಿ",
+    close: "ಮುಚ್ಚಿ",
+    cameraBlocked: "ಇಲ್ಲಿ ಕ್ಯಾಮೆರಾ ತೆರೆಯಲಿಲ್ಲ. ಈ ಪುಟಕ್ಕೆ ಕ್ಯಾಮೆರಾ ಅನುಮತಿ ನೀಡಿ, ಅಥವಾ ಗ್ಯಾಲರಿಯಿಂದ ಫೋಟೋ ಆಯ್ಕೆ ಮಾಡಿ.",
     photoSent: "ನನ್ನ ಮೆನು ಫೋಟೋ",
     photoError: "ಈ ಫೋಟೋ ತೆರೆಯಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಬೇರೆ ಫೋಟೋ ಆಯ್ಕೆ ಮಾಡಿ.",
     yes: "ಹೌದು",
@@ -185,7 +207,7 @@ export default function OwnerChat() {
       const response = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...body, token: token.current }),
+        body: JSON.stringify({ ...body, token: token.current, language: lang }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Something went wrong.");
@@ -253,14 +275,19 @@ export default function OwnerChat() {
   // A photo of her menu goes with whatever is in the message box, so she can add a note such as
   // "this is my menu" or "today's menu".
   const photoInput = useRef<HTMLInputElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+
+  function sendPhotoData(photo: PhotoForUpload) {
+    const note = draft.trim();
+    setDraft("");
+    send({ type: "message", text: note, image: { media_type: photo.media_type, data: photo.data } }, note || t.photoSent, photo.previewUrl);
+  }
+
   async function sendPhoto(file: File | undefined) {
     if (!file || busy) return;
     setError(null);
     try {
-      const photo = await preparePhoto(file);
-      const note = draft.trim();
-      setDraft("");
-      send({ type: "message", text: note, image: { media_type: photo.media_type, data: photo.data } }, note || t.photoSent, photo.previewUrl);
+      sendPhotoData(await preparePhoto(file));
     } catch {
       setError(t.photoError);
     } finally {
@@ -346,6 +373,21 @@ export default function OwnerChat() {
         <div ref={bottom} />
       </div>
 
+      {cameraOpen && (
+        <CameraSheet
+          t={t}
+          onPhoto={(photo) => {
+            setCameraOpen(false);
+            sendPhotoData(photo);
+          }}
+          onGallery={() => {
+            setCameraOpen(false);
+            photoInput.current?.click();
+          }}
+          onClose={() => setCameraOpen(false)}
+        />
+      )}
+
       <div className={styles.controls}>
         {micAvailable ? (
           <div className={styles.micRow}>
@@ -366,7 +408,11 @@ export default function OwnerChat() {
                 <button
                   type="button"
                   className={styles.photoButton}
-                  onClick={() => photoInput.current?.click()}
+                  onClick={() => {
+                    stopSpeaking();
+                    setError(null);
+                    setCameraOpen(true);
+                  }}
                   disabled={busy}
                   aria-label={t.photo}
                   title={t.photo}

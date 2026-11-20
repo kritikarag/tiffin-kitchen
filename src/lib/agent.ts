@@ -21,7 +21,11 @@ export type AgentReply = {
 };
 
 // "yes" and "no" arrive as their own turn types so the confirmation never depends on reading free text.
-export type OwnerTurn = { type: "message"; text: string; image?: ImageBlock["source"] } | { type: "confirm" } | { type: "cancel" };
+export type OwnerTurn = (
+  | { type: "message"; text: string; image?: ImageBlock["source"] }
+  | { type: "confirm" }
+  | { type: "cancel" }
+) & { screenLanguage?: "kn" | "hi" | "en" }; // the language she picked on the owner page
 
 const SYSTEM_PROMPT = `You are the assistant for a woman starting or running a home tiffin service in India.
 She speaks to you by voice and hears your replies read aloud. She may not read comfortably.
@@ -140,6 +144,12 @@ async function saveConversation(c: Conversation): Promise<void> {
   }
 }
 
+// Without words (a photo alone, or a Yes tap), Claude can't tell her language and may copy the menu's.
+const LANGUAGE_NAMES = { kn: "Kannada", hi: "Hindi", en: "English" } as const;
+function screenLanguageNote(lang: OwnerTurn["screenLanguage"]): string {
+  return lang ? `\nShe has chosen ${LANGUAGE_NAMES[lang]} on her screen. Reply in ${LANGUAGE_NAMES[lang]} unless she speaks to you in another language.` : "";
+}
+
 // How her Yes or No reaches Claude. "Tool result:" is followed by JSON so it can be read back reliably.
 function ownerAnswer(name: string, yes: boolean, result: { ok: boolean; data: unknown }): string {
   const what = yes ? (result.ok ? `She tapped Yes and ${name} ran.` : `She tapped Yes but ${name} failed.`) : `She tapped No, so ${name} did not run.`;
@@ -202,7 +212,7 @@ export async function handleOwnerTurn(token: string | null, turn: OwnerTurn, mod
   let reply = "";
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const response = await model({
-      system: `${SYSTEM_PROMPT}\n\nCurrent state:\n${await contextBlock(convo.kitchenId)}`,
+      system: `${SYSTEM_PROMPT}\n\nCurrent state:\n${await contextBlock(convo.kitchenId)}${screenLanguageNote(turn.screenLanguage)}`,
       messages: convo.messages,
       tools: toolDefinitions,
     });

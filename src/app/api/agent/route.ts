@@ -2,7 +2,7 @@ import { handleOwnerTurn, type OwnerTurn } from "@/lib/agent";
 import { callClaude, type ImageBlock } from "@/lib/model";
 
 // POST /api/agent
-// Body: { token?: string, type: "message", text: string } or { token, type: "confirm" | "cancel" }
+// Body: { token?, type: "message", text, image?, language? } or { token, type: "confirm" | "cancel", language? }
 // The token comes back in every reply; the dashboard sends it with the next turn to continue the conversation.
 //
 // TODO(before launch): this route has no sign-in yet. Anyone holding a token can act on that kitchen.
@@ -26,6 +26,8 @@ export async function POST(request: Request) {
   } else {
     return Response.json({ error: "invalid" }, { status: 400 });
   }
+
+  if (body.language === "kn" || body.language === "hi" || body.language === "en") turn.screenLanguage = body.language;
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ error: "ANTHROPIC_API_KEY is not set on the server." }, { status: 503 });

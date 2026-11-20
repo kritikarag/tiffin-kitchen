@@ -57,7 +57,7 @@ Existing tools help someone who already has a website. Nothing helps her go from
 **For the owner (`/owner`)**
 
 - **Launch in one conversation.** She tells the assistant her dishes and prices, where she delivers and how many people she can feed. It saves exactly what she says, finds a free web address, and publishes her page. If she isn't sure what to cook or charge, she can ask, and it suggests prices from her costs.
-- **Or send a photo of her menu.** She taps 📷 and photographs her handwritten menu. Claude reads each dish and price exactly as written, reads them back, and asks about anything unclear instead of guessing. Nothing is saved until she taps Yes.
+- **Or photograph her menu.** She taps 📷 and a camera opens inside the page: she frames her handwritten menu, taps **Take photo**, then **Use photo** or **Retake**. (She can also pick a photo from her gallery.) Claude reads each dish and price exactly as written, reads them back, and asks about anything unclear instead of guessing. Nothing is saved until she taps Yes.
 - **Speak at her own pace.** She taps the mic, talks with as many pauses as she needs, and taps ✓ when done. The words land in the message box so she can fix a misheard word before tapping Send. ✕ throws a recording away.
 - **Run it by voice.** "Only chapati and bisi bele bath today, orders until eleven." "Paneer is finished." "Cancel Ravi's order." "How many orders so far?"
 - **Get a cooking list at cut-off.** Exact totals per dish, special requests translated into her language, and deliveries grouped by area.
@@ -88,7 +88,7 @@ The prices are hers. The assistant only suggests prices if she asks, for example
 
 Instead of speaking the menu, she could photograph it. Given the sample below, which has a deliberately garbled line, the assistant replied: "I read five dishes. Poha for fifty rupees, Veg Thali for one hundred twenty, Rajma Chawal for one hundred, Aloo Paratha for seventy, and Gulab Jamun (two pieces) for forty. The note says Whitefield only, and orders by 11 am. Is all of this right?"
 
-<img src="docs/sample-handwritten-menu.jpg" alt="Sample handwritten menu used in testing" width="320">
+<img src="docs/sample-handwritten-menu.jpg" alt="Sample handwritten menu used in testing" width="300"> <img src="docs/in-page-camera.png" alt="The in-page camera framing the menu" width="220">
 
 She taps Yes. The kitchen is saved, and each dish is translated into Hindi and English.
 
@@ -162,7 +162,7 @@ When Claude asks for a tool that needs a Yes, the app does not run it. It checks
 
 ### Menu photos
 
-The page shrinks the photo in the browser to at most 1,600 pixels on its longest side, as a JPEG of about 150 to 500 KB, so it uploads quickly on a mobile connection while handwriting stays readable. It goes to Claude as an image alongside her words, for that turn only. The stored conversation keeps a short note, "[A photo was shared here.]", rather than the image, so later turns stay small and cheap. Claude's reading of the menu stays in the history as text, and the save goes through `create_kitchen` or `update_menu` with the usual Yes.
+The camera runs inside the page (the browser's camera API, back camera preferred), so every step stays on one screen. If camera access isn't allowed, the page says so and offers the gallery instead. The page shrinks the photo in the browser to at most 1,600 pixels on its longest side, as a JPEG of about 150 to 500 KB, so it uploads quickly on a mobile connection while handwriting stays readable. It goes to Claude as an image alongside her words, for that turn only. The stored conversation keeps a short note, "[A photo was shared here.]", rather than the image, so later turns stay small and cheap. Claude's reading of the menu stays in the history as text, and the save goes through `create_kitchen` or `update_menu` with the usual Yes.
 
 ### The customer side has no AI
 
@@ -219,7 +219,7 @@ The full schema is in [`schema.sql`](schema.sql). Prices are whole rupees.
 | Path | What it does |
 | --- | --- |
 | `src/app/page.tsx`, `Home.tsx` | The home page |
-| `src/app/owner/` | Owner page: chat, microphone, spoken replies, language picker. `voice.ts` holds the speech code; `photo.ts` shrinks menu photos |
+| `src/app/owner/` | Owner page: chat, microphone, spoken replies, language picker. `voice.ts` holds the speech code; `CameraSheet.tsx` is the in-page camera; `photo.ts` shrinks photos |
 | `src/app/k/page.tsx` | Customer list of kitchens |
 | `src/app/k/[slug]/` | Customer menu page, language switch and order form |
 | `src/app/api/agent/route.ts` | `POST /api/agent` |
