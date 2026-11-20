@@ -198,7 +198,7 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 
 ### Security and reliability
 
-- **The confirmation gate is code, not a prompt.** Tools that change her business run as a dry run first and are stored as pending. They run for real only on a separate Yes request from the button, so neither a misheard word nor text inside a customer's note can trigger them.
+- **The confirmation gate is code, not a prompt.** Tools that save her kitchen, change a menu, publish, reserve a domain or cancel an order run as a dry run first and are stored as pending. They run for real only on a separate Yes request from the button, so neither a misheard word nor text inside a customer's note can trigger them.
 - **Every tool input is checked again.** Claude's requests go through the same validation as any other untrusted input. Bad input goes back to Claude as a plain error, never into the database.
 - **Prices and limits are enforced on the server.** An order's total is computed from the day's menu in the database, not from the browser. Cut-off, sold-out and the daily plate limit are checked inside one database transaction, with the day's menu row locked so two orders at once can't both take the last plate.
 - **The agent's report comes from the tools.** The steps list above each reply is built from what each tool returned, so it can't show an action that didn't happen.
