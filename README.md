@@ -389,7 +389,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 - **Owners** sign in to their own kitchen instead of keeping a private link. One kitchen can have more than one person (a daughter who handles orders, someone who delivers), each with their own sign-in, and a lost phone no longer means a lost kitchen.
 - **Customers** sign in once and see the same My orders, saved details and favourite dishes on any phone, and can save more than one address (home, work).
-- Kitchens and orders already store the phone number, so existing kitchens and order history move into accounts without asking anyone to start again.
+- Orders already store the customer's phone number, and kitchens the owner's WhatsApp number, so existing kitchens and order history can move into accounts without anyone starting again.
 
 **For owners**
 
