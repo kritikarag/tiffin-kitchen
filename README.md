@@ -172,6 +172,7 @@ Placing an order is ordinary code. The order route locks the day's menu row, the
 
 - **Her menu, her prices.** The assistant writes down what she says or what her photo shows. It suggests dishes or prices only when she asks.
 - **Voice in both directions.** She may not read comfortably, so she speaks and hears replies. Typing still works, and every reply also appears as text.
+- **Misheard dish names are fixed before she sees them.** The browser's free speech recognition often turns Indian dish names into English words ("choleba today" for "chole bhature", "pavaji" for "pav bhaji"). A fast Claude model corrects these in about a second, using her saved dishes as hints. It never changes numbers, and she still checks the words before sending.
 - **She decides when she's finished speaking.** Browsers stop listening after a short pause, which cut owners off mid-sentence. The app keeps listening through pauses until she taps ✓, then puts the words in an editable box rather than sending them straight away.
 - **A photo is read, never guessed.** If a price in a photo is unclear, the assistant asks about that line.
 - **Yes is a button, not a word.** A misheard "yes" should never publish a page or cancel a customer's order. The gate is enforced in code, not left to the prompt.
@@ -258,6 +259,7 @@ npm run dev
 | `DATABASE_URL` | Yes | `mysql://user:password@host:3306/dbname` (or `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`) |
 | `ANTHROPIC_API_KEY` | For `/owner` | Your Claude API key, starting `sk-ant-` |
 | `CLAUDE_MODEL` | No | Defaults to `claude-sonnet-5-5` |
+| `CLAUDE_FAST_MODEL` | No | Model that fixes misheard dish names in dictation. Defaults to `claude-haiku-5-5` |
 | `GODADDY_API_KEY`, `GODADDY_API_SECRET` | No | GoDaddy test environment keys. Without them, domain checks are simulated |
 
 Then open:
@@ -306,6 +308,7 @@ The tables are created automatically on every start, and doing so again is harml
 
 **For owners**
 
+- **A speech model built for Indian languages,** such as Sarvam AI, instead of the browser's own recognition. It would hear mixed Hindi-English and dish names correctly the first time, rather than relying on Claude to fix them afterwards.
 - **Sign-in by phone number and one-time code,** so only she can act for her kitchen.
 - **Real domain purchase** through GoDaddy, with the domain pointing straight at her page.
 - **A shopping list from tomorrow's orders.** The cooking list already knows the portions; turning that into ingredients and quantities saves a morning trip.

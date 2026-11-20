@@ -35,6 +35,7 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     no: "No",
     typeHere: "Type, or tap the mic…",
     checkAndSend: "Check the words, fix anything wrong, then tap Send.",
+    tidying: "Fixing dish names…",
     send: "Send",
     replay: "Play again",
     noMic: "Voice input does not work in this browser. Please type, or open this page in Chrome.",
@@ -64,6 +65,7 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     no: "नहीं",
     typeHere: "लिखें, या माइक दबाएँ…",
     checkAndSend: "शब्द जाँच लें, कुछ गलत हो तो ठीक करें, फिर भेजें दबाएँ।",
+    tidying: "व्यंजनों के नाम ठीक कर रहे हैं…",
     send: "भेजें",
     replay: "फिर से सुनें",
     noMic: "इस ब्राउज़र में आवाज़ से लिखना काम नहीं करता। कृपया लिखें, या यह पेज Chrome में खोलें।",
@@ -93,6 +95,7 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     no: "ಬೇಡ",
     typeHere: "ಬರೆಯಿರಿ, ಅಥವಾ ಮೈಕ್ ಒತ್ತಿ…",
     checkAndSend: "ಪದಗಳನ್ನು ನೋಡಿ, ತಪ್ಪಿದ್ದರೆ ಸರಿಪಡಿಸಿ, ನಂತರ ಕಳುಹಿಸಿ ಒತ್ತಿ.",
+    tidying: "ತಿನಿಸುಗಳ ಹೆಸರು ಸರಿಪಡಿಸುತ್ತಿದ್ದೇನೆ…",
     send: "ಕಳುಹಿಸಿ",
     replay: "ಮತ್ತೆ ಕೇಳಿ",
     noMic: "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಇನ್‌ಪುಟ್ ಕೆಲಸ ಮಾಡುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಬರೆಯಿರಿ ಅಥವಾ Chrome ನಲ್ಲಿ ತೆರೆಯಿರಿ.",
@@ -243,7 +246,7 @@ export default function OwnerChat() {
         if (text) {
           // Not sent yet: it goes into the box to check and edit, then she taps Send.
           // No automatic focus: on a phone it would pop up the keyboard even when nothing needs fixing.
-          setDraft((d) => (d.trim() ? `${d.trim()} ${text}` : text));
+          tidyAndAdd(text);
         } else {
           setError(t.noSpeech);
         }
@@ -255,6 +258,28 @@ export default function OwnerChat() {
         setError({ "no-permission": t.noPermission, network: t.network, other: t.noMic }[reason]);
       },
     });
+  }
+
+  // The browser's recognition often mishears dish names, so the words are first tidied by Claude
+  // (see /api/transcript). If that is slow or fails, her words go into the box exactly as heard.
+  const [tidying, setTidying] = useState(false);
+  async function tidyAndAdd(heard: string) {
+    setTidying(true);
+    let text = heard;
+    try {
+      const response = await fetch("/api/transcript", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: heard, token: token.current }),
+        signal: AbortSignal.timeout(6000),
+      });
+      if (response.ok) text = (await response.json()).text || heard;
+    } catch {
+      // keep what was heard
+    } finally {
+      setTidying(false);
+    }
+    setDraft((d) => (d.trim() ? `${d.trim()} ${text}` : text));
   }
 
   function cancelMic() {
@@ -432,7 +457,8 @@ export default function OwnerChat() {
         ) : (
           <p className={styles.notice}>{t.noMic}</p>
         )}
-        {draft && !listening && <p className={styles.draftHint}>{t.checkAndSend}</p>}
+        {tidying && <p className={styles.draftHint}>{t.tidying}</p>}
+        {draft && !listening && !tidying && <p className={styles.draftHint}>{t.checkAndSend}</p>}
         <form className={styles.inputBar} onSubmit={submit}>
           <textarea
             ref={draftBox}
@@ -449,10 +475,10 @@ export default function OwnerChat() {
             }}
             autoComplete="off"
             placeholder={draft ? undefined : t.typeHere}
-            disabled={busy || listening}
+            disabled={busy || listening || tidying}
             maxLength={2000}
           />
-          <button type="submit" disabled={busy || listening || !draft.trim()}>
+          <button type="submit" disabled={busy || listening || tidying || !draft.trim()}>
             {t.send}
           </button>
         </form>
