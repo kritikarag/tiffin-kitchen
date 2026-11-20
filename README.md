@@ -367,6 +367,8 @@ The app is built for GoDaddy Node.js Hosting, which runs Next.js as a persistent
 
 The tables are created automatically on every start, and doing so again is harmless.
 
+**Stale pages after a deploy.** GoDaddy's CDN caches script files for a year by their address, and the build can reuse a file name with new contents. Each build therefore gets its own `deploymentId` (in `next.config.ts`), which Next.js adds to every script and stylesheet address as `?dpl=...`, so browsers always load the files of the build that served the page. Before this, the live order form kept an old script and lost its address field.
+
 ## 13. Status and limitations
 
 **Working:** launch by conversation or menu photo, a visible list of the agent's steps on each reply, the Today's orders screen, new-order alerts and WhatsApp order messages, kitchen save with translations of dishes, name and area, domain checks, publishing, daily menu, sold out, cancelling, the kitchen list, customer orders, the cooking list, nine languages, and voice in and out with editing before sending.
