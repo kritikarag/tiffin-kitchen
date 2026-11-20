@@ -79,7 +79,13 @@ Rules:
 
 // Facts that change every turn go in the system prompt, so Claude always knows today's date and the state.
 async function contextBlock(kitchenId: number | null): Promise<string> {
-  if (kitchenId == null) return "There is no kitchen yet. Help her launch one.";
+  if (kitchenId == null)
+    return (
+      "This chat is not linked to a kitchen yet. If she talks about a kitchen she already has (changing its menu, " +
+      "its orders), do not say it does not exist: tell her this chat is not connected to her kitchen, and to open " +
+      "her private kitchen link: the one she sent to her WhatsApp, or the My kitchen link button in the browser where she set it up. " +
+      "Otherwise help her launch a new one."
+    );
   const [kitchens] = await db().query<RowDataPacket[]>("SELECT * FROM kitchens WHERE id = ?", [kitchenId]);
   const k = kitchens[0];
   if (!k) return "There is no kitchen yet. Help her launch one.";

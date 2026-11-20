@@ -99,7 +99,7 @@ async function main() {
   script = [say("ನಮಸ್ಕಾರ! ನೀವು ಏನು ಅಡುಗೆ ಮಾಡುತ್ತೀರಿ?")];
   let r = await turn(null, { type: "message", text: "ನಾನು ಟಿಫಿನ್ ಸರ್ವೀಸ್ ಶುರು ಮಾಡಬೇಕು" });
   assert.equal(r.pending, null);
-  assert.ok(seen[0].system.includes("There is no kitchen yet"));
+  assert.ok(seen[0].system.includes("This chat is not linked to a kitchen yet"));
   const token = r.token;
   ok("interview turn returns a question and a conversation token");
 

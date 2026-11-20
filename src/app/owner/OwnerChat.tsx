@@ -5,6 +5,7 @@ import { canListen, canSpeak, listen, speak, stopSpeaking, type Listening, type 
 import type { AgentStep } from "@/lib/agent";
 import AgentSteps from "./AgentSteps";
 import CameraSheet from "./CameraSheet";
+import KitchenLink from "./KitchenLink";
 import NewOrderAlert from "./NewOrderAlert";
 import OrdersSheet from "./OrdersSheet";
 import { preparePhoto, type PhotoForUpload } from "./photo";
@@ -252,6 +253,7 @@ export default function OwnerChat() {
         📋 {t.ordersButton}
       </button>
       <NewOrderAlert getToken={getToken} lang={lang} t={t} onOpenOrders={() => setOrdersToken(token.current)} />
+      <KitchenLink getToken={getToken} t={t} refreshKey={lines.length} />
 
       <label className={styles.languagePick}>
         <span aria-hidden="true">🌐</span>

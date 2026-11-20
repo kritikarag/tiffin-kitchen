@@ -730,3 +730,79 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Her private kitchen link: how she gets back to her kitchen on any device. */
+.keyButton {
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 0.6rem;
+  border: 2px dashed var(--accent);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--accent-dark);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.keyCard {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding: 0.9rem 1rem;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--tint);
+}
+
+.keyCard p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.keyLink {
+  overflow-wrap: anywhere;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.85rem;
+}
+
+.keyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.keyActions button,
+.keyWhatsapp {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.keyWhatsapp {
+  background: #1a8d4a;
+  color: #fff;
+}
+
+.keyActions button {
+  border: 1.5px solid var(--accent);
+  background: #fff;
+  color: var(--accent-dark);
+}
+
+.keyButton:focus-visible,
+.keyActions button:focus-visible,
+.keyWhatsapp:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
