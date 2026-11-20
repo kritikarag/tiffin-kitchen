@@ -232,3 +232,24 @@
     animation: none;
   }
 }
+
+.micRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.micRow .mic,
+.micRow .micOn {
+  flex: 1;
+}
+
+.micCancel {
+  flex-shrink: 0;
+  width: 4.5rem;
+  border: 2px solid #b9b9b9;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 1.5rem;
+  cursor: pointer;
+}

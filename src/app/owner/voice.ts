@@ -37,53 +37,97 @@ export function canListen(): boolean {
 }
 
 export type ListenHandlers = {
-  onPartial: (text: string) => void; // words so far, shown live while she speaks
-  onDone: (text: string) => void; // final text; empty if nothing was heard
-  onError: (reason: "no-permission" | "no-speech" | "network" | "other") => void;
+  onPartial: (text: string) => void; // everything heard so far, shown live while she speaks
+  onDone: (text: string) => void; // final text when she taps stop; empty if nothing was heard
+  onError: (reason: "no-permission" | "network" | "other") => void;
 };
 
-// Starts listening and returns a function that stops it. Recognition ends by itself after a pause.
-export function listen(lang: OwnerLang, handlers: ListenHandlers): () => void {
+export type Listening = {
+  finish: () => void; // she tapped stop: send what was heard
+  cancel: () => void; // she tapped ✕: discard it
+};
+
+// Listens until she taps stop, however long she pauses.
+// Browsers end a recognition session by themselves after a pause, so when that happens and she hasn't
+// tapped stop, a new session starts at once and its words are added to what was already heard.
+// (continuous mode would avoid the restarts, but Chrome on Android repeats words in that mode.)
+export function listen(lang: OwnerLang, handlers: ListenHandlers): Listening {
   const Ctor = recognitionConstructor();
   if (!Ctor) {
     handlers.onError("other");
-    return () => {};
+    return { finish: () => {}, cancel: () => {} };
   }
-  const recognition = new Ctor();
-  recognition.lang = SPEECH_TAG[lang];
-  recognition.interimResults = true;
-  recognition.continuous = false;
-  recognition.maxAlternatives = 1;
 
-  let finalText = "";
-  let failed = false;
-  recognition.onresult = (event) => {
-    let interim = "";
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const result = event.results[i];
-      if (result.isFinal) finalText += result[0].transcript;
-      else interim += result[0].transcript;
-    }
-    handlers.onPartial((finalText + interim).trim());
+  let heard = ""; // text from finished sessions
+  let current = ""; // final text from the session that is running
+  let interim = "";
+  let state: "listening" | "finishing" | "cancelled" | "done" = "listening";
+  let recognition: Recognition | null = null;
+
+  const all = () => [heard, current, interim].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+
+  function finishNow() {
+    if (state === "done" || state === "cancelled") return;
+    state = "done";
+    handlers.onDone([heard, current, interim].filter(Boolean).join(" ").replace(/\s+/g, " ").trim());
+  }
+
+  function startSession() {
+    const r = new Ctor!();
+    recognition = r;
+    r.lang = SPEECH_TAG[lang];
+    r.interimResults = true;
+    r.continuous = false;
+    r.maxAlternatives = 1;
+    current = "";
+    interim = "";
+    r.onresult = (event) => {
+      let finals = "";
+      let partial = "";
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) finals += result[0].transcript;
+        else partial += result[0].transcript;
+      }
+      current = finals.trim();
+      interim = partial.trim();
+      handlers.onPartial(all());
+    };
+    r.onerror = (event) => {
+      // A pause with no speech, or the session being stopped, is normal here: the session just ends.
+      if (event.error === "no-speech" || event.error === "aborted") return;
+      state = "cancelled";
+      handlers.onError(
+        event.error === "not-allowed" || event.error === "service-not-allowed" ? "no-permission" : event.error === "network" ? "network" : "other",
+      );
+    };
+    r.onend = () => {
+      heard = [heard, current].filter(Boolean).join(" ");
+      current = "";
+      if (state === "listening") {
+        interim = "";
+        startSession(); // she paused but hasn't tapped stop: keep listening
+      } else if (state === "finishing") {
+        finishNow();
+      }
+    };
+    r.start();
+  }
+
+  startSession();
+  return {
+    finish: () => {
+      if (state !== "listening") return;
+      state = "finishing";
+      recognition?.stop(); // stop() still delivers the last words, then onend sends everything
+      setTimeout(finishNow, 1500); // in case the browser never fires onend
+    },
+    cancel: () => {
+      if (state === "done" || state === "cancelled") return;
+      state = "cancelled";
+      recognition?.abort();
+    },
   };
-  recognition.onerror = (event) => {
-    if (event.error === "aborted") return;
-    failed = true;
-    const reason =
-      event.error === "not-allowed" || event.error === "service-not-allowed"
-        ? "no-permission"
-        : event.error === "no-speech"
-          ? "no-speech"
-          : event.error === "network"
-            ? "network"
-            : "other";
-    handlers.onError(reason);
-  };
-  recognition.onend = () => {
-    if (!failed) handlers.onDone(finalText.trim());
-  };
-  recognition.start();
-  return () => recognition.stop(); // stop() still delivers what was heard; abort() would discard it
 }
 
 // ---- speaking ----

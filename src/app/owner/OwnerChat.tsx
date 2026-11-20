@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
-import { canListen, canSpeak, listen, speak, stopSpeaking, type OwnerLang } from "./voice";
+import { canListen, canSpeak, listen, speak, stopSpeaking, type Listening, type OwnerLang } from "./voice";
 import styles from "./owner.module.css";
 
 type Line = { from: "owner" | "agent"; text: string };
@@ -17,7 +17,8 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     startOver: "Start over",
     hint: "Tap the microphone and tell me about the tiffin service you want to start.",
     tapToSpeak: "Tap to speak",
-    listening: "Listening… tap to stop",
+    listening: "Listening… tap when you're done",
+    discard: "Discard recording",
     yes: "Yes",
     no: "No",
     typeHere: "Or type here…",
@@ -34,7 +35,8 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     startOver: "फिर से शुरू करें",
     hint: "माइक दबाइए और बताइए आप कैसी टिफ़िन सेवा शुरू करना चाहती हैं।",
     tapToSpeak: "बोलने के लिए दबाएँ",
-    listening: "सुन रही हूँ… रोकने के लिए दबाएँ",
+    listening: "सुन रही हूँ… बोल लें तो दबाएँ",
+    discard: "रिकॉर्डिंग हटाएँ",
     yes: "हाँ",
     no: "नहीं",
     typeHere: "या यहाँ लिखें…",
@@ -51,7 +53,8 @@ const LABELS: Record<OwnerLang, Record<string, string>> = {
     startOver: "ಮತ್ತೆ ಶುರು ಮಾಡಿ",
     hint: "ಮೈಕ್ ಒತ್ತಿ, ನೀವು ಶುರು ಮಾಡಬೇಕಾದ ಟಿಫಿನ್ ಸೇವೆಯ ಬಗ್ಗೆ ಹೇಳಿ.",
     tapToSpeak: "ಮಾತನಾಡಲು ಒತ್ತಿ",
-    listening: "ಕೇಳುತ್ತಿದ್ದೇನೆ… ನಿಲ್ಲಿಸಲು ಒತ್ತಿ",
+    listening: "ಕೇಳುತ್ತಿದ್ದೇನೆ… ಮುಗಿದ ಮೇಲೆ ಒತ್ತಿ",
+    discard: "ರೆಕಾರ್ಡಿಂಗ್ ಅಳಿಸಿ",
     yes: "ಹೌದು",
     no: "ಬೇಡ",
     typeHere: "ಅಥವಾ ಇಲ್ಲಿ ಬರೆಯಿರಿ…",
@@ -119,7 +122,7 @@ export default function OwnerChat() {
   const [partial, setPartial] = useState("");
   const [voiceAvailable, setVoiceAvailable] = useState(true);
   const token = useRef<string | null>(null);
-  const stopListening = useRef<(() => void) | null>(null);
+  const session = useRef<Listening | null>(null);
   const bottom = useRef<HTMLDivElement>(null);
   const t = LABELS[lang];
 
@@ -147,7 +150,7 @@ export default function OwnerChat() {
     bottom.current?.scrollIntoView({ behavior: "smooth" });
   }, [lines, pending, partial]);
   useEffect(() => () => {
-    stopListening.current?.();
+    session.current?.cancel();
     stopSpeaking();
   }, []);
 
@@ -186,29 +189,36 @@ export default function OwnerChat() {
 
   function toggleMic() {
     if (listening) {
-      stopListening.current?.(); // what was heard so far is still sent
+      session.current?.finish(); // she says when she is done; pauses don't send
       return;
     }
     stopSpeaking(); // don't let the assistant's voice be picked up by the microphone
     setError(null);
     setPartial("");
     setListening(true);
-    stopListening.current = listen(lang, {
+    session.current = listen(lang, {
       onPartial: setPartial,
       onDone: (text) => {
         setListening(false);
         setPartial("");
-        stopListening.current = null;
+        session.current = null;
         if (text) send({ type: "message", text }, text);
         else setError(t.noSpeech);
       },
       onError: (reason) => {
         setListening(false);
         setPartial("");
-        stopListening.current = null;
-        setError({ "no-permission": t.noPermission, "no-speech": t.noSpeech, network: t.network, other: t.noMic }[reason]);
+        session.current = null;
+        setError({ "no-permission": t.noPermission, network: t.network, other: t.noMic }[reason]);
       },
     });
+  }
+
+  function cancelMic() {
+    session.current?.cancel();
+    session.current = null;
+    setListening(false);
+    setPartial("");
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -296,18 +306,25 @@ export default function OwnerChat() {
 
       <div className={styles.controls}>
         {micAvailable ? (
-          <button
-            type="button"
-            className={listening ? styles.micOn : styles.mic}
-            onClick={toggleMic}
-            disabled={busy}
-            aria-pressed={listening}
-          >
-            <span className={styles.micIcon} aria-hidden="true">
-              🎤
-            </span>
-            <span>{listening ? t.listening : t.tapToSpeak}</span>
-          </button>
+          <div className={styles.micRow}>
+            <button
+              type="button"
+              className={listening ? styles.micOn : styles.mic}
+              onClick={toggleMic}
+              disabled={busy}
+              aria-pressed={listening}
+            >
+              <span className={styles.micIcon} aria-hidden="true">
+                {listening ? "✓" : "🎤"}
+              </span>
+              <span>{listening ? t.listening : t.tapToSpeak}</span>
+            </button>
+            {listening && (
+              <button type="button" className={styles.micCancel} onClick={cancelMic} aria-label={t.discard}>
+                ✕
+              </button>
+            )}
+          </div>
         ) : (
           <p className={styles.notice}>{t.noMic}</p>
         )}
